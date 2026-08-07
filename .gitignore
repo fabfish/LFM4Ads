@@ -1,0 +1,13 @@
+# Runtime outputs
+dataset.feather
+result.csv
+Feature/
+Module/
+Model/
+__pycache__/
+*.pyc
+
+# IDE / editor
+.codebuddy/
+.vscode/
+.idea/
