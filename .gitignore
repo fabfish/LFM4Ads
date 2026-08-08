@@ -7,6 +7,12 @@ Model/
 __pycache__/
 *.pyc
 
+# MoE / AdaTask experiment runtime artifacts
+cache/*.pt
+cache/*.log
+result_moe.csv
+result_moe_downstream.csv
+
 # IDE / editor
 .codebuddy/
 .vscode/

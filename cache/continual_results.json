@@ -1,0 +1,670 @@
+{
+  "pre_continual": {
+    "vanilla": {
+      "0": 0.7076633562756885,
+      "1": 0.731538501495953,
+      "2": 0.7785738084402075,
+      "3": 0.7251135487188277,
+      "4": 0.7132725075657371,
+      "5": 0.6764245437008458,
+      "6": 0.726063209612029,
+      "8": 0.6798635342647661
+    },
+    "moe": {
+      "0": 0.6975431855035841,
+      "1": 0.7235397028733296,
+      "2": 0.7844192551860341,
+      "3": 0.744871025794841,
+      "4": 0.7111792580762157,
+      "5": 0.6318426324380472,
+      "6": 0.7276922936867546,
+      "8": 0.7532739062257194
+    }
+  },
+  "vanilla_trajectory": [
+    {
+      "task": 0,
+      "train_scenario": 0,
+      "auc": {
+        "0": 0.7151310707366348,
+        "1": 0.7287785074883145,
+        "2": 0.7842173199143884,
+        "3": 0.7354700488473734,
+        "4": 0.7139595996783502,
+        "5": 0.6601888262353465,
+        "6": 0.7097681935250783,
+        "8": 0.585248703858053
+      }
+    },
+    {
+      "task": 1,
+      "train_scenario": 1,
+      "auc": {
+        "0": 0.6344410819235795,
+        "1": 0.7318191852547853,
+        "2": 0.7846569287864643,
+        "3": 0.6537106864341418,
+        "4": 0.7088300384398332,
+        "5": 0.663956076569224,
+        "6": 0.7052291030280299,
+        "8": 0.5898893864692669
+      }
+    },
+    {
+      "task": 2,
+      "train_scenario": 2,
+      "auc": {
+        "0": 0.6306955745075881,
+        "1": 0.7287288788576282,
+        "2": 0.7986043429313852,
+        "3": 0.6778901362584626,
+        "4": 0.7056358574177772,
+        "5": 0.6636500222584953,
+        "6": 0.7145797420492249,
+        "8": 0.6381538983146623
+      }
+    },
+    {
+      "task": 3,
+      "train_scenario": 3,
+      "auc": {
+        "0": 0.6760110739316126,
+        "1": 0.728618216011449,
+        "2": 0.7974674460261152,
+        "3": 0.7261633387608193,
+        "4": 0.7063528652150977,
+        "5": 0.6740243359548894,
+        "6": 0.7220265117300778,
+        "8": 0.5941980872194047
+      }
+    },
+    {
+      "task": 4,
+      "train_scenario": 4,
+      "auc": {
+        "0": 0.6412050064863642,
+        "1": 0.7262558181523939,
+        "2": 0.7913668094400748,
+        "3": 0.6497579055617448,
+        "4": 0.7194019489245446,
+        "5": 0.6654158628876687,
+        "6": 0.7196717228148038,
+        "8": 0.5642985293909899
+      }
+    },
+    {
+      "task": 5,
+      "train_scenario": 5,
+      "auc": {
+        "0": 0.663146756844961,
+        "1": 0.7259174502263349,
+        "2": 0.7882395464328882,
+        "3": 0.6688276630388208,
+        "4": 0.7196452956542371,
+        "5": 0.6948861106989167,
+        "6": 0.7143851780642917,
+        "8": 0.6065449870738977
+      }
+    },
+    {
+      "task": 6,
+      "train_scenario": 6,
+      "auc": {
+        "0": 0.6658656175926339,
+        "1": 0.7264627050450334,
+        "2": 0.7885292526897977,
+        "3": 0.6428485731425143,
+        "4": 0.7197460176331416,
+        "5": 0.6744676509867933,
+        "6": 0.7336330662536229,
+        "8": 0.65698503962592
+      }
+    },
+    {
+      "task": 7,
+      "train_scenario": 8,
+      "auc": {
+        "0": 0.6600002914704597,
+        "1": 0.7230567289554262,
+        "2": 0.7872154190143498,
+        "3": 0.6231382294969577,
+        "4": 0.7177778909472993,
+        "5": 0.6760888113963496,
+        "6": 0.7195666719525783,
+        "8": 0.7819726785991779
+      }
+    }
+  ],
+  "moe_trajectory": [
+    {
+      "task": 0,
+      "train_scenario": 0,
+      "auc": {
+        "0": 0.7115313316067395,
+        "1": 0.7227427051503637,
+        "2": 0.7727766636192699,
+        "3": 0.745723712400377,
+        "4": 0.7071562430986229,
+        "5": 0.6744713607360142,
+        "6": 0.7079367937077083,
+        "8": 0.6374193001539831
+      }
+    },
+    {
+      "task": 1,
+      "train_scenario": 1,
+      "auc": {
+        "0": 0.6716580793781863,
+        "1": 0.7311013813034284,
+        "2": 0.7842636472813381,
+        "3": 0.6939497814722769,
+        "4": 0.7072408268209432,
+        "5": 0.6477389078498293,
+        "6": 0.7291086921177921,
+        "8": 0.6611595349428567
+      }
+    },
+    {
+      "task": 2,
+      "train_scenario": 2,
+      "auc": {
+        "0": 0.6539112488029426,
+        "1": 0.7278830520992017,
+        "2": 0.7961393692753939,
+        "3": 0.6454923301054075,
+        "4": 0.7046189724831844,
+        "5": 0.6597455112034426,
+        "6": 0.7275048140896633,
+        "8": 0.6514755534208259
+      }
+    },
+    {
+      "task": 3,
+      "train_scenario": 3,
+      "auc": {
+        "0": 0.688310415119477,
+        "1": 0.7248919946449347,
+        "2": 0.7947534713846491,
+        "3": 0.7654854743337047,
+        "4": 0.7007398372405309,
+        "5": 0.6698972399465796,
+        "6": 0.7204757837228113,
+        "8": 0.5916058033254694
+      }
+    },
+    {
+      "task": 4,
+      "train_scenario": 4,
+      "auc": {
+        "0": 0.6775747586919924,
+        "1": 0.7277803533996892,
+        "2": 0.7905737650961259,
+        "3": 0.7118133516153912,
+        "4": 0.7143917965557035,
+        "5": 0.666137409111144,
+        "6": 0.7290152261120132,
+        "8": 0.6409439586364728
+      }
+    },
+    {
+      "task": 5,
+      "train_scenario": 5,
+      "auc": {
+        "0": 0.6817271859958879,
+        "1": 0.7267913724987485,
+        "2": 0.7899171550363306,
+        "3": 0.7228811380581026,
+        "4": 0.7128427503952498,
+        "5": 0.6725942276302121,
+        "6": 0.7268743891319741,
+        "8": 0.6124358992470369
+      }
+    },
+    {
+      "task": 6,
+      "train_scenario": 6,
+      "auc": {
+        "0": 0.6841114435332064,
+        "1": 0.725539833591804,
+        "2": 0.7851564542478052,
+        "3": 0.706748650269946,
+        "4": 0.7141905633822045,
+        "5": 0.661171909778899,
+        "6": 0.73136132210694,
+        "8": 0.6742057157387656
+      }
+    },
+    {
+      "task": 7,
+      "train_scenario": 8,
+      "auc": {
+        "0": 0.6716993912125047,
+        "1": 0.7188577174345827,
+        "2": 0.7849291630004105,
+        "3": 0.6936841203187933,
+        "4": 0.7115723228685265,
+        "5": 0.667278156996587,
+        "6": 0.7095887737025607,
+        "8": 0.7738497181685903
+      }
+    }
+  ],
+  "vanilla_forgetting": [
+    {
+      "train_task": 1,
+      "eval_task": 0,
+      "after_scenario": 1,
+      "eval_scenario": 0,
+      "forgetting": -0.08068998881305534
+    },
+    {
+      "train_task": 2,
+      "eval_task": 0,
+      "after_scenario": 2,
+      "eval_scenario": 0,
+      "forgetting": -0.08443549622904678
+    },
+    {
+      "train_task": 2,
+      "eval_task": 1,
+      "after_scenario": 2,
+      "eval_scenario": 1,
+      "forgetting": -4.962863068636025e-05
+    },
+    {
+      "train_task": 3,
+      "eval_task": 0,
+      "after_scenario": 3,
+      "eval_scenario": 0,
+      "forgetting": -0.039119996805022206
+    },
+    {
+      "train_task": 3,
+      "eval_task": 1,
+      "after_scenario": 3,
+      "eval_scenario": 1,
+      "forgetting": -0.00016029147686547063
+    },
+    {
+      "train_task": 3,
+      "eval_task": 2,
+      "after_scenario": 3,
+      "eval_scenario": 2,
+      "forgetting": 0.013250126111726823
+    },
+    {
+      "train_task": 4,
+      "eval_task": 0,
+      "after_scenario": 4,
+      "eval_scenario": 0,
+      "forgetting": -0.0739260642502706
+    },
+    {
+      "train_task": 4,
+      "eval_task": 1,
+      "after_scenario": 4,
+      "eval_scenario": 1,
+      "forgetting": -0.0025226893359205915
+    },
+    {
+      "train_task": 4,
+      "eval_task": 2,
+      "after_scenario": 4,
+      "eval_scenario": 2,
+      "forgetting": 0.007149489525686392
+    },
+    {
+      "train_task": 4,
+      "eval_task": 3,
+      "after_scenario": 4,
+      "eval_scenario": 3,
+      "forgetting": -0.0857121432856286
+    },
+    {
+      "train_task": 5,
+      "eval_task": 0,
+      "after_scenario": 5,
+      "eval_scenario": 0,
+      "forgetting": -0.051984313891673795
+    },
+    {
+      "train_task": 5,
+      "eval_task": 1,
+      "after_scenario": 5,
+      "eval_scenario": 1,
+      "forgetting": -0.002861057261979605
+    },
+    {
+      "train_task": 5,
+      "eval_task": 2,
+      "after_scenario": 5,
+      "eval_scenario": 2,
+      "forgetting": 0.004022226518499816
+    },
+    {
+      "train_task": 5,
+      "eval_task": 3,
+      "after_scenario": 5,
+      "eval_scenario": 3,
+      "forgetting": -0.06664238580855264
+    },
+    {
+      "train_task": 5,
+      "eval_task": 4,
+      "after_scenario": 5,
+      "eval_scenario": 4,
+      "forgetting": 0.005685695975886862
+    },
+    {
+      "train_task": 6,
+      "eval_task": 0,
+      "after_scenario": 6,
+      "eval_scenario": 0,
+      "forgetting": -0.04926545314400099
+    },
+    {
+      "train_task": 6,
+      "eval_task": 1,
+      "after_scenario": 6,
+      "eval_scenario": 1,
+      "forgetting": -0.002315802443281112
+    },
+    {
+      "train_task": 6,
+      "eval_task": 2,
+      "after_scenario": 6,
+      "eval_scenario": 2,
+      "forgetting": 0.004311932775409311
+    },
+    {
+      "train_task": 6,
+      "eval_task": 3,
+      "after_scenario": 6,
+      "eval_scenario": 3,
+      "forgetting": -0.09262147570485912
+    },
+    {
+      "train_task": 6,
+      "eval_task": 4,
+      "after_scenario": 6,
+      "eval_scenario": 4,
+      "forgetting": 0.005786417954791401
+    },
+    {
+      "train_task": 6,
+      "eval_task": 5,
+      "after_scenario": 6,
+      "eval_scenario": 5,
+      "forgetting": 0.014278824751446817
+    },
+    {
+      "train_task": 7,
+      "eval_task": 0,
+      "after_scenario": 8,
+      "eval_scenario": 0,
+      "forgetting": -0.055130779266175156
+    },
+    {
+      "train_task": 7,
+      "eval_task": 1,
+      "after_scenario": 8,
+      "eval_scenario": 1,
+      "forgetting": -0.005721778532888355
+    },
+    {
+      "train_task": 7,
+      "eval_task": 2,
+      "after_scenario": 8,
+      "eval_scenario": 2,
+      "forgetting": 0.0029980990999614043
+    },
+    {
+      "train_task": 7,
+      "eval_task": 3,
+      "after_scenario": 8,
+      "eval_scenario": 3,
+      "forgetting": -0.1123318193504157
+    },
+    {
+      "train_task": 7,
+      "eval_task": 4,
+      "after_scenario": 8,
+      "eval_scenario": 4,
+      "forgetting": 0.003818291268949059
+    },
+    {
+      "train_task": 7,
+      "eval_task": 5,
+      "after_scenario": 8,
+      "eval_scenario": 5,
+      "forgetting": 0.015899985161003105
+    },
+    {
+      "train_task": 7,
+      "eval_task": 6,
+      "after_scenario": 8,
+      "eval_scenario": 6,
+      "forgetting": 0.009798478427500035
+    }
+  ],
+  "moe_forgetting": [
+    {
+      "train_task": 1,
+      "eval_task": 0,
+      "after_scenario": 1,
+      "eval_scenario": 0,
+      "forgetting": -0.0398732522285532
+    },
+    {
+      "train_task": 2,
+      "eval_task": 0,
+      "after_scenario": 2,
+      "eval_scenario": 0,
+      "forgetting": -0.057620082803796935
+    },
+    {
+      "train_task": 2,
+      "eval_task": 1,
+      "after_scenario": 2,
+      "eval_scenario": 1,
+      "forgetting": 0.005140346948838026
+    },
+    {
+      "train_task": 3,
+      "eval_task": 0,
+      "after_scenario": 3,
+      "eval_scenario": 0,
+      "forgetting": -0.023220916487262544
+    },
+    {
+      "train_task": 3,
+      "eval_task": 1,
+      "after_scenario": 3,
+      "eval_scenario": 1,
+      "forgetting": 0.0021492894945710495
+    },
+    {
+      "train_task": 3,
+      "eval_task": 2,
+      "after_scenario": 3,
+      "eval_scenario": 2,
+      "forgetting": 0.021976807765379247
+    },
+    {
+      "train_task": 4,
+      "eval_task": 0,
+      "after_scenario": 4,
+      "eval_scenario": 0,
+      "forgetting": -0.033956572914747185
+    },
+    {
+      "train_task": 4,
+      "eval_task": 1,
+      "after_scenario": 4,
+      "eval_scenario": 1,
+      "forgetting": 0.00503764824932551
+    },
+    {
+      "train_task": 4,
+      "eval_task": 2,
+      "after_scenario": 4,
+      "eval_scenario": 2,
+      "forgetting": 0.01779710147685598
+    },
+    {
+      "train_task": 4,
+      "eval_task": 3,
+      "after_scenario": 4,
+      "eval_scenario": 3,
+      "forgetting": -0.03391036078498588
+    },
+    {
+      "train_task": 5,
+      "eval_task": 0,
+      "after_scenario": 5,
+      "eval_scenario": 0,
+      "forgetting": -0.02980414561085165
+    },
+    {
+      "train_task": 5,
+      "eval_task": 1,
+      "after_scenario": 5,
+      "eval_scenario": 1,
+      "forgetting": 0.004048667348384827
+    },
+    {
+      "train_task": 5,
+      "eval_task": 2,
+      "after_scenario": 5,
+      "eval_scenario": 2,
+      "forgetting": 0.017140491417060755
+    },
+    {
+      "train_task": 5,
+      "eval_task": 3,
+      "after_scenario": 5,
+      "eval_scenario": 3,
+      "forgetting": -0.022842574342274435
+    },
+    {
+      "train_task": 5,
+      "eval_task": 4,
+      "after_scenario": 5,
+      "eval_scenario": 4,
+      "forgetting": 0.005686507296626897
+    },
+    {
+      "train_task": 6,
+      "eval_task": 0,
+      "after_scenario": 6,
+      "eval_scenario": 0,
+      "forgetting": -0.027419888073533127
+    },
+    {
+      "train_task": 6,
+      "eval_task": 1,
+      "after_scenario": 6,
+      "eval_scenario": 1,
+      "forgetting": 0.002797128441440311
+    },
+    {
+      "train_task": 6,
+      "eval_task": 2,
+      "after_scenario": 6,
+      "eval_scenario": 2,
+      "forgetting": 0.012379790628535337
+    },
+    {
+      "train_task": 6,
+      "eval_task": 3,
+      "after_scenario": 6,
+      "eval_scenario": 3,
+      "forgetting": -0.038975062130431004
+    },
+    {
+      "train_task": 6,
+      "eval_task": 4,
+      "after_scenario": 6,
+      "eval_scenario": 4,
+      "forgetting": 0.007034320283581641
+    },
+    {
+      "train_task": 6,
+      "eval_task": 5,
+      "after_scenario": 6,
+      "eval_scenario": 5,
+      "forgetting": -0.013299450957115266
+    },
+    {
+      "train_task": 7,
+      "eval_task": 0,
+      "after_scenario": 8,
+      "eval_scenario": 0,
+      "forgetting": -0.03983194039423488
+    },
+    {
+      "train_task": 7,
+      "eval_task": 1,
+      "after_scenario": 8,
+      "eval_scenario": 1,
+      "forgetting": -0.003884987715780941
+    },
+    {
+      "train_task": 7,
+      "eval_task": 2,
+      "after_scenario": 8,
+      "eval_scenario": 2,
+      "forgetting": 0.012152499381140602
+    },
+    {
+      "train_task": 7,
+      "eval_task": 3,
+      "after_scenario": 8,
+      "eval_scenario": 3,
+      "forgetting": -0.05203959208158371
+    },
+    {
+      "train_task": 7,
+      "eval_task": 4,
+      "after_scenario": 8,
+      "eval_scenario": 4,
+      "forgetting": 0.004416079769903547
+    },
+    {
+      "train_task": 7,
+      "eval_task": 5,
+      "after_scenario": 8,
+      "eval_scenario": 5,
+      "forgetting": -0.007193203739427223
+    },
+    {
+      "train_task": 7,
+      "eval_task": 6,
+      "after_scenario": 8,
+      "eval_scenario": 6,
+      "forgetting": 0.0016519799948523373
+    }
+  ],
+  "final_auc": {
+    "vanilla": {
+      "0": 0.6600002914704597,
+      "1": 0.7230567289554262,
+      "2": 0.7872154190143498,
+      "3": 0.6231382294969577,
+      "4": 0.7177778909472993,
+      "5": 0.6760888113963496,
+      "6": 0.7195666719525783,
+      "8": 0.7819726785991779
+    },
+    "moe": {
+      "0": 0.6716993912125047,
+      "1": 0.7188577174345827,
+      "2": 0.7849291630004105,
+      "3": 0.6936841203187933,
+      "4": 0.7115723228685265,
+      "5": 0.667278156996587,
+      "6": 0.7095887737025607,
+      "8": 0.7738497181685903
+    }
+  }
+}

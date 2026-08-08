@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LFM4Ads: Large Foundation Model for Ads Recommendation</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --bg2: #1a1d2e;
+    --bg3: #242838;
+    --fg: #e4e6ef;
+    --fg2: #9ca0b0;
+    --accent: #6c8cff;
+    --accent2: #4ecdc4;
+    --accent3: #ff6b6b;
+    --gold: #ffd700;
+    --border: #2a2e3f;
+    --radius: 10px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans SC', sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    line-height: 1.7;
+  }
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+  /* Hero */
+  .hero {
+    text-align: center; padding: 80px 24px 60px;
+    background: linear-gradient(135deg, #1a1d2e 0%, #0f1117 40%, #1a2040 100%);
+    border-bottom: 1px solid var(--border);
+  }
+  .hero h1 { font-size: 2.4em; font-weight: 800; margin-bottom: 12px; letter-spacing: -0.02em; }
+  .hero .subtitle { color: var(--fg2); font-size: 1.1em; margin-bottom: 20px; }
+  .hero .links { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  .hero .links a {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 20px; border-radius: 20px; text-decoration: none;
+    font-size: 0.92em; font-weight: 500; transition: all 0.2s;
+  }
+  .btn-arxiv { background: #b31b1b22; color: #ff6b6b; border: 1px solid #b31b1b44; }
+  .btn-arxiv:hover { background: #b31b1b44; }
+  .btn-github { background: #6c8cff22; color: var(--accent); border: 1px solid #6c8cff44; }
+  .btn-github:hover { background: #6c8cff44; }
+
+  /* Sections */
+  section { padding: 48px 0; border-bottom: 1px solid var(--border); }
+  section:last-of-type { border-bottom: none; }
+  h2 { font-size: 1.6em; font-weight: 700; margin-bottom: 24px; display: flex; align-items: center; gap: 10px; }
+  h2 .icon { font-size: 1.2em; }
+  h3 { font-size: 1.2em; font-weight: 600; margin: 18px 0 10px; color: var(--accent2); }
+  p { color: var(--fg2); margin-bottom: 12px; }
+
+  /* Citation */
+  .bibtex-box {
+    position: relative; background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px; overflow-x: auto;
+    font-family: 'Fira Code', 'SF Mono', Consolas, monospace;
+    font-size: 0.85em; color: var(--fg); white-space: pre-wrap; word-break: break-all;
+  }
+  .copy-btn {
+    position: absolute; top: 10px; right: 10px;
+    background: var(--bg3); color: var(--fg2); border: 1px solid var(--border);
+    padding: 5px 12px; border-radius: 5px; cursor: pointer; font-size: 0.82em;
+    transition: all 0.2s;
+  }
+  .copy-btn:hover { background: var(--accent); color: #fff; }
+  .copy-btn.copied { background: #2ecc71; color: #fff; }
+
+  /* Architecture Diagram */
+  .arch-diagram {
+    background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 30px; display: flex; align-items: center; justify-content: center; gap: 16px;
+    flex-wrap: wrap; margin-bottom: 28px;
+  }
+  .arch-block {
+    background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px 20px; text-align: center; min-width: 90px;
+  }
+  .arch-block.head { border-color: var(--accent3); }
+  .arch-block.cross { border-color: var(--accent); }
+  .arch-block.dnn { border-color: var(--accent2); }
+  .arch-block.out { border-color: var(--gold); }
+  .arch-block .label { font-weight: 700; font-size: 0.95em; margin-bottom: 2px; }
+  .arch-block .dim { font-size: 0.78em; color: var(--fg2); }
+  .arch-arrow { font-size: 1.4em; color: var(--fg2); flex-shrink: 0; }
+
+  /* Usage Cards */
+  .usage-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; margin-top: 14px; }
+  .usage-card {
+    background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 22px; transition: border-color 0.2s;
+  }
+  .usage-card:hover { border-color: var(--accent); }
+  .usage-card h4 { font-size: 1.05em; font-weight: 700; margin-bottom: 8px; }
+  .usage-card .badge { display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 0.78em; font-weight: 600; margin-left: 6px; }
+  .badge-f { background: #6c8cff22; color: var(--accent); }
+  .badge-m { background: #4ecdc422; color: var(--accent2); }
+  .badge-md { background: #ffd70022; color: var(--gold); }
+  .usage-card p { font-size: 0.88em; margin: 6px 0 0; color: var(--fg2); }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 0.9em; }
+  th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+  th { background: var(--bg3); font-weight: 600; color: var(--fg); position: sticky; top: 0; }
+  tr:hover { background: #ffffff06; }
+  td { color: var(--fg2); }
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); }
+
+  /* Feature grid */
+  .feature-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+  .feature-item { background: var(--bg3); border-radius: 6px; padding: 8px 12px; font-size: 0.84em; }
+  .feature-item .fname { font-weight: 600; color: var(--fg); }
+  .feature-item .fsize { color: var(--fg2); }
+
+  /* Timeline */
+  .timeline { display: flex; gap: 0; margin-top: 20px; background: var(--bg2); border-radius: var(--radius); overflow: hidden; }
+  .timeline-phase { flex: 1; padding: 16px; text-align: center; border-right: 1px solid var(--border); }
+  .timeline-phase:last-child { border-right: none; }
+  .timeline-phase .phase-label { font-weight: 700; margin-bottom: 4px; }
+  .timeline-phase .phase-range { color: var(--fg2); font-size: 0.82em; }
+  .phase-train { background: #6c8cff11; }
+  .phase-train .phase-label { color: var(--accent); }
+  .phase-valid { background: #4ecdc411; }
+  .phase-valid .phase-label { color: var(--accent2); }
+  .phase-test { background: #ffd70011; }
+  .phase-test .phase-label { color: var(--gold); }
+
+  /* Interactive Controls */
+  .controls { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; margin-bottom: 20px; }
+  .controls select, .controls button {
+    background: var(--bg2); color: var(--fg); border: 1px solid var(--border);
+    padding: 8px 16px; border-radius: 6px; font-size: 0.92em; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .controls select:hover, .controls button:hover { border-color: var(--accent); }
+  .controls button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .tab-group { display: flex; gap: 4px; }
+  .tab-group button { border-radius: 6px; }
+
+  /* Canvas containers */
+  .chart-container { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-top: 20px; }
+  .chart-container canvas { display: block; width: 100%; }
+
+  /* Code blocks */
+  pre { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; overflow-x: auto; font-size: 0.85em; }
+  code { font-family: 'Fira Code', 'SF Mono', Consolas, monospace; background: var(--bg3); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+  pre code { background: none; padding: 0; }
+
+  /* Footer */
+  footer { text-align: center; padding: 32px; color: var(--fg2); font-size: 0.85em; border-top: 1px solid var(--border); }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .hero h1 { font-size: 1.5em; }
+    .arch-diagram { flex-direction: column; padding: 20px 12px; }
+    .arch-arrow { transform: rotate(90deg); }
+    .usage-cards { grid-template-columns: 1fr; }
+    .timeline { flex-direction: column; }
+    .timeline-phase { border-right: none; border-bottom: 1px solid var(--border); }
+  }
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<header class="hero">
+  <h1>LFM4Ads</h1>
+  <p class="subtitle">Large Foundation Model for Ads Recommendation</p>
+  <div class="links">
+    <a class="btn-arxiv" href="https://arxiv.org/abs/2508.14948" target="_blank">arXiv 2508.14948</a>
+    <a class="btn-github" href="https://github.com/fabfish/LFM4Ads" target="_blank">GitHub</a>
+  </div>
+</header>
+
+<div class="container">
+
+<!-- Citation -->
+<section>
+  <h2><span class="icon">📎</span> 论文引用</h2>
+  <div class="bibtex-box">
+    <button class="copy-btn" onclick="copyBibtex()" id="copyBtn">复制</button>
+@misc{zhang2025largefoundationmodelads,
+    title={Large Foundation Model for Ads Recommendation},
+    author={Shangyu Zhang and Shijie Quan and Zhongren Wang and Junwei Pan and Tianqu Zhuang
+            and Bo Fu and Yilong Sun and Jieying Lin and Jushuo Chen and Xiaotian Li
+            and Zhixiang Feng and Xian Hu and Huiting Deng and Hua Lu and Jinpeng Wang
+            and Boqi Dai and Xiaoyu Chen and Bin Hu and Lili Huang and Yanwen Wu
+            and Yeshou Cai and Qi Zhou and Huang Tang and Chunfeng Yang and Chengguo Yin
+            and Tingyu Jiang and Lifeng Wang and Shudong Huang and Dapeng Liu and Lei Xiao
+            and Haijie Gu and Shu-Tao Xia and Jie Jiang},
+    year={2025},
+    eprint={2508.14948},
+    archivePrefix={arXiv},
+    url={https://arxiv.org/abs/2508.14948},
+}
+  </div>
+</section>
+
+<!-- Model Architecture -->
+<section>
+  <h2><span class="icon">🏗️</span> 模型架构</h2>
+  <p>LFM4Ads 基于 <strong>DCNv2 (Deep & Cross Network v2)</strong>，360 维输入 → 3 层 Cross Network → 2 层 ReLU DNN → 15 维输出（8 个 tab 对应维），在 KuaiRand-1K 上预训练预测 CTR。</p>
+
+  <div class="arch-diagram">
+    <div class="arch-block head"><div class="label">Sparse Embedding</div><div class="dim">36 fields × 10 = 360d</div></div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-block cross"><div class="label">Cross Layer 0</div><div class="dim">360d</div></div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-block cross"><div class="label">Cross Layer 1</div><div class="dim">360d</div></div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-block cross"><div class="label">Cross Layer 2</div><div class="dim">360d</div></div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-block dnn"><div class="label">DNN Layer 0</div><div class="dim">ReLU(360→360)</div></div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-block dnn"><div class="label">DNN Layer 1</div><div class="dim">ReLU(360→360)</div></div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-block out"><div class="label">Head</div><div class="dim">360 → 15</div></div>
+  </div>
+
+  <h3>三级下游使用方式</h3>
+  <p>预训练完成后，通过三种不同粒度的方式将 backbone 知识迁移到下游任务：</p>
+  <div class="usage-cards">
+    <div class="usage-card">
+      <h4>Feature Usage <span class="badge badge-f">特征级</span></h4>
+      <p>冻结预训练 backbone，取中间 Cross Representation (CR) 作为特征增强。两种融合方式：<strong>gate</strong>（门控加权 sigmoid）和 <strong>concat</strong>（直接拼接）。</p>
+    </div>
+    <div class="usage-card">
+      <h4>Module Usage <span class="badge badge-m">模块级</span></h4>
+      <p>加载预训练权重的前 k 层 Cross Network 和 Embedding，其余层随机初始化后重新训练。k 从 0 到 6。</p>
+    </div>
+    <div class="usage-card">
+      <h4>Model Usage <span class="badge badge-md">模型级</span></h4>
+      <p>用预训练 backbone 输出作 Item Representation (IR)，与新训练的 User Representation (UR) 做内积预测。知识迁移粒度最粗。</p>
+    </div>
+  </div>
+</section>
+
+<!-- Dataset -->
+<section>
+  <h2><span class="icon">📊</span> 数据集：KuaiRand-1K</h2>
+  <p>快手真实推荐数据，约 <strong>1000 名用户</strong> 的 3 个月互动日志，含 8 个内容 tab（关注/推荐/同城等），每个 tab 为用户行为空间下的独立子任务。</p>
+
+  <h3>特征字段</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>类别</th><th>字段数</th><th>示例字段</th><th>Embed 维度</th></tr></thead>
+      <tbody>
+        <tr><td>用户特征</td><td>27</td><td>user_id, 活跃度, 是否低活, 是否主播/作者, 关注/粉丝/好友数分段, 注册天数分段, onehot 特征×18</td><td>10</td></tr>
+        <tr><td>视频特征</td><td>9</td><td>video_id, author_id, 视频类型, 上传天数分段, 上传类型, 可见状态, 音乐id, 音乐类型, tag</td><td>10</td></tr>
+        <tr><td><strong>总计</strong></td><td><strong>36</strong></td><td></td><td><strong>360 维</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>数据划分</h3>
+  <div class="timeline">
+    <div class="timeline-phase phase-train">
+      <div class="phase-label">训练集</div>
+      <div class="phase-range">&lt; 2022-05-03</div>
+    </div>
+    <div class="timeline-phase phase-valid">
+      <div class="phase-label">验证集</div>
+      <div class="phase-range">05-03 ~ 05-06</div>
+    </div>
+    <div class="timeline-phase phase-test">
+      <div class="phase-label">测试集</div>
+      <div class="phase-range">≥ 2022-05-06</div>
+    </div>
+  </div>
+</section>
+
+<!-- Experiment Settings -->
+<section>
+  <h2><span class="icon">⚙️</span> 实验设置</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>超参数</th><th>值</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td>模型</td><td>DCNv2 (3 Cross + 2 DNN)</td><td>Cross Network 深度 3，DNN 深度 2</td></tr>
+        <tr><td>输入维度</td><td>360</td><td>36 特征 × embed_dim=10</td></tr>
+        <tr><td>输出维度</td><td>15</td><td>15 维 = 8 tab + 7 padding（按 tab 取对应维）</td></tr>
+        <tr><td>损失函数</td><td>BCE (Binary Cross Entropy)</td><td>二分类 CTR 预估</td></tr>
+        <tr><td>优化器</td><td>Adam</td><td>默认 PyTorch 参数</td></tr>
+        <tr><td>评估指标</td><td>AUC (torcheval BinaryAUROC)</td><td>论文用 100 次 trial 取平均</td></tr>
+        <tr><td>预训练 Epoch</td><td>1</td><td>全量数据单 pass</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- Interactive Results -->
+<section>
+  <h2><span class="icon">📈</span> 实验结果（交互式）</h2>
+
+  <div class="controls">
+    <label for="scenarioSel" style="color:var(--fg2);font-size:0.92em;">场景:</label>
+    <select id="scenarioSel" onchange="refreshAll()"></select>
+    <label style="color:var(--fg2);font-size:0.92em;margin-left:8px;">级别:</label>
+    <div class="tab-group" id="levelTabs"></div>
+  </div>
+
+  <div id="summaryBox" style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;margin-bottom:16px;font-size:0.92em;"></div>
+
+  <div class="table-wrap" style="max-height:500px;overflow-y:auto;">
+    <table id="dataTable">
+      <thead><tr><th>#</th><th>Method</th><th>AUC</th><th>Level</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="chart-container" style="margin-top:20px;">
+    <h3 style="margin-top:0;margin-bottom:14px;">Top-15 方法 AUC 柱状图</h3>
+    <canvas id="barChart" height="380"></canvas>
+  </div>
+
+  <div class="chart-container" style="margin-top:20px;">
+    <h3 style="margin-top:0;margin-bottom:14px;">三级对比折线图（按 CR 层索引）</h3>
+    <canvas id="lineChart" height="320"></canvas>
+  </div>
+</section>
+
+<!-- Quick Start -->
+<section>
+  <h2><span class="icon">🚀</span> 快速开始</h2>
+  <pre><code># 环境配置
+conda create python=3.13 -n LFM4Ads
+conda activate LFM4Ads
+pip install torch -i https://download.pytorch.org/whl/cu121
+pip install torcheval tqdm pandas pyarrow matplotlib
+
+# 下载数据
+wget https://zenodo.org/records/10439422/files/KuaiRand-1K.tar.gz
+tar -xzvf KuaiRand-1K.tar.gz
+python dataset.py
+
+# 运行实验
+python main.py cuda:0</code></pre>
+</section>
+
+</div>
+
+<footer>
+  <p>LFM4Ads · <a href="https://arxiv.org/abs/2508.14948">arXiv 2508.14948</a> · <a href="https://github.com/fabfish/LFM4Ads">GitHub</a></p>
+  <p style="margin-top:4px;">Shangyu Zhang, Shijie Quan, Zhongren Wang, Junwei Pan, ... , Shu-Tao Xia, Jie Jiang (2025)</p>
+</footer>
+
+<script>
+// ── Embedded result.csv data ──
+const RAW_DATA = [
+// Scenario, Method, AUC
+[1,"SUM",0.7315],[1,"concat CR_0",0.7314],[1,"concat CR_1",0.7316],[1,"concat CR_2",0.7322],[1,"concat CR_3",0.7328],[1,"concat CR_4",0.7325],[1,"concat CR_5",0.7314],
+[1,"gate CR_0",0.7329],[1,"gate CR_1",0.7326],[1,"gate CR_2",0.7333],[1,"gate CR_3",0.7330],[1,"gate CR_4",0.7328],[1,"gate CR_5",0.7323],
+[1,"Vanilla",0.7309],[1,"CR'_0",0.7288],[1,"CR'_1",0.7288],[1,"CR'_2",0.7295],[1,"CR'_3",0.7299],[1,"CR'_4",0.7307],[1,"CR'_5",0.7302],[1,"CR'_6",0.7309],
+[1,"Retriever",0.6986],[1,"IR & UR",0.6319],[1,"IR & CR_0",0.6710],[1,"IR & CR_1",0.6811],[1,"IR & CR_2",0.6889],[1,"IR & CR_3",0.6985],[1,"IR & CR_4",0.7067],[1,"IR & CR_5",0.7139],
+[0,"SUM",0.7117],[0,"concat CR_0",0.7149],[0,"concat CR_1",0.7136],[0,"concat CR_2",0.7139],[0,"concat CR_3",0.7114],[0,"concat CR_4",0.7109],[0,"concat CR_5",0.7113],
+[0,"gate CR_0",0.7130],[0,"gate CR_1",0.7148],[0,"gate CR_2",0.7137],[0,"gate CR_3",0.7119],[0,"gate CR_4",0.7108],[0,"gate CR_5",0.7120],
+[0,"Vanilla",0.7135],[0,"CR'_0",0.7090],[0,"CR'_1",0.7120],[0,"CR'_2",0.7137],[0,"CR'_3",0.7129],[0,"CR'_4",0.7117],[0,"CR'_5",0.7133],[0,"CR'_6",0.7131],
+[0,"Retriever",0.6513],[0,"IR & UR",0.6390],[0,"IR & CR_0",0.6571],[0,"IR & CR_1",0.6565],[0,"IR & CR_2",0.6641],[0,"IR & CR_3",0.6760],[0,"IR & CR_4",0.6776],[0,"IR & CR_5",0.6844],
+[4,"SUM",0.6981],[4,"concat CR_0",0.7116],[4,"concat CR_1",0.7010],[4,"concat CR_2",0.7109],[4,"concat CR_3",0.7174],[4,"concat CR_4",0.7061],[4,"concat CR_5",0.6991],
+[4,"gate CR_0",0.7122],[4,"gate CR_1",0.7090],[4,"gate CR_2",0.7107],[4,"gate CR_3",0.7163],[4,"gate CR_4",0.7110],[4,"gate CR_5",0.7088],
+[4,"Vanilla",0.7084],[4,"CR'_0",0.7079],[4,"CR'_1",0.7001],[4,"CR'_2",0.7089],[4,"CR'_3",0.7105],[4,"CR'_4",0.7139],[4,"CR'_5",0.7115],[4,"CR'_6",0.7135],
+[4,"Retriever",0.6563],[4,"IR & UR",0.6423],[4,"IR & CR_0",0.6700],[4,"IR & CR_1",0.6725],[4,"IR & CR_2",0.6794],[4,"IR & CR_3",0.6841],[4,"IR & CR_4",0.6816],[4,"IR & CR_5",0.6802],
+[2,"SUM",0.7933],[2,"concat CR_0",0.7998],[2,"concat CR_1",0.7996],[2,"concat CR_2",0.7940],[2,"concat CR_3",0.7889],[2,"concat CR_4",0.8002],[2,"concat CR_5",0.7972],
+[2,"gate CR_0",0.7969],[2,"gate CR_1",0.7954],[2,"gate CR_2",0.7999],[2,"gate CR_3",0.8003],[2,"gate CR_4",0.8015],[2,"gate CR_5",0.8012],
+[2,"Vanilla",0.7957],[2,"CR'_0",0.7901],[2,"CR'_1",0.7977],[2,"CR'_2",0.8011],[2,"CR'_3",0.8010],[2,"CR'_4",0.7991],[2,"CR'_5",0.7975],[2,"CR'_6",0.7994],
+[2,"Retriever",0.7676],[2,"IR & UR",0.7689],[2,"IR & CR_0",0.7613],[2,"IR & CR_1",0.7468],[2,"IR & CR_2",0.7444],[2,"IR & CR_3",0.6888],[2,"IR & CR_4",0.7636],[2,"IR & CR_5",0.7419],
+[6,"SUM",0.7197],[6,"concat CR_0",0.7143],[6,"concat CR_1",0.7198],[6,"concat CR_2",0.7262],[6,"concat CR_3",0.7263],[6,"concat CR_4",0.7277],[6,"concat CR_5",0.7269],
+[6,"gate CR_0",0.7162],[6,"gate CR_1",0.7201],[6,"gate CR_2",0.7194],[6,"gate CR_3",0.7202],[6,"gate CR_4",0.7180],[6,"gate CR_5",0.7206],
+[6,"Vanilla",0.7157],[6,"CR'_0",0.7161],[6,"CR'_1",0.7223],[6,"CR'_2",0.7292],[6,"CR'_3",0.7294],[6,"CR'_4",0.7301],[6,"CR'_5",0.7331],[6,"CR'_6",0.7328],
+[6,"Retriever",0.5745],[6,"IR & UR",0.5863],[6,"IR & CR_0",0.6092],[6,"IR & CR_1",0.6132],[6,"IR & CR_2",0.6431],[6,"IR & CR_3",0.6422],[6,"IR & CR_4",0.6838],[6,"IR & CR_5",0.6369],
+[3,"SUM",0.6983],[3,"concat CR_0",0.7188],[3,"concat CR_1",0.7225],[3,"concat CR_2",0.6951],[3,"concat CR_3",0.7070],[3,"concat CR_4",0.6927],[3,"concat CR_5",0.6714],
+[3,"gate CR_0",0.6678],[3,"gate CR_1",0.6972],[3,"gate CR_2",0.7295],[3,"gate CR_3",0.7428],[3,"gate CR_4",0.7076],[3,"gate CR_5",0.7351],
+[3,"Vanilla",0.7114],[3,"CR'_0",0.7186],[3,"CR'_1",0.7202],[3,"CR'_2",0.7337],[3,"CR'_3",0.7391],[3,"CR'_4",0.7462],[3,"CR'_5",0.7552],[3,"CR'_6",0.7437],
+[3,"Retriever",0.5915],[3,"IR & UR",0.6501],[3,"IR & CR_0",0.6240],[3,"IR & CR_1",0.6750],[3,"IR & CR_2",0.7068],[3,"IR & CR_3",0.7272],[3,"IR & CR_4",0.6022],[3,"IR & CR_5",0.6435],
+[8,"SUM",0.7557],[8,"concat CR_0",0.7880],[8,"concat CR_1",0.7182],[8,"concat CR_2",0.7928],[8,"concat CR_3",0.7571],[8,"concat CR_4",0.7624],[8,"concat CR_5",0.7508],
+[8,"gate CR_0",0.7740],[8,"gate CR_1",0.7384],[8,"gate CR_2",0.7620],[8,"gate CR_3",0.7658],[8,"gate CR_4",0.7762],[8,"gate CR_5",0.7650],
+[8,"Vanilla",0.7592],[8,"CR'_0",0.7568],[8,"CR'_1",0.7691],[8,"CR'_2",0.7808],[8,"CR'_3",0.7970],[8,"CR'_4",0.7683],[8,"CR'_5",0.7714],[8,"CR'_6",0.7767],
+[8,"Retriever",0.6635],[8,"IR & UR",0.5981],[8,"IR & CR_0",0.5956],[8,"IR & CR_1",0.6600],[8,"IR & CR_2",0.6238],[8,"IR & CR_3",0.6875],[8,"IR & CR_4",0.4668],[8,"IR & CR_5",0.5614],
+[5,"SUM",0.6483],[5,"concat CR_0",0.6294],[5,"concat CR_1",0.6470],[5,"concat CR_2",0.6558],[5,"concat CR_3",0.6811],[5,"concat CR_4",0.6837],[5,"concat CR_5",0.6452],
+[5,"gate CR_0",0.6796],[5,"gate CR_1",0.6708],[5,"gate CR_2",0.6310],[5,"gate CR_3",0.6740],[5,"gate CR_4",0.6647],[5,"gate CR_5",0.6672],
+[5,"Vanilla",0.6583],[5,"CR'_0",0.6688],[5,"CR'_1",0.6780],[5,"CR'_2",0.6824],[5,"CR'_3",0.6748],[5,"CR'_4",0.6665],[5,"CR'_5",0.6853],[5,"CR'_6",0.6956],
+[5,"Retriever",0.5740],[5,"IR & UR",0.5717],[5,"IR & CR_0",0.5773],[5,"IR & CR_1",0.5476],[5,"IR & CR_2",0.5339],[5,"IR & CR_3",0.5858],[5,"IR & CR_4",0.5853],[5,"IR & CR_5",0.5829],
+];
+
+// ── Classify method level ──
+function getLevel(method) {
+  if (method === 'SUM') return 'Feature';
+  if (method.startsWith('concat') || method.startsWith('gate')) return 'Feature';
+  if (method === 'Vanilla' || method.startsWith("CR'")) return 'Module';
+  if (method === 'Retriever' || method.startsWith('IR')) return 'Model';
+  return 'Other';
+}
+
+function getLayerIndex(method) {
+  const m = /(\d+)$/.exec(method);
+  return m ? parseInt(m[1]) : -1;
+}
+
+// Get scenarios
+const scenarios = [...new Set(RAW_DATA.map(r => r[0]))].sort((a,b) => a-b);
+
+// State
+let curScenario = 2;
+let curLevel = 'All';
+
+// Init UI
+function initUI() {
+  const sel = document.getElementById('scenarioSel');
+  sel.innerHTML = scenarios.map(s => `<option value="${s}" ${s===curScenario?'selected':''}>Scenario ${s}</option>`).join('');
+
+  const tabs = document.getElementById('levelTabs');
+  const levels = ['All','Feature','Module','Model'];
+  tabs.innerHTML = levels.map(l =>
+    `<button class="${l===curLevel?'active':''}" onclick="setLevel('${l}')">${l}</button>`
+  ).join('');
+}
+
+function setLevel(l) {
+  curLevel = l;
+  document.querySelectorAll('#levelTabs button').forEach(b => b.classList.toggle('active', b.textContent === l));
+  refreshAll();
+}
+
+function copyBibtex() {
+  const bib = `@misc{zhang2025largefoundationmodelads,
+    title={Large Foundation Model for Ads Recommendation},
+    author={Shangyu Zhang and Shijie Quan and Zhongren Wang and Junwei Pan and Tianqu Zhuang
+            and Bo Fu and Yilong Sun and Jieying Lin and Jushuo Chen and Xiaotian Li
+            and Zhixiang Feng and Xian Hu and Huiting Deng and Hua Lu and Jinpeng Wang
+            and Boqi Dai and Xiaoyu Chen and Bin Hu and Lili Huang and Yanwen Wu
+            and Yeshou Cai and Qi Zhou and Huang Tang and Chunfeng Yang and Chengguo Yin
+            and Tingyu Jiang and Lifeng Wang and Shudong Huang and Dapeng Liu and Lei Xiao
+            and Haijie Gu and Shu-Tao Xia and Jie Jiang},
+    year={2025},
+    eprint={2508.14948},
+    archivePrefix={arXiv},
+    url={https://arxiv.org/abs/2508.14948},
+}`;
+  navigator.clipboard.writeText(bib).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = '已复制!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '复制'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+// Filter data
+function getFilteredData() {
+  let rows = RAW_DATA
+    .filter(r => r[0] === curScenario)
+    .map(r => ({ scenario: r[0], method: r[1], auc: r[2], level: getLevel(r[1]), layer: getLayerIndex(r[1]) }));
+
+  if (curLevel !== 'All') {
+    rows = rows.filter(r => r.level === curLevel);
+  }
+  rows.sort((a,b) => b.auc - a.auc);
+  return rows;
+}
+
+// Refresh table
+function refreshTable() {
+  const rows = getFilteredData();
+  const tbody = document.querySelector('#dataTable tbody');
+  tbody.innerHTML = rows.map((r, i) =>
+    `<tr style="${i===0?'color:var(--gold);font-weight:600':''}">
+      <td>${i+1}</td><td>${r.method}</td><td>${r.auc.toFixed(4)}</td><td><span class="badge badge-${r.level==='Feature'?'f':r.level==='Module'?'m':'md'}">${r.level}</span></td>
+    </tr>`
+  ).join('');
+
+  // Update summary
+  const maxAuc = rows.length > 0 ? rows[0].auc : 0;
+  const minAuc = rows.length > 0 ? rows[rows.length-1].auc : 0;
+  const allScenarioData = RAW_DATA.filter(r => r[0] === curScenario);
+  const vanillaRow = allScenarioData.find(r => r[1] === 'Vanilla');
+  const vanillaAuc = vanillaRow ? vanillaRow[2].toFixed(4) : 'N/A';
+
+  document.getElementById('summaryBox').innerHTML = `
+    <strong>Scenario ${curScenario}</strong> · 最佳: <span style="color:var(--gold)">${rows.length>0?rows[0].method+' = '+rows[0].auc.toFixed(4):'N/A'}</span> · Vanilla: ${vanillaAuc} · AUC 范围: ${minAuc.toFixed(4)} ~ ${maxAuc.toFixed(4)} · 方法数: ${rows.length}
+  `;
+}
+
+// Bar chart
+function drawBarChart() {
+  const canvas = document.getElementById('barChart');
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.parentElement.getBoundingClientRect();
+  const W = rect.width - 40;
+  const H = 380;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  const rows = getFilteredData().slice(0, 15);
+  if (rows.length === 0) return;
+  const margin = { top: 20, right: 20, bottom: 60, left: 60 };
+  const cw = W - margin.left - margin.right;
+  const ch = H - margin.top - margin.bottom;
+  const maxAuc = Math.max(...rows.map(r => r.auc));
+  const minAuc = Math.min(...rows.map(r => r.auc));
+  const yRange = maxAuc - minAuc || 0.01;
+  const yMin = minAuc - yRange * 0.08;
+  const yMax = maxAuc + yRange * 0.08;
+
+  ctx.fillStyle = '#0f1117';
+  ctx.fillRect(0, 0, W, H);
+
+  // Grid
+  ctx.strokeStyle = '#2a2e3f';
+  ctx.lineWidth = 0.5;
+  for (let i = 0; i <= 4; i++) {
+    const y = margin.top + (ch / 4) * i;
+    ctx.beginPath(); ctx.moveTo(margin.left, y); ctx.lineTo(W - margin.right, y); ctx.stroke();
+    const val = yMax - (yMax - yMin) * (i / 4);
+    ctx.fillStyle = '#9ca0b0'; ctx.font = '11px sans-serif'; ctx.textAlign = 'right';
+    ctx.fillText(val.toFixed(3), margin.left - 8, y + 4);
+  }
+
+  // Bars
+  const barW = Math.min(36, (cw / rows.length) * 0.7);
+  const gap = cw / rows.length;
+  const colors = { Feature: '#6c8cff', Module: '#4ecdc4', Model: '#ffd700' };
+
+  rows.forEach((r, i) => {
+    const x = margin.left + gap * i + (gap - barW) / 2;
+    const h = ((r.auc - yMin) / (yMax - yMin)) * ch;
+    const y = margin.top + ch - h;
+
+    const grad = ctx.createLinearGradient(x, y, x, margin.top + ch);
+    grad.addColorStop(0, colors[r.level] || '#6c8cff');
+    grad.addColorStop(1, (colors[r.level] || '#6c8cff') + '44');
+    ctx.fillStyle = grad;
+    ctx.fillRect(x, y, barW, h);
+
+    // Value label
+    ctx.fillStyle = '#e4e6ef';
+    ctx.font = '10px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(r.auc.toFixed(4), x + barW/2, y - 4);
+
+    // Method label
+    ctx.save();
+    ctx.translate(x + barW/2, margin.top + ch + 6);
+    ctx.rotate(-0.6);
+    ctx.fillStyle = '#9ca0b0';
+    ctx.font = '9px sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(r.method, 0, 0);
+    ctx.restore();
+  });
+
+  // Y axis label
+  ctx.save();
+  ctx.fillStyle = '#9ca0b0';
+  ctx.font = '11px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.translate(14, margin.top + ch/2);
+  ctx.rotate(-Math.PI/2);
+  ctx.fillText('AUC', 0, 0);
+  ctx.restore();
+}
+
+// Line chart: Feature gate CR / Module CR' / Model IR&CR across layer index
+function drawLineChart() {
+  const canvas = document.getElementById('lineChart');
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.parentElement.getBoundingClientRect();
+  const W = rect.width - 40;
+  const H = 320;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  const margin = { top: 24, right: 20, bottom: 40, left: 55 };
+  const cw = W - margin.left - margin.right;
+  const ch = H - margin.top - margin.bottom;
+
+  // Collect data for current scenario
+  const all = RAW_DATA.filter(r => r[0] === curScenario);
+
+  const gateData = [];
+  const moduleData = [];
+  const modelData = [];
+  for (let i = 0; i <= 5; i++) {
+    const g = all.find(r => r[1] === `gate CR_${i}`);
+    if (g) gateData.push({ layer: i, auc: g[2] });
+    const m = all.find(r => r[1] === `CR'_${i}`);
+    if (m) moduleData.push({ layer: i, auc: m[2] });
+    const im = all.find(r => r[1] === `IR & CR_${i}`);
+    if (im) modelData.push({ layer: i, auc: im[2] });
+  }
+
+  const allPoints = [...gateData, ...moduleData, ...modelData];
+  if (allPoints.length === 0) return;
+  const minAuc = Math.min(...allPoints.map(p => p.auc));
+  const maxAuc = Math.max(...allPoints.map(p => p.auc));
+  const pad = (maxAuc - minAuc) * 0.08 || 0.01;
+  const yMin = minAuc - pad;
+  const yMax = maxAuc + pad;
+
+  ctx.fillStyle = '#0f1117';
+  ctx.fillRect(0, 0, W, H);
+
+  // Grid
+  ctx.strokeStyle = '#2a2e3f';
+  ctx.lineWidth = 0.5;
+  for (let i = 0; i <= 4; i++) {
+    const y = margin.top + (ch / 4) * i;
+    ctx.beginPath(); ctx.moveTo(margin.left, y); ctx.lineTo(W - margin.right, y); ctx.stroke();
+    const val = yMax - (yMax - yMin) * (i / 4);
+    ctx.fillStyle = '#9ca0b0'; ctx.font = '11px sans-serif'; ctx.textAlign = 'right';
+    ctx.fillText(val.toFixed(3), margin.left - 8, y + 4);
+  }
+
+  // X axis
+  const xLayers = [0,1,2,3,4,5];
+  const xStep = cw / (xLayers.length - 1);
+  ctx.fillStyle = '#9ca0b0'; ctx.font = '11px sans-serif'; ctx.textAlign = 'center';
+  xLayers.forEach(l => {
+    const x = margin.left + l * xStep;
+    ctx.fillText(`CR_${l}`, x, margin.top + ch + 22);
+  });
+
+  // Draw lines
+  function drawLine(points, color, dash) {
+    if (points.length < 2) return;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2.5;
+    if (dash) ctx.setLineDash([6, 3]); else ctx.setLineDash([]);
+    ctx.beginPath();
+    points.forEach((p, i) => {
+      const x = margin.left + p.layer * xStep;
+      const y = margin.top + ch - ((p.auc - yMin) / (yMax - yMin)) * ch;
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Dots
+    points.forEach(p => {
+      const x = margin.left + p.layer * xStep;
+      const y = margin.top + ch - ((p.auc - yMin) / (yMax - yMin)) * ch;
+      ctx.fillStyle = color;
+      ctx.beginPath(); ctx.arc(x, y, 4.5, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.arc(x, y, 2, 0, Math.PI*2); ctx.fill();
+    });
+  }
+
+  drawLine(gateData, '#6c8cff', false);
+  drawLine(moduleData, '#4ecdc4', false);
+  drawLine(modelData, '#ffd700', true);
+
+  // Legend
+  const legends = [
+    { label: 'Feature (gate CR)', color: '#6c8cff' },
+    { label: 'Module (CR\')', color: '#4ecdc4' },
+    { label: 'Model (IR & CR)', color: '#ffd700', dash: true },
+  ];
+  const legendY = margin.top - 10;
+  let lx = margin.left;
+  legends.forEach(l => {
+    ctx.strokeStyle = l.color;
+    ctx.lineWidth = 2.5;
+    if (l.dash) ctx.setLineDash([5,3]); else ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(lx, legendY); ctx.lineTo(lx+24, legendY); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = l.color;
+    ctx.beginPath(); ctx.arc(lx+12, legendY, 3.5, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#9ca0b0'; ctx.font = '11px sans-serif'; ctx.textAlign = 'left';
+    ctx.fillText(l.label, lx + 30, legendY + 4);
+    lx += ctx.measureText(l.label).width + 54;
+  });
+
+  // Axis labels
+  ctx.save();
+  ctx.fillStyle = '#9ca0b0'; ctx.font = '11px sans-serif'; ctx.textAlign = 'center';
+  ctx.translate(14, margin.top + ch/2);
+  ctx.rotate(-Math.PI/2);
+  ctx.fillText('AUC', 0, 0);
+  ctx.restore();
+}
+
+function refreshAll() {
+  curScenario = parseInt(document.getElementById('scenarioSel').value);
+  refreshTable();
+  drawBarChart();
+  drawLineChart();
+}
+
+// Init
+document.getElementById('scenarioSel').addEventListener('change', refreshAll);
+initUI();
+refreshAll();
+window.addEventListener('resize', () => { drawBarChart(); drawLineChart(); });
+</script>
+
+</body>
+</html>

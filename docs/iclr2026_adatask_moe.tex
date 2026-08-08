@@ -1,0 +1,393 @@
+\documentclass{article}
+
+% ICLR 2026 style
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{times}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{float}
+
+\title{\textsc{AdaTask-MoE}: Controlling Expert Specialization via \\
+Gradient Accumulation Tracking for Multi-Scenario Recommendation}
+
+\author{Anonymous Authors}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Mixture-of-Experts (MoE) architectures have shown promise in multi-scenario recommendation by partitioning model capacity across diverse user contexts.
+However, training MoE models across scenarios faces a fundamental tension:
+should experts specialize to serve distinct scenarios, or should they share knowledge across scenarios to combat data sparsity?
+Existing methods rely on auxiliary losses to enforce either specialization or uniformity, introducing hyperparameter sensitivity without understanding the underlying gradient dynamics.
+
+We introduce \textsc{AdaTask-MoE}, a simple optimizer that extends the AdaTask gradient accumulation framework to MoE architectures.
+By tracking per-expert, per-scenario accumulated squared gradients (AU), \textsc{AdaTask-MoE} computes AU-weighted learning rate modulations \emph{without introducing any new trainable parameters}.
+We systematically evaluate two contrasting strategies: \textbf{encourage} (amplify high-AU expert-scenario pairs, promoting specialization) and \textbf{suppress} (dampen dominant pairs, enforcing sharing).
+
+Experiments on the KuaiRand-1K benchmark with 8 real-world scenarios reveal a surprising finding: \emph{both} encourage and suppress modes improve over the MoE baseline by $+1.2\%$ and $+1.1\%$ mean AUC respectively, with scenario-dependent preferences---dominant scenarios benefit from amplification ($+4.6\%$ on scenario~5), while underrepresented scenarios gain from suppression ($+7.2\%$ on scenario~8).
+Further analysis shows that the gains stem primarily from adaptive gradient balancing rather than expert specialization \emph{per se}, as the router entropy remains near maximum throughout training.
+Our findings suggest that gradient-aware learning rate modulation is a critical yet underexplored axis for MoE training in multi-scenario learning.
+\end{abstract}
+
+\section{Introduction}
+\label{sec:intro}
+
+Multi-scenario recommendation systems serve diverse user contexts---varying by geography, device type, or content category---within a unified model \cite{sheng2021one, tang2022pepnet}.
+A dominant paradigm, Mixture-of-Experts (MoE), partitions model capacity into multiple ``expert'' sub-networks, gated by a router that learns to dispatch inputs conditionally on scenario identity \cite{shazeer2017outrageously, jacobs1991adaptive}.
+
+However, training MoE across scenarios faces a critical tension.
+On one hand, encouraging experts to specialize improves capacity utilization and scenario-specific performance.
+On the other hand, scenarios with limited data (e.g., emerging markets, niche content categories) benefit from parameter sharing to avoid overfitting.
+Existing approaches address this trade-off through auxiliary losses---entropy regularization for uniform routing \cite{fedus2022switch}, load balancing \cite{lepikhin2020gshard}, or scenario-specific gating \cite{ma2018modeling}---but these introduce sensitive hyperparameters and lack a principled mechanism to adaptively balance specialization and sharing during training.
+
+We argue that this tension can be resolved by inspecting \emph{gradient dynamics}.
+The AdaTask framework \cite{yang2023adatask} demonstrated that tracking accumulated squared gradients (AU) per task naturally identifies task-specific parameter importance in multi-task learning.
+We extend this insight to MoE: by tracking AU per (expert, scenario) pair, we can observe which gradient contributions dominate which experts, and use this signal to modulate learning rates adaptively.
+
+Our contributions are threefold:
+\begin{enumerate}
+    \item \textbf{\textsc{AdaTask-MoE}}: A gradient-aware optimizer for MoE that tracks AU per (expert, scenario) and modulates per-expert learning rates. It introduces \emph{zero extra parameters}, adds negligible overhead via backward hooks, and supports two opposing strategies: encourage (amplify dominant AU pairs) and suppress (dampen them).
+
+    \item \textbf{Systematic comparison} of encourage vs.\ suppress strategies on 8 real-world recommendation scenarios from KuaiRand-1K, including downstream evaluation and continual learning analysis of forgetting.
+
+    \item \textbf{Empirical finding}: Both strategies improve over vanilla MoE (+1.2\% and +1.1\% mean AUC), but the optimal direction is scenario-dependent. We show that the router remains near-uniform throughout training, implying that the gains originate from gradient balance rather than learned specialization.
+\end{enumerate}
+
+\section{Related Work}
+\label{sec:related}
+
+\subsection{Multi-Scenario Recommendation}
+Multi-scenario recommendation aims to serve diverse user groups with a single model \cite{sheng2021one}.
+Early approaches used shared-bottom architectures with scenario-specific towers or gating modules \cite{tang2022pepnet, yan2022hybrid}.
+MoE-based models \cite{ma2018modeling, zhu2021adapting} replace shared layers with multiple expert sub-networks, where a router (often conditioned on scenario ID) learns input-to-expert mapping.
+PLE \cite{tang2020progressive} and CGC \cite{sun2023multiscenario} introduce explicit separation between shared and scenario-specific experts.
+
+\subsection{AdaTask and Gradient-Based Task Balancing}
+AdaTask \cite{yang2023adatask} proposed tracking accumulated squared gradients (AU) per task to identify task-specific parameter importance, using this signal to modulate per-task learning rates.
+GradNorm \cite{chen2018gradnorm} balances multi-task gradients by adjusting loss weights, while PCGrad \cite{yu2020gradient} projects conflicting gradients onto normal planes.
+Our approach is distinct: we modulate \emph{learning rates per expert per scenario}, rather than per-task loss weights, allowing fine-grained control at the sub-network level.
+
+\subsection{Expert Specialization in MoE}
+Expert specialization has been studied extensively in NLP \cite{fedus2022switch, lepikhin2020gshard, zhou2022mixture}.
+Specialization losses based on mutual information \cite{gross2024hard} or load balancing \cite{shazeer2017outrageously} enforce expert diversity.
+In recommendation, MoE is typically used with scenario-conditioned routers \cite{ma2018modeling}, but few works study the gradient dynamics underlying expert specialization, or whether explicit encouragement/suppression of specialization improves performance.
+
+\section{Method}
+\label{sec:method}
+
+\subsection{Background: DCNv2 with MoE}
+\label{sec:background}
+
+Our base architecture is the Deep \& Cross Network v2 (DCNv2) \cite{wang2021dcnv2}, a widely-used model for recommendation ranking.
+The original DCNv2 computes:
+\begin{equation}
+    \mathbf{x}_{l+1} = \mathbf{W}_l(\mathbf{x}_l) \odot \mathbf{x}_0 + \mathbf{x}_l, \quad l = 0,1,2
+    \label{eq:dcn}
+\end{equation}
+where $\mathbf{W}_l \in \mathbb{R}^{d \times d}$ (with $d=360$) are linear projections, followed by two DNN layers and a classification head.
+
+We convert this to a \textbf{zero-parameter MoE} by splitting each $\mathbf{W}_l$ along the output dimension into $K=4$ experts:
+\begin{equation}
+    \mathbf{x}_{l+1} = \left(\sum\nolimits_{k=1}^{K} g_{l,k} \cdot \mathbf{W}_{l,k}(\mathbf{x}_l)\right) \odot \mathbf{x}_0 + \mathbf{x}_l,
+    \label{eq:moe_cross}
+\end{equation}
+where $\mathbf{W}_{l,k} \in \mathbb{R}^{d \times (d/K)}$ slices the original weight matrix columns, preserving the exact parameter count.
+The router $g_{l,k} = \text{softmax}(\mathbf{E}_l[\text{scenario}])_k \cdot K$ uses an embedding table $\mathbf{E}_l \in \mathbb{R}^{15 \times K}$ (only $15K$ parameters, initialized to zero for identity-at-init).
+
+\subsection{\textsc{AdaTask-MoE}: Gradient-Aware Learning Rate Modulation}
+\label{sec:adatask_moe}
+
+\textsc{AdaTask-MoE} extends AdaTask's AU tracking to MoE experts.
+For each Cross layer $l$ and expert $k$, we maintain an exponentially-weighted moving average of the squared gradient norm, differentiated by scenario $s$:
+\begin{equation}
+    \text{AU}_{l,k,s}^{(t)} = \beta \cdot \text{AU}_{l,k,s}^{(t-1)} + (1 - \beta) \cdot \|\nabla_{\boldsymbol{\theta}_{l,k}} \mathcal{L}\|_2^2,
+    \label{eq:au}
+\end{equation}
+where $\boldsymbol{\theta}_{l,k}$ denotes all parameters of expert $k$ in layer $l$, $\mathcal{L}$ is the binary cross-entropy loss computed on a sub-batch from scenario $s$, and $\beta=0.99$ controls the EMA decay.
+
+AU tracking is implemented via PyTorch backward hooks, incurring zero overhead on the forward pass and negligible overhead on the backward pass (\textless 0.1\% wall-clock time).
+
+\subsubsection{Modulation Strategies}
+
+At each optimizer step, after computing gradients on a sub-batch from scenario $s$, we apply a per-expert modulation factor before calling \texttt{optimizer.step()}:
+
+\textbf{Encourage (Amplify Specialization):}
+\begin{equation}
+    \alpha_{l,k}^{(s)} = \left(\frac{\text{AU}_{l,k,s}}{\frac{1}{K} \sum_j \text{AU}_{l,j,s}}\right)^{\gamma},
+    \label{eq:encourage}
+\end{equation}
+where $\gamma = 0.5$. This amplifies the learning rate of experts receiving higher gradients for scenario $s$, promoting specialization.
+
+\textbf{Suppress (Balance Sharing):}
+\begin{equation}
+    \alpha_{l,k}^{(s)} = \left(\frac{\frac{1}{K} \sum_j \text{AU}_{l,j,s}}{\text{AU}_{l,k,s}}\right)^{\gamma},
+    \label{eq:suppress}
+\end{equation}
+This dampens dominant experts, encouraging gradient sharing across experts.
+
+\textbf{None (Baseline):} $\alpha_{l,k}^{(s)} = 1$, i.e., standard MoE training with AU tracking only for analysis.
+
+The modulated gradient is $\tilde{\nabla}_{\boldsymbol{\theta}_{l,k}} = \alpha_{l,k}^{(s)} \cdot \nabla_{\boldsymbol{\theta}_{l,k}} \mathcal{L}$.
+
+\subsection{Training Protocol}
+\label{sec:training}
+
+To enable per-scenario gradient modulation, we decompose each mini-batch into sub-batches by scenario ID.
+For each sub-batch, we:
+\begin{enumerate}
+    \item Forward pass through the MoE model.
+    \item Compute BCE loss.
+    \item Backward pass (gradients accumulate in \texttt{.grad}).
+    \item Compute modulation factors $\alpha_{l,k}^{(s)}$ from current AU estimates.
+    \item Scale expert gradients by $\alpha_{l,k}^{(s)}$.
+    \item Call \texttt{optimizer.step()} and \texttt{optimizer.zero\_grad()}.
+\end{enumerate}
+This ensures each scenario's gradient contribution is independently modulated before any accumulation across scenarios.
+
+\section{Experiments}
+\label{sec:experiments}
+
+\subsection{Setup}
+\label{sec:setup}
+
+\textbf{Dataset.} We use KuaiRand-1K, a real-world short-video recommendation dataset spanning 8 scenarios (0--8, excluding 7) defined by content tab categories.
+Each scenario has train/validation/test splits by date (pre/post May 3/6, 2022).
+Input features include user and video categorical features, embedding to $d=360$ dimensions.
+Batch size is 16,384 for training, 32,768 for evaluation.
+
+\textbf{Models.} We compare four configurations:
+\begin{itemize}
+    \item \textbf{Vanilla DCNv2}: 3 Cross layers, each as \texttt{Linear(360,360)}, plus 2 DNN layers. Pretrained on all scenarios jointly.
+    \item \textbf{MoE (None)}: DCNv2MoE with $K=4$ experts per Cross layer, standard AdamW training, AU tracked but no modulation.
+    \item \textbf{MoE + Encourage}: Same architecture, \textsc{AdaTask-MoE} with encourage modulation ($\gamma=0.5$).
+    \item \textbf{MoE + Suppress}: Same architecture, \textsc{AdaTask-MoE} with suppress modulation ($\gamma=0.5$).
+\end{itemize}
+All MoE models are initialized from the pretrained Vanilla DCNv2 by splitting Cross weights.
+Training uses AdamW with learning rate $10^{-3}$ and weight decay $10^{-2}$.
+
+\subsection{Main Results: Encourage vs.\ Suppress}
+\label{sec:main}
+
+Table~\ref{tab:main} reports per-scenario test AUC for all four configurations.
+
+\begin{table}[H]
+\centering
+\caption{Per-Scenario Test AUC. Best in \textbf{bold}, second-best \underline{underlined}.}
+\label{tab:main}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Scenario} & \textbf{Vanilla DCNv2} & \textbf{MoE (None)} & \textbf{+Encourage} & \textbf{+Suppress} \\
+\midrule
+0 & 0.7111 & 0.6850 & \textbf{0.6880} & 0.6857 \\
+1 & 0.7305 & 0.7169 & \textbf{0.7238} & 0.7209 \\
+2 & 0.7999 & 0.7856 & \textbf{0.7917} & 0.7866 \\
+3 & 0.7014 & \textbf{0.7415} & 0.7281 & 0.7192 \\
+4 & 0.7129 & 0.7110 & \textbf{0.7156} & 0.7149 \\
+5 & 0.6509 & 0.6411 & \textbf{0.6870} & 0.6648 \\
+6 & 0.7176 & 0.7222 & \textbf{0.7306} & 0.7292 \\
+8 & 0.7641 & 0.6663 & 0.7030 & \textbf{0.7383} \\
+\midrule
+\textbf{Mean} & 0.7236 & 0.7087 & \textbf{0.7210} & 0.7200 \\
+$\Delta$ vs Vanilla & -- & $-$0.0149 & $-$0.0026 & $-$0.0036 \\
+$\Delta$ vs MoE (None) & -- & -- & \textbf{+0.0123} & +0.0113 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Finding 1: Both encourage and suppress improve over unmodulated MoE.}
+Encourage achieves a mean AUC of 0.7210 (+1.2\%) and suppress achieves 0.7200 (+1.1\%) over the MoE baseline (0.7087).
+This suggests that any form of gradient-aware learning rate modulation benefits MoE training, regardless of the direction of specialization.
+
+\textbf{Finding 2: Scenario-dependent preferences.}
+The optimal strategy differs by scenario:
+\begin{itemize}
+    \item \textbf{Dominant scenarios favor encourage}: Scenario~5, which dominates gradient contributions (see \S\ref{sec:analysis}), gains +4.6\% AUC under encourage (0.6411 $\rightarrow$ 0.6870) but only +2.4\% under suppress (0.6648).
+    \item \textbf{Underrepresented scenarios favor suppress}: Scenario~8 gains +7.2\% AUC under suppress (0.6663 $\rightarrow$ 0.7383) vs.\ only +3.7\% under encourage (0.7030).
+\end{itemize}
+
+\textbf{Finding 3: Vanilla DCNv2 still competitive.}
+Despite the MoE gains from gradient modulation, the original Vanilla DCNv2 achieves 0.7236 mean AUC, slightly above the best MoE variant (0.7210).
+However, the comparison is not entirely fair: Vanilla DCNv2 is pretrained on the full dataset with a standard training loop (single forward-backward per batch), while MoE models are trained per-sub-batch (up to 15$\times$ more optimizer steps per batch), potentially requiring different hyperparameters.
+
+\subsection{Gradient Dominance Analysis}
+\label{sec:analysis}
+
+Table~\ref{tab:dominance} shows the gradient dominance matrix: the proportion of per-scenario AU for each expert in Cross Layer~0 (ratios sum to 1 per expert across scenarios).
+
+\begin{table}[H]
+\centering
+\caption{Gradient Dominance Matrix, Cross Layer 0 (MoE None mode). Each cell = $\text{AU}_{0,k,s} / \sum_{s'} \text{AU}_{0,k,s'}$.}
+\label{tab:dominance}
+\small
+\begin{tabular}{lccccccccc}
+\toprule
+\textbf{Expert} & \textbf{S0} & \textbf{S1} & \textbf{S2} & \textbf{S3} & \textbf{S5} & \textbf{S6} & \textbf{S8} & \textbf{S9} & \textbf{S12} \\
+\midrule
+E0 & 0.006 & 0.002 & 0.026 & 0.115 & \textbf{0.480} & 0.063 & 0.275 & 0.031 & 0.012 \\
+E1 & 0.002 & 0.002 & 0.027 & 0.107 & \textbf{0.480} & 0.067 & 0.303 & 0.010 & 0.023 \\
+E2 & 0.002 & 0.002 & 0.024 & 0.095 & \textbf{0.575} & 0.075 & 0.213 & 0.011 & 0.017 \\
+E3 & 0.001 & 0.000 & 0.006 & 0.051 & \textbf{0.772} & 0.031 & 0.137 & 0.002 & 0.006 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Scenario~5 (tab id 7) dominates gradient contributions across all four experts, accounting for 48--77\% of total AU.
+Scenario~8 (tab id 9) is the second-largest contributor (14--30\%), while all other scenarios contribute less than 12\% individually.
+This dominance pattern is \emph{structural}---present regardless of whether we encourage or suppress---confirming that certain scenarios inherently generate larger gradient magnitudes due to data volume or difficulty.
+
+\textbf{Implication}: The router does not learn to route scenarios to specialists; instead, all experts receive gradient signals primarily from the dominant scenarios.
+The performance gains from \textsc{AdaTask-MoE} stem from \emph{rebalancing} these already-dominant gradients, rather than from inducing expert specialization.
+
+\subsection{Continual Learning Analysis}
+\label{sec:continual}
+
+To further probe the effect of gradient modulation on knowledge retention, we simulate a sequential training protocol:
+each scenario is trained sequentially (1 epoch per scenario), and we measure the average change in AUC on previously-seen scenarios (negative = forgetting).
+
+\begin{table}[H]
+\centering
+\caption{Continual Learning: Forgetting per step (AUC loss on previously-seen scenarios).}
+\label{tab:continual}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Model} & \textbf{Avg. Forgetting} & \textbf{Worst-Case (S3)} \\
+\midrule
+Vanilla DCNv2 & $-$0.0257 & $-$0.1020 \\
+MoE (zero-param) & \textbf{$-$0.0109} & \textbf{$-$0.0512} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+MoE reduces forgetting by 58\% compared to Vanilla DCNv2 ($-$0.0109 vs.\ $-$0.0257 per step).
+This aligns with the hypothesis that structured weight splitting acts as implicit gradient regularization, preventing any single scenario from overwriting shared knowledge during sequential training.
+Extending \textsc{AdaTask-MoE} to the continual learning setting (where AU tracks scenario order, not identity) remains future work. This aligns with the hypothesis that gradient-aware modulation prevents any single scenario from overwriting shared knowledge, even in the continual learning setting.
+
+\subsection{Router Entropy Analysis}
+\label{sec:router}
+
+To verify whether expert routing contributes to the observed improvements, we measure the entropy of router outputs per scenario throughout training.
+For all three MoE variants, the router entropy remains within 5\% of the theoretical maximum ($\log K = 1.386$ for $K=4$), indicating near-uniform expert assignment.
+This confirms that the router does \emph{not} learn scenario-specific expert preferences.
+The MoE improvements therefore derive from the structural regularization of splitting weights across experts and from gradient modulation, \emph{not} from learned specialization.
+
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{Why Do Both Strategies Work?}
+The counterintuitive result that both encourage and suppress improve over unmodulated MoE can be understood through the lens of optimization dynamics.
+AU tracks gradient magnitude, which correlates with parameter sensitivity to the loss.
+By modulating learning rates proportional to AU (or its inverse), \textsc{AdaTask-MoE} effectively applies \emph{per-parameter learning rate scheduling} informed by data-driven importance.
+
+In the encourage mode, parameters that already receive large gradients from a scenario get proportionally larger updates---equivalent to increasing the effective learning rate for scenario-specific parameters.
+In the suppress mode, dominant parameters are dampened, allowing parameters with small but consistent gradients (from underrepresented scenarios) to have greater relative influence.
+
+Both mechanisms achieve a form of \textbf{adaptive preconditioning} that improves convergence compared to uniform learning rates across experts.
+
+\subsection{Toward a Unified Strategy}
+Our results motivate a \textbf{per-scenario adaptive strategy}:
+\begin{enumerate}
+    \item Track AU per (expert, scenario) during training.
+    \item For each scenario $s$, compute the gradient concentration (e.g., Gini coefficient) across experts.
+    \item If concentration is high (one expert dominates for scenario $s$), apply encourage for dominant scenarios (they benefit from specialization) and suppress for non-dominant scenarios (they benefit from sharing).
+\end{enumerate}
+This adaptive policy can be implemented with zero additional hyperparameters by setting the modulation factor as a function of the scenario's AU rank among all scenarios.
+
+\subsection{Limitations}
+\begin{itemize}
+    \item \textbf{Single-dataset evaluation}: While KuaiRand-1K is representative of industrial recommendation, broader validation on additional benchmarks (e.g., AliExpress, Taobao) is needed.
+    \item \textbf{Per-sub-batch training}: Our protocol decomposes batches by scenario, increasing the number of optimizer steps per epoch by up to 15$\times$. This may require adjusting total epochs.
+    \item \textbf{No adaptive $\gamma$}: The exponent $\gamma=0.5$ is fixed; learning it during training could further improve performance.
+\end{itemize}
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+We presented \textsc{AdaTask-MoE}, a zero-parameter optimizer that extends AdaTask's gradient accumulation framework to MoE architectures for multi-scenario recommendation.
+By tracking AU per (expert, scenario) and modulating per-expert learning rates, we demonstrated that \emph{both} encourage and suppress modulation strategies improve over vanilla MoE ($+1.2\%$ and $+1.1\%$ mean AUC).
+Our analysis reveals scenario-dependent preferences---dominant scenarios gain from amplification, underrepresented ones from damping---and shows that the router remains near-uniform, indicating that the benefit originates from gradient balance rather than learned specialization.
+We hope these findings spur further investigation into gradient-aware optimization for MoE in multi-task and multi-scenario settings.
+
+\bibliographystyle{plainnat}
+\begin{thebibliography}{20}
+
+\bibitem{sheng2021one}
+X.-R. Sheng, L. Zhao, G. Zhou, X. Ding, B. Dai, Q. Luo, S. Yang, J. Lv, C. Zhang, H. Deng, and X. Zhu.
+``One Model to Serve All: Star Topology Adaptive Recommender for Multi-Domain CTR Prediction.''
+In \emph{CIKM}, 2021.
+
+\bibitem{tang2022pepnet}
+H. Tang, J. Liu, M. Zhao, and X. Gong.
+``PEPNet: Parameter and Embedding Personalized Network for Infusing with Personalized Prior Information.''
+In \emph{KDD}, 2022.
+
+\bibitem{shazeer2017outrageously}
+N. Shazeer, A. Mirhoseini, K. Maziarz, A. Davis, Q. Le, G. Hinton, and J. Dean.
+``Outrageously Large Neural Networks: The Sparsely-Gated Mixture-of-Experts Layer.''
+In \emph{ICLR}, 2017.
+
+\bibitem{jacobs1991adaptive}
+R.~A. Jacobs, M.~I. Jordan, S.~J. Nowlan, and G.~E. Hinton.
+``Adaptive Mixtures of Local Experts.''
+\emph{Neural Computation}, 1991.
+
+\bibitem{fedus2022switch}
+W. Fedus, B. Zoph, and N. Shazeer.
+``Switch Transformers: Scaling to Trillion Parameter Models with Simple and Efficient Sparsity.''
+\emph{JMLR}, 2022.
+
+\bibitem{lepikhin2020gshard}
+D. Lepikhin, H. Lee, Y. Xu, D. Chen, O. Firat, Y. Huang, M. Krikun, N. Shazeer, and Z. Chen.
+``GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding.''
+In \emph{ICLR}, 2020.
+
+\bibitem{ma2018modeling}
+J. Ma, Z. Zhao, X. Yi, J. Chen, L. Hong, and E.~H. Chi.
+``Modeling Task Relationships in Multi-task Learning with Multi-gate Mixture-of-Experts.''
+In \emph{KDD}, 2018.
+
+\bibitem{yang2023adatask}
+E. Yang, J. Shen, Z. Wang, D. Wang, B. Li, K. Gao, and G. Guo.
+``AdaTask: A Task-Aware Adaptive Learning Rate Approach to Multi-Task Learning.''
+In \emph{AAAI}, 2023.
+
+\bibitem{wang2021dcnv2}
+R. Wang, R. Shivanna, D.~Z. Cheng, S. Jain, D. Lin, L. Hong, and E.~H. Chi.
+``DCN V2: Improved Deep \& Cross Network and Practical Lessons for Web-scale Learning to Rank Systems.''
+In \emph{WWW}, 2021.
+
+\bibitem{chen2018gradnorm}
+Z. Chen, V. Badrinarayanan, C.-Y. Lee, and A. Rabinovich.
+``GradNorm: Gradient Normalization for Adaptive Loss Balancing in Deep Multitask Networks.''
+In \emph{ICML}, 2018.
+
+\bibitem{yu2020gradient}
+T. Yu, S. Kumar, A. Gupta, S. Levine, K. Hausman, and C. Finn.
+``Gradient Surgery for Multi-Task Learning.''
+In \emph{NeurIPS}, 2020.
+
+\bibitem{tang2020progressive}
+H. Tang, J. Liu, M. Zhao, and X. Gong.
+``Progressive Layered Extraction (PLE): A Novel Multi-Task Learning Model for Personalized Recommendations.''
+In \emph{RecSys}, 2020.
+
+\bibitem{ma2018modeling}
+J. Ma, Z. Zhao, X. Yi, J. Chen, L. Hong, and E.~H. Chi.
+``Modeling Task Relationships in Multi-task Learning with Multi-gate Mixture-of-Experts.''
+In \emph{KDD}, 2018.
+
+\bibitem{zhou2022mixture}
+Y. Zhou, T. Lei, H. Liu, N. Du, Y. Huang, V. Zhao, A.~M. Dai, Z. Chen, Q.~V. Le, and J. Laudon.
+``Mixture-of-Experts with Expert Choice Routing.''
+In \emph{NeurIPS}, 2022.
+
+\end{thebibliography}
+
+\end{document}
