@@ -255,196 +255,196 @@
       "eval_task": 0,
       "after_scenario": 1,
       "eval_scenario": 0,
-      "forgetting": -0.08068998881305534
+      "forgetting": -0.07322227435210904
     },
     {
       "train_task": 2,
       "eval_task": 0,
       "after_scenario": 2,
       "eval_scenario": 0,
-      "forgetting": -0.08443549622904678
+      "forgetting": -0.07696778176810048
     },
     {
       "train_task": 2,
       "eval_task": 1,
       "after_scenario": 2,
       "eval_scenario": 1,
-      "forgetting": -4.962863068636025e-05
+      "forgetting": -0.002809622638324849
     },
     {
       "train_task": 3,
       "eval_task": 0,
       "after_scenario": 3,
       "eval_scenario": 0,
-      "forgetting": -0.039119996805022206
+      "forgetting": -0.03165228234407591
     },
     {
       "train_task": 3,
       "eval_task": 1,
       "after_scenario": 3,
       "eval_scenario": 1,
-      "forgetting": -0.00016029147686547063
+      "forgetting": -0.0029202854845039594
     },
     {
       "train_task": 3,
       "eval_task": 2,
       "after_scenario": 3,
       "eval_scenario": 2,
-      "forgetting": 0.013250126111726823
+      "forgetting": 0.018893637585907674
     },
     {
       "train_task": 4,
       "eval_task": 0,
       "after_scenario": 4,
       "eval_scenario": 0,
-      "forgetting": -0.0739260642502706
+      "forgetting": -0.0664583497893243
     },
     {
       "train_task": 4,
       "eval_task": 1,
       "after_scenario": 4,
       "eval_scenario": 1,
-      "forgetting": -0.0025226893359205915
+      "forgetting": -0.00528268334355908
     },
     {
       "train_task": 4,
       "eval_task": 2,
       "after_scenario": 4,
       "eval_scenario": 2,
-      "forgetting": 0.007149489525686392
+      "forgetting": 0.012793000999867243
     },
     {
       "train_task": 4,
       "eval_task": 3,
       "after_scenario": 4,
       "eval_scenario": 3,
-      "forgetting": -0.0857121432856286
+      "forgetting": -0.07535564315708287
     },
     {
       "train_task": 5,
       "eval_task": 0,
       "after_scenario": 5,
       "eval_scenario": 0,
-      "forgetting": -0.051984313891673795
+      "forgetting": -0.0445165994307275
     },
     {
       "train_task": 5,
       "eval_task": 1,
       "after_scenario": 5,
       "eval_scenario": 1,
-      "forgetting": -0.002861057261979605
+      "forgetting": -0.005621051269618094
     },
     {
       "train_task": 5,
       "eval_task": 2,
       "after_scenario": 5,
       "eval_scenario": 2,
-      "forgetting": 0.004022226518499816
+      "forgetting": 0.009665737992680667
     },
     {
       "train_task": 5,
       "eval_task": 3,
       "after_scenario": 5,
       "eval_scenario": 3,
-      "forgetting": -0.06664238580855264
+      "forgetting": -0.05628588568000692
     },
     {
       "train_task": 5,
       "eval_task": 4,
       "after_scenario": 5,
       "eval_scenario": 4,
-      "forgetting": 0.005685695975886862
+      "forgetting": 0.006372788088499948
     },
     {
       "train_task": 6,
       "eval_task": 0,
       "after_scenario": 6,
       "eval_scenario": 0,
-      "forgetting": -0.04926545314400099
+      "forgetting": -0.0417977386830547
     },
     {
       "train_task": 6,
       "eval_task": 1,
       "after_scenario": 6,
       "eval_scenario": 1,
-      "forgetting": -0.002315802443281112
+      "forgetting": -0.005075796450919601
     },
     {
       "train_task": 6,
       "eval_task": 2,
       "after_scenario": 6,
       "eval_scenario": 2,
-      "forgetting": 0.004311932775409311
+      "forgetting": 0.009955444249590162
     },
     {
       "train_task": 6,
       "eval_task": 3,
       "after_scenario": 6,
       "eval_scenario": 3,
-      "forgetting": -0.09262147570485912
+      "forgetting": -0.0822649755763134
     },
     {
       "train_task": 6,
       "eval_task": 4,
       "after_scenario": 6,
       "eval_scenario": 4,
-      "forgetting": 0.005786417954791401
+      "forgetting": 0.0064735100674044865
     },
     {
       "train_task": 6,
       "eval_task": 5,
       "after_scenario": 6,
       "eval_scenario": 5,
-      "forgetting": 0.014278824751446817
+      "forgetting": -0.001956892714052527
     },
     {
       "train_task": 7,
       "eval_task": 0,
       "after_scenario": 8,
       "eval_scenario": 0,
-      "forgetting": -0.055130779266175156
+      "forgetting": -0.04766306480522886
     },
     {
       "train_task": 7,
       "eval_task": 1,
       "after_scenario": 8,
       "eval_scenario": 1,
-      "forgetting": -0.005721778532888355
+      "forgetting": -0.008481772540526844
     },
     {
       "train_task": 7,
       "eval_task": 2,
       "after_scenario": 8,
       "eval_scenario": 2,
-      "forgetting": 0.0029980990999614043
+      "forgetting": 0.008641610574142256
     },
     {
       "train_task": 7,
       "eval_task": 3,
       "after_scenario": 8,
       "eval_scenario": 3,
-      "forgetting": -0.1123318193504157
+      "forgetting": -0.10197531922186998
     },
     {
       "train_task": 7,
       "eval_task": 4,
       "after_scenario": 8,
       "eval_scenario": 4,
-      "forgetting": 0.003818291268949059
+      "forgetting": 0.004505383381562145
     },
     {
       "train_task": 7,
       "eval_task": 5,
       "after_scenario": 8,
       "eval_scenario": 5,
-      "forgetting": 0.015899985161003105
+      "forgetting": -0.00033573230449623903
     },
     {
       "train_task": 7,
       "eval_task": 6,
       "after_scenario": 8,
       "eval_scenario": 6,
-      "forgetting": 0.009798478427500035
+      "forgetting": -0.006496537659450685
     }
   ],
   "moe_forgetting": [
@@ -453,196 +453,196 @@
       "eval_task": 0,
       "after_scenario": 1,
       "eval_scenario": 0,
-      "forgetting": -0.0398732522285532
+      "forgetting": -0.02588510612539774
     },
     {
       "train_task": 2,
       "eval_task": 0,
       "after_scenario": 2,
       "eval_scenario": 0,
-      "forgetting": -0.057620082803796935
+      "forgetting": -0.04363193670064147
     },
     {
       "train_task": 2,
       "eval_task": 1,
       "after_scenario": 2,
       "eval_scenario": 1,
-      "forgetting": 0.005140346948838026
+      "forgetting": 0.004343349225872095
     },
     {
       "train_task": 3,
       "eval_task": 0,
       "after_scenario": 3,
       "eval_scenario": 0,
-      "forgetting": -0.023220916487262544
+      "forgetting": -0.00923277038410708
     },
     {
       "train_task": 3,
       "eval_task": 1,
       "after_scenario": 3,
       "eval_scenario": 1,
-      "forgetting": 0.0021492894945710495
+      "forgetting": 0.0013522917716051186
     },
     {
       "train_task": 3,
       "eval_task": 2,
       "after_scenario": 3,
       "eval_scenario": 2,
-      "forgetting": 0.021976807765379247
+      "forgetting": 0.010334216198615076
     },
     {
       "train_task": 4,
       "eval_task": 0,
       "after_scenario": 4,
       "eval_scenario": 0,
-      "forgetting": -0.033956572914747185
+      "forgetting": -0.019968426811591722
     },
     {
       "train_task": 4,
       "eval_task": 1,
       "after_scenario": 4,
       "eval_scenario": 1,
-      "forgetting": 0.00503764824932551
+      "forgetting": 0.0042406505263595795
     },
     {
       "train_task": 4,
       "eval_task": 2,
       "after_scenario": 4,
       "eval_scenario": 2,
-      "forgetting": 0.01779710147685598
+      "forgetting": 0.00615450991009181
     },
     {
       "train_task": 4,
       "eval_task": 3,
       "after_scenario": 4,
       "eval_scenario": 3,
-      "forgetting": -0.03391036078498588
+      "forgetting": -0.033057674179449825
     },
     {
       "train_task": 5,
       "eval_task": 0,
       "after_scenario": 5,
       "eval_scenario": 0,
-      "forgetting": -0.02980414561085165
+      "forgetting": -0.015815999507696188
     },
     {
       "train_task": 5,
       "eval_task": 1,
       "after_scenario": 5,
       "eval_scenario": 1,
-      "forgetting": 0.004048667348384827
+      "forgetting": 0.003251669625418896
     },
     {
       "train_task": 5,
       "eval_task": 2,
       "after_scenario": 5,
       "eval_scenario": 2,
-      "forgetting": 0.017140491417060755
+      "forgetting": 0.005497899850296584
     },
     {
       "train_task": 5,
       "eval_task": 3,
       "after_scenario": 5,
       "eval_scenario": 3,
-      "forgetting": -0.022842574342274435
+      "forgetting": -0.02198988773673838
     },
     {
       "train_task": 5,
       "eval_task": 4,
       "after_scenario": 5,
       "eval_scenario": 4,
-      "forgetting": 0.005686507296626897
+      "forgetting": 0.0016634923190340656
     },
     {
       "train_task": 6,
       "eval_task": 0,
       "after_scenario": 6,
       "eval_scenario": 0,
-      "forgetting": -0.027419888073533127
+      "forgetting": -0.013431741970377664
     },
     {
       "train_task": 6,
       "eval_task": 1,
       "after_scenario": 6,
       "eval_scenario": 1,
-      "forgetting": 0.002797128441440311
+      "forgetting": 0.00200013071847438
     },
     {
       "train_task": 6,
       "eval_task": 2,
       "after_scenario": 6,
       "eval_scenario": 2,
-      "forgetting": 0.012379790628535337
+      "forgetting": 0.0007371990617711655
     },
     {
       "train_task": 6,
       "eval_task": 3,
       "after_scenario": 6,
       "eval_scenario": 3,
-      "forgetting": -0.038975062130431004
+      "forgetting": -0.03812237552489495
     },
     {
       "train_task": 6,
       "eval_task": 4,
       "after_scenario": 6,
       "eval_scenario": 4,
-      "forgetting": 0.007034320283581641
+      "forgetting": 0.0030113053059888095
     },
     {
       "train_task": 6,
       "eval_task": 5,
       "after_scenario": 6,
       "eval_scenario": 5,
-      "forgetting": -0.013299450957115266
+      "forgetting": 0.029329277340851778
     },
     {
       "train_task": 7,
       "eval_task": 0,
       "after_scenario": 8,
       "eval_scenario": 0,
-      "forgetting": -0.03983194039423488
+      "forgetting": -0.025843794291079414
     },
     {
       "train_task": 7,
       "eval_task": 1,
       "after_scenario": 8,
       "eval_scenario": 1,
-      "forgetting": -0.003884987715780941
+      "forgetting": -0.004681985438746872
     },
     {
       "train_task": 7,
       "eval_task": 2,
       "after_scenario": 8,
       "eval_scenario": 2,
-      "forgetting": 0.012152499381140602
+      "forgetting": 0.0005099078143764313
     },
     {
       "train_task": 7,
       "eval_task": 3,
       "after_scenario": 8,
       "eval_scenario": 3,
-      "forgetting": -0.05203959208158371
+      "forgetting": -0.05118690547604765
     },
     {
       "train_task": 7,
       "eval_task": 4,
       "after_scenario": 8,
       "eval_scenario": 4,
-      "forgetting": 0.004416079769903547
+      "forgetting": 0.00039306479231071556
     },
     {
       "train_task": 7,
       "eval_task": 5,
       "after_scenario": 8,
       "eval_scenario": 5,
-      "forgetting": -0.007193203739427223
+      "forgetting": 0.03543552455853982
     },
     {
       "train_task": 7,
       "eval_task": 6,
       "after_scenario": 8,
       "eval_scenario": 6,
-      "forgetting": 0.0016519799948523373
+      "forgetting": -0.018103519984193905
     }
   ],
   "final_auc": {

@@ -243,7 +243,26 @@
 <!-- Dataset -->
 <section>
   <h2><span class="icon">📊</span> 数据集：KuaiRand-1K</h2>
-  <p>快手真实推荐数据，约 <strong>1000 名用户</strong> 的 3 个月互动日志，含 8 个内容 tab（关注/推荐/同城等），每个 tab 为用户行为空间下的独立子任务。</p>
+  <p>快手真实推荐数据，约 <strong>1000 名用户</strong> 的 3 个月互动日志，含 <strong>8 个下游场景</strong>（tab），每个场景为快手 App 内不同入口页面的用户行为分布，构成独立的子任务。</p>
+
+  <h3>下游场景（Tab）说明</h3>
+  <p>KuaiRand 官方文档仅描述 tab 字段为 "indicating the scenario of this interaction, e.g., in the recommendation page or the main page of the App. In range of [0,14]"，未公开每个 tab 编号的具体页面名称。以下基于各场景的数据分布给出去重后的 8 个评估场景描述：</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Scenario</th><th>Tab ID</th><th>样本量</th><th>正样本率 (CTR)</th><th>特征推测</th></tr></thead>
+      <tbody>
+        <tr><td><strong>0</strong></td><td>0</td><td>2,407K</td><td>12.0%</td><td>大规模场景，低点击率，推测为<strong>精选/发现页</strong></td></tr>
+        <tr><td><strong>1</strong></td><td>1</td><td>7,718K</td><td>44.5%</td><td><strong>最大规模主场景</strong>（占比 ~65%），高点击率，推测为<strong>推荐页</strong></td></tr>
+        <tr><td><strong>2</strong></td><td>2</td><td>402K</td><td>39.1%</td><td>中等规模，高点击率，推测为<strong>关注页</strong>或搜索结果页</td></tr>
+        <tr><td><strong>3</strong></td><td>3</td><td>37K</td><td>2.5%</td><td>小规模，<strong>极低点击率</strong>，推测为广告/商业化内容</td></tr>
+        <tr><td><strong>4</strong></td><td>4</td><td>895K</td><td>56.0%</td><td>大规模，<strong>最高点击率</strong>，推测为<strong>关注页</strong>（高粘性）</td></tr>
+        <tr><td><strong>5</strong></td><td>5</td><td>16K</td><td>21.3%</td><td>极小规模，中等点击率，推测为小众入口场景</td></tr>
+        <tr><td><strong>6</strong></td><td>6</td><td>183K</td><td>18.1%</td><td>中等规模，较低点击率，推测为<strong>同城/本地</strong>场景</td></tr>
+        <tr><td><strong>8</strong></td><td>8</td><td>17K</td><td>3.6%</td><td>极小规模，<strong>极低点击率</strong>，推测为冷门入口或推广位</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="font-size:0.85em;color:var(--fg3);margin-top:8px;">注：Tab 7 仅 3.8K 样本被排除；Tab 9~14 样本极少（&lt;1K），不参与评估。场景名称标注"推测"表示基于数据特征推断，KuaiRand 未公开精确映射。</p>
 
   <h3>特征字段</h3>
   <div class="table-wrap">
@@ -296,6 +315,8 @@
 <!-- Interactive Results -->
 <section>
   <h2><span class="icon">📈</span> 实验结果（交互式）</h2>
+
+  <div id="scenarioDesc" style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 20px;margin-bottom:12px;font-size:0.9em;line-height:1.6;"></div>
 
   <div class="controls">
     <label for="scenarioSel" style="color:var(--fg2);font-size:0.92em;">场景:</label>
@@ -404,6 +425,18 @@ function getLayerIndex(method) {
 // Get scenarios
 const scenarios = [...new Set(RAW_DATA.map(r => r[0]))].sort((a,b) => a-b);
 
+// Scenario descriptions (data-based, see dataset table above)
+const SCENARIO_INFO = {
+  0: {tab:0, size:'2,407K', ctr:'12.0%', label:'大规模 · 低点击率', desc:'推测为精选/发现页；样本量第二大但正样本率仅 12%，用户行为随机性强，区分难度高。'},
+  1: {tab:1, size:'7,718K', ctr:'44.5%', label:'最大主场景 · 高点击率', desc:'推测为推荐页（Main Feed）；占全部数据 ~65%，是模型预训练和后续迁移的核心场景，CTR 预测难度适中。'},
+  2: {tab:2, size:'402K', ctr:'39.1%', label:'中规模 · 高点击率', desc:'推测为关注/搜索结果页；用户意图明确，点击率高，下游微调通常能获得较高 AUC。'},
+  3: {tab:3, size:'37K', ctr:'2.5%', label:'小规模 · 极低点击率', desc:'推测为广告/商业化内容；正样本极度稀疏，是 8 个场景中最难的子任务，预训练迁移收益最显著。'},
+  4: {tab:4, size:'895K', ctr:'56.0%', label:'大规模 · 最高点击率', desc:'推测为关注页（高粘性）；用户对已关注创作者的内容互动意愿最强，各类迁移方法在此场景表现最佳。'},
+  5: {tab:5, size:'16K', ctr:'21.3%', label:'极小规模 · 中等点击率', desc:'推测为小众入口场景；样本量仅 16K，是小样本学习能力的试金石。'},
+  6: {tab:6, size:'183K', ctr:'18.1%', label:'中规模 · 较低点击率', desc:'推测为同城/本地场景；地域相关性强，泛化难度高于主推荐场景。'},
+  8: {tab:8, size:'17K', ctr:'3.6%', label:'极小规模 · 极低点击率', desc:'推测为冷门入口/推广位；样本量与正样本率均很低，对迁移鲁棒性要求极高。'},
+};
+
 // State
 let curScenario = 2;
 let curLevel = 'All';
@@ -411,7 +444,11 @@ let curLevel = 'All';
 // Init UI
 function initUI() {
   const sel = document.getElementById('scenarioSel');
-  sel.innerHTML = scenarios.map(s => `<option value="${s}" ${s===curScenario?'selected':''}>Scenario ${s}</option>`).join('');
+  sel.innerHTML = scenarios.map(s => {
+    const info = SCENARIO_INFO[s];
+    const label = info ? ` (${info.label})` : '';
+    return `<option value="${s}" ${s===curScenario?'selected':''}>Scenario ${s}${label}</option>`;
+  }).join('');
 
   const tabs = document.getElementById('levelTabs');
   const levels = ['All','Feature','Module','Model'];
@@ -693,6 +730,16 @@ function drawLineChart() {
 
 function refreshAll() {
   curScenario = parseInt(document.getElementById('scenarioSel').value);
+  // Update scenario description
+  const info = SCENARIO_INFO[curScenario];
+  if (info) {
+    document.getElementById('scenarioDesc').innerHTML = `
+      <strong style="font-size:1.05em;">Scenario ${curScenario}</strong>
+      <span style="color:var(--accent);margin-left:12px;font-weight:600;">${info.label}</span>
+      <span style="color:var(--fg3);margin-left:16px;">Tab ID=${info.tab} · 样本 ${info.size} · CTR ${info.ctr}</span>
+      <br><span style="color:var(--fg2);">${info.desc}</span>
+    `;
+  }
   refreshTable();
   drawBarChart();
   drawLineChart();

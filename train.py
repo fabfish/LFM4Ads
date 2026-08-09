@@ -105,28 +105,35 @@ def train_moe(model, scenario, tracker=None, spec_loss=None):
 
                 model(sub)
                 loss = criterion(sub["logit"], sub["is_click"].float())
+
+                # Phase 3: add specialization loss on THIS sub-batch's own
+                # gate+tab (fix D5: previously only the leaked last sub was used).
+                # sub["_gate"] is the LIVE gate (DCNv2MoE.forward stores the
+                # non-detached gate), so spec.backward() reaches the router.
+                if spec_loss is not None and spec_loss.enabled:
+                    loss = loss + spec_loss.compute(
+                        sub["_gate"], sub["tab"], ratios
+                    )
+
                 loss.backward()
 
-                # Collect gates for EMA
-                if spec_loss is not None:
-                    if "_gate" in sub:
-                        all_gates.append(sub["_gate"])  # list of 3 × [B_sub, K]
-                        all_tabs.append(sub["tab"])
-
-            # Specialization loss (per-batch, on last sub-batch's scenario distribution)
-            if spec_loss is not None and spec_loss.enabled:
-                if "_gate" in sub:
-                    spec = spec_loss.compute(sub["_gate"], sub["tab"], ratios)
-                    spec.backward()
+                # Collect gates for EMA (every sub-batch, fixes D5)
+                if spec_loss is not None and "_gate" in sub:
+                    all_gates.append(sub["_gate"])  # list of 3 × [B_sub, K]
+                    all_tabs.append(sub["tab"])
 
             optimizer.step()
             optimizer.zero_grad()
 
         # Epoch-end: update dominance ratios
+        # Fix D1-B: key as 3-tuple (li, ei, s) so compute() lookup matches.
         if tracker is not None and spec_loss is not None:
             for li in range(3):
-                ratios.update(tracker.dominance_matrix(li))
-            if not spec_loss.enabled and epoch % 5 == 0:
+                dm = tracker.dominance_matrix(li)
+                for (ei, s), v in dm.items():
+                    ratios[(li, ei, s)] = v
+            # Fix D1-A: check every epoch (MoE training lasts only 2-3 epochs).
+            if not spec_loss.enabled:
                 if spec_loss.check_and_enable(tracker):
                     print(f"[Epoch {epoch}] Specialization detected! Enabling spec loss.")
 
@@ -216,16 +223,25 @@ def train_continual(model, scenario, scenario_order=None):
     return results
 
 
-def compute_forgetting(results):
+def compute_forgetting(results, pre_continual=None):
     """Compute forgetting metrics from continual learning results.
 
     Forgetting on task j after training task i (i > j):
-      F_{i,j} = AUC_before_task_j_training - AUC_after_task_i_training
-    Positive = forgetting occurred.
+      F_{i,j} = AUC_after_task_i_training[s_j] - AUC_baseline[s_j]
+    NEGATIVE value = forgetting occurred (AUC dropped relative to baseline).
+    (The docstring previously claimed "Positive = forgetting occurred" — that was
+    reversed; the implementation has always been `auc_current - auc_baseline`. See D1-C.)
+
+    Baseline (D1-D fix, 2026-08-09): by default the PRE-CONTINUAL (pre-trained) AUC is
+    used, so forgetting is measured relative to the model BEFORE any sequential training.
+    Previously `results[0]` (AUC after task 0) was used, a less meaningful baseline.
+    Pass `pre_continual=None` to fall back to the old `results[0]` behavior.
     """
     n_tasks = len(results)
     forgetting = []
-    auc_baseline = results[0]["auc_per_scenario"]  # after task 0
+    # D1-D fix: baseline = pre-trained AUC, not AUC after task 0.
+    auc_baseline = (pre_continual if pre_continual is not None
+                    else results[0]["auc_per_scenario"])
 
     for i in range(1, n_tasks):
         auc_current = results[i]["auc_per_scenario"]

@@ -466,13 +466,19 @@ class SpecializationLoss:
                         loss = loss - self.lmbda * (avg_prob[ei] + 1e-8).log()
         return loss
 
-    def check_and_enable(self, tracker: GradientTracker, layer_idx: int = 0):
-        """Enable specialization loss if any expert shows clear scenario dominance."""
-        ratios = tracker.dominance_matrix(layer_idx)
-        for (ei, s), ratio in ratios.items():
-            if ratio > self.threshold:
-                self.enabled = True
-                return True
+    def check_and_enable(self, tracker: GradientTracker, layer_idx: int = None):
+        """Enable specialization loss if any expert shows clear scenario dominance.
+
+        Fix (D1-B): scan ALL three MoE layers by default, not just layer 0,
+        since dominance may appear in any cross layer.
+        """
+        layer_indices = [layer_idx] if layer_idx is not None else range(3)
+        for li in layer_indices:
+            ratios = tracker.dominance_matrix(li)
+            for (ei, s), ratio in ratios.items():
+                if ratio > self.threshold:
+                    self.enabled = True
+                    return True
         return False
 
 

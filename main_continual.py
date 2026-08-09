@@ -82,7 +82,7 @@ print("=" * 60)
 print(f"Training order: {SCENARIO_ORDER}")
 
 vanilla_results = train_continual(vanilla, "base", SCENARIO_ORDER)
-vanilla_forgetting = compute_forgetting(vanilla_results)
+vanilla_forgetting = compute_forgetting(vanilla_results, vanilla_pre)
 
 print("\nBase forgetting summary:")
 for f in vanilla_forgetting:
@@ -99,7 +99,7 @@ print("MoE Continual Learning (DCNv2MoE)")
 print("=" * 60)
 
 moe_results = train_continual(moe, "moe", SCENARIO_ORDER)
-moe_forgetting = compute_forgetting(moe_results)
+moe_forgetting = compute_forgetting(moe_results, moe_pre)
 
 print("\nMoE forgetting summary:")
 for f in moe_forgetting:

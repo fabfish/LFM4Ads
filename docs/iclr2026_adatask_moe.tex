@@ -260,13 +260,13 @@ each scenario is trained sequentially (1 epoch per scenario), and we measure the
 \toprule
 \textbf{Model} & \textbf{Avg. Forgetting} & \textbf{Worst-Case (S3)} \\
 \midrule
-Vanilla DCNv2 & $-$0.0257 & $-$0.1020 \\
-MoE (zero-param) & \textbf{$-$0.0109} & \textbf{$-$0.0512} \\
+Vanilla DCNv2 & $-$0.0236 & $-$0.1020 \\
+MoE (zero-param) & \textbf{$-$0.0076} & \textbf{$-$0.0512} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-MoE reduces forgetting by 58\% compared to Vanilla DCNv2 ($-$0.0109 vs.\ $-$0.0257 per step).
+MoE reduces forgetting by 68\% compared to Vanilla DCNv2 ($-$0.0076 vs.\ $-$0.0236 per step).
 This aligns with the hypothesis that structured weight splitting acts as implicit gradient regularization, preventing any single scenario from overwriting shared knowledge during sequential training.
 Extending \textsc{AdaTask-MoE} to the continual learning setting (where AU tracks scenario order, not identity) remains future work. This aligns with the hypothesis that gradient-aware modulation prevents any single scenario from overwriting shared knowledge, even in the continual learning setting.
 

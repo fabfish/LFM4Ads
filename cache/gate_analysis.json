@@ -1,0 +1,1206 @@
+{
+  "cache/dcnv2_moe_k4.pt": {
+    "cross_layers.0.router.embed.weight": {
+      "K": 4,
+      "max_entropy": 1.386294,
+      "per_scenario": {
+        "0": {
+          "gate": [
+            1.0707,
+            1.1287,
+            0.966,
+            0.8346
+          ],
+          "entropy": 1.379924,
+          "entropy_deficit": 0.00637,
+          "gate_spread": 0.2941
+        },
+        "1": {
+          "gate": [
+            0.9937,
+            1.1698,
+            0.9103,
+            0.9262
+          ],
+          "entropy": 1.38114,
+          "entropy_deficit": 0.005155,
+          "gate_spread": 0.2594
+        },
+        "2": {
+          "gate": [
+            0.961,
+            1.0317,
+            0.9717,
+            1.0356
+          ],
+          "entropy": 1.38572,
+          "entropy_deficit": 0.000575,
+          "gate_spread": 0.0746
+        },
+        "3": {
+          "gate": [
+            0.9986,
+            0.9913,
+            1.0221,
+            0.9881
+          ],
+          "entropy": 1.386206,
+          "entropy_deficit": 8.8e-05,
+          "gate_spread": 0.034
+        },
+        "4": {
+          "gate": [
+            1.0517,
+            1.102,
+            0.9308,
+            0.9155
+          ],
+          "entropy": 1.383176,
+          "entropy_deficit": 0.003118,
+          "gate_spread": 0.1865
+        },
+        "5": {
+          "gate": [
+            0.9923,
+            0.9465,
+            0.9978,
+            1.0635
+          ],
+          "entropy": 1.385428,
+          "entropy_deficit": 0.000866,
+          "gate_spread": 0.117
+        },
+        "6": {
+          "gate": [
+            0.964,
+            1.0061,
+            1.0122,
+            1.0177
+          ],
+          "entropy": 1.386069,
+          "entropy_deficit": 0.000226,
+          "gate_spread": 0.0536
+        },
+        "8": {
+          "gate": [
+            0.9993,
+            1.0059,
+            1.022,
+            0.9729
+          ],
+          "entropy": 1.386137,
+          "entropy_deficit": 0.000157,
+          "gate_spread": 0.0491
+        }
+      },
+      "entropy_min": 1.379924,
+      "entropy_max": 1.386206,
+      "max_entropy_deficit_pct": 0.4595,
+      "gate_spread_max": 0.2941
+    },
+    "cross_layers.1.router.embed.weight": {
+      "K": 4,
+      "max_entropy": 1.386294,
+      "per_scenario": {
+        "0": {
+          "gate": [
+            1.0897,
+            1.0723,
+            1.0198,
+            0.8182
+          ],
+          "entropy": 1.380221,
+          "entropy_deficit": 0.006074,
+          "gate_spread": 0.2716
+        },
+        "1": {
+          "gate": [
+            1.0803,
+            1.0266,
+            1.0121,
+            0.881
+          ],
+          "entropy": 1.383558,
+          "entropy_deficit": 0.002736,
+          "gate_spread": 0.1993
+        },
+        "2": {
+          "gate": [
+            0.9316,
+            0.9638,
+            1.0896,
+            1.0151
+          ],
+          "entropy": 1.384527,
+          "entropy_deficit": 0.001768,
+          "gate_spread": 0.158
+        },
+        "3": {
+          "gate": [
+            1.0069,
+            0.9844,
+            1.0187,
+            0.99
+          ],
+          "entropy": 1.386202,
+          "entropy_deficit": 9.3e-05,
+          "gate_spread": 0.0344
+        },
+        "4": {
+          "gate": [
+            1.0456,
+            0.971,
+            1.0756,
+            0.9078
+          ],
+          "entropy": 1.384136,
+          "entropy_deficit": 0.002158,
+          "gate_spread": 0.1679
+        },
+        "5": {
+          "gate": [
+            0.9946,
+            0.9387,
+            0.9873,
+            1.0794
+          ],
+          "entropy": 1.385025,
+          "entropy_deficit": 0.00127,
+          "gate_spread": 0.1406
+        },
+        "6": {
+          "gate": [
+            1.0048,
+            0.9699,
+            0.9983,
+            1.027
+          ],
+          "entropy": 1.386087,
+          "entropy_deficit": 0.000207,
+          "gate_spread": 0.057
+        },
+        "8": {
+          "gate": [
+            0.9972,
+            1.0074,
+            0.9924,
+            1.003
+          ],
+          "entropy": 1.386278,
+          "entropy_deficit": 1.6e-05,
+          "gate_spread": 0.015
+        }
+      },
+      "entropy_min": 1.380221,
+      "entropy_max": 1.386278,
+      "max_entropy_deficit_pct": 0.4381,
+      "gate_spread_max": 0.2716
+    },
+    "cross_layers.2.router.embed.weight": {
+      "K": 4,
+      "max_entropy": 1.386294,
+      "per_scenario": {
+        "0": {
+          "gate": [
+            1.0097,
+            1.0846,
+            1.0415,
+            0.8641
+          ],
+          "entropy": 1.38278,
+          "entropy_deficit": 0.003514,
+          "gate_spread": 0.2205
+        },
+        "1": {
+          "gate": [
+            1.0868,
+            0.9831,
+            0.9889,
+            0.9412
+          ],
+          "entropy": 1.384886,
+          "entropy_deficit": 0.001408,
+          "gate_spread": 0.1456
+        },
+        "2": {
+          "gate": [
+            0.9669,
+            0.9669,
+            1.0614,
+            1.0048
+          ],
+          "entropy": 1.385552,
+          "entropy_deficit": 0.000742,
+          "gate_spread": 0.0946
+        },
+        "3": {
+          "gate": [
+            1.0089,
+            0.9718,
+            1.0126,
+            1.0068
+          ],
+          "entropy": 1.386159,
+          "entropy_deficit": 0.000136,
+          "gate_spread": 0.0408
+        },
+        "4": {
+          "gate": [
+            1.0999,
+            0.9935,
+            1.0328,
+            0.8738
+          ],
+          "entropy": 1.382867,
+          "entropy_deficit": 0.003427,
+          "gate_spread": 0.2261
+        },
+        "5": {
+          "gate": [
+            0.973,
+            0.9272,
+            1.0385,
+            1.0612
+          ],
+          "entropy": 1.384881,
+          "entropy_deficit": 0.001413,
+          "gate_spread": 0.134
+        },
+        "6": {
+          "gate": [
+            1.0071,
+            0.9579,
+            1.0167,
+            1.0183
+          ],
+          "entropy": 1.385987,
+          "entropy_deficit": 0.000308,
+          "gate_spread": 0.0604
+        },
+        "8": {
+          "gate": [
+            0.9686,
+            1.002,
+            1.0269,
+            1.0025
+          ],
+          "entropy": 1.386079,
+          "entropy_deficit": 0.000215,
+          "gate_spread": 0.0583
+        }
+      },
+      "entropy_min": 1.38278,
+      "entropy_max": 1.386159,
+      "max_entropy_deficit_pct": 0.2535,
+      "gate_spread_max": 0.2261
+    },
+    "_verdict": {
+      "max_gate_spread": 0.2941,
+      "max_entropy_deficit_pct": 0.4595,
+      "verdict": "Router 未分化（熵亏损 <1%，gate 全部接近 1）"
+    }
+  },
+  "cache/adatask_moe_none.pt": {
+    "cross_layers.0.router.weight": {
+      "K": 4,
+      "max_entropy": 1.386294,
+      "per_scenario": {
+        "0": {
+          "gate": [
+            1.5802,
+            0.8675,
+            1.0277,
+            0.5246
+          ],
+          "entropy": 1.31395,
+          "entropy_deficit": 0.072344,
+          "gate_spread": 1.0556
+        },
+        "1": {
+          "gate": [
+            1.458,
+            0.8881,
+            1.1256,
+            0.5282
+          ],
+          "entropy": 1.326171,
+          "entropy_deficit": 0.060123,
+          "gate_spread": 0.9298
+        },
+        "2": {
+          "gate": [
+            1.0499,
+            1.064,
+            1.2566,
+            0.6295
+          ],
+          "entropy": 1.358094,
+          "entropy_deficit": 0.028201,
+          "gate_spread": 0.6271
+        },
+        "3": {
+          "gate": [
+            1.1334,
+            0.9723,
+            1.0936,
+            0.8006
+          ],
+          "entropy": 1.377667,
+          "entropy_deficit": 0.008628,
+          "gate_spread": 0.3328
+        },
+        "4": {
+          "gate": [
+            1.5665,
+            0.8849,
+            1.1205,
+            0.4281
+          ],
+          "entropy": 1.296505,
+          "entropy_deficit": 0.08979,
+          "gate_spread": 1.1384
+        },
+        "5": {
+          "gate": [
+            0.8913,
+            0.8364,
+            1.1141,
+            1.1581
+          ],
+          "entropy": 1.376675,
+          "entropy_deficit": 0.009619,
+          "gate_spread": 0.3217
+        },
+        "6": {
+          "gate": [
+            1.0673,
+            0.9936,
+            1.1852,
+            0.754
+          ],
+          "entropy": 1.373416,
+          "entropy_deficit": 0.012878,
+          "gate_spread": 0.4312
+        },
+        "8": {
+          "gate": [
+            1.0568,
+            0.9855,
+            1.0741,
+            0.8836
+          ],
+          "entropy": 1.383438,
+          "entropy_deficit": 0.002857,
+          "gate_spread": 0.1905
+        }
+      },
+      "entropy_min": 1.296505,
+      "entropy_max": 1.383438,
+      "max_entropy_deficit_pct": 6.4769,
+      "gate_spread_max": 1.1384
+    },
+    "cross_layers.1.router.weight": {
+      "K": 4,
+      "max_entropy": 1.386294,
+      "per_scenario": {
+        "0": {
+          "gate": [
+            1.2112,
+            1.1755,
+            1.1212,
+            0.492
+          ],
+          "entropy": 1.335909,
+          "entropy_deficit": 0.050385,
+          "gate_spread": 0.7192
+        },
+        "1": {
+          "gate": [
+            0.863,
+            1.1573,
+            1.3854,
+            0.5944
+          ],
+          "entropy": 1.340228,
+          "entropy_deficit": 0.046066,
+          "gate_spread": 0.7911
+        },
+        "2": {
+          "gate": [
+            0.6213,
+            0.979,
+            1.6585,
+            0.7412
+          ],
+          "entropy": 1.311147,
+          "entropy_deficit": 0.075148,
+          "gate_spread": 1.0372
+        },
+        "3": {
+          "gate": [
+            1.0501,
+            0.9395,
+            1.1267,
+            0.8837
+          ],
+          "entropy": 1.38183,
+          "entropy_deficit": 0.004465,
+          "gate_spread": 0.243
+        },
+        "4": {
+          "gate": [
+            0.9402,
+            1.183,
+            1.3021,
+            0.5747
+          ],
+          "entropy": 1.344729,
+          "entropy_deficit": 0.041566,
+          "gate_spread": 0.7275
+        },
+        "5": {
+          "gate": [
+            0.8078,
+            0.7805,
+            1.1959,
+            1.2158
+          ],
+          "entropy": 1.364875,
+          "entropy_deficit": 0.021419,
+          "gate_spread": 0.4353
+        },
+        "6": {
+          "gate": [
+            0.9478,
+            0.9329,
+            1.151,
+            0.9682
+          ],
+          "entropy": 1.382528,
+          "entropy_deficit": 0.003766,
+          "gate_spread": 0.2181
+        },
+        "8": {
+          "gate": [
+            1.1078,
+            0.8997,
+            1.0876,
+            0.9049
+          ],
+          "entropy": 1.381489,
+          "entropy_deficit": 0.004806,
+          "gate_spread": 0.208
+        }
+      },
+      "entropy_min": 1.311147,
+      "entropy_max": 1.382528,
+      "max_entropy_deficit_pct": 5.4207,
+      "gate_spread_max": 1.0372
+    },
+    "cross_layers.2.router.weight": {
+      "K": 4,
+      "max_entropy": 1.386294,
+      "per_scenario": {
+        "0": {
+          "gate": [
+            1.1929,
+            1.1127,
+            1.1494,
+            0.545
+          ],
+          "entropy": 1.346671,
+          "entropy_deficit": 0.039623,
+          "gate_spread": 0.6479
+        },
+        "1": {
+          "gate": [
+            0.9007,
+            0.8092,
+            1.5037,
+            0.7863
+          ],
+          "entropy": 1.346556,
+          "entropy_deficit": 0.039739,
+          "gate_spread": 0.7174
+        },
+        "2": {
+          "gate": [
+            0.7192,
+            0.8601,
+            1.6232,
+            0.7975
+          ],
+          "entropy": 1.326507,
+          "entropy_deficit": 0.059788,
+          "gate_spread": 0.904
+        },
+        "3": {
+          "gate": [
+            0.9795,
+            0.959,
+            1.1773,
+            0.8843
+          ],
+          "entropy": 1.380572,
+          "entropy_deficit": 0.005722,
+          "gate_spread": 0.293
+        },
+        "4": {
+          "gate": [
+            0.9708,
+            0.8942,
+            1.3934,
+            0.7415
+          ],
+          "entropy": 1.35834,
+          "entropy_deficit": 0.027954,
+          "gate_spread": 0.6519
+        },
+        "5": {
+          "gate": [
+            0.844,
+            0.8145,
+            1.1344,
+            1.2071
+          ],
+          "entropy": 1.371299,
+          "entropy_deficit": 0.014995,
+          "gate_spread": 0.3925
+        },
+        "6": {
+          "gate": [
+            0.921,
+            0.8862,
+            1.2097,
+            0.9831
+          ],
+          "entropy": 1.378626,
+          "entropy_deficit": 0.007669,
+          "gate_spread": 0.3234
+        },
+        "8": {
+          "gate": [
+            1.06,
+            0.8742,
+            1.1284,
+            0.9375
+          ],
+          "entropy": 1.381312,
+          "entropy_deficit": 0.004983,
+          "gate_spread": 0.2541
+        }
+      },
+      "entropy_min": 1.326507,
+      "entropy_max": 1.381312,
+      "max_entropy_deficit_pct": 4.3127,
+      "gate_spread_max": 0.904
+    },
+    "_verdict": {
+      "max_gate_spread": 1.1384,
+      "max_entropy_deficit_pct": 6.4769,
+      "verdict": "Router 轻微分化（熵亏损 1%-10%）"
+    }
+  },
+  "cache/adatask_moe_encourage.pt": {
+    "cross_layers.0.router.weight": {
+      "K": 4,
+      "max_entropy": 1.386294,
+      "per_scenario": {
+        "0": {
+          "gate": [
+            1.9102,
+            0.8735,
+            0.8462,
+            0.3701
+          ],
+          "entropy": 1.23404,
+          "entropy_deficit": 0.152254,
+          "gate_spread": 1.5402
+        },
+        "1": {
+          "gate": [
+            1.6312,
+            0.9495,
+            1.0258,
+            0.3936
+          ],
+          "entropy": 1.284294,
+          "entropy_deficit": 0.102001,
+          "gate_spread": 1.2376
+        },
+        "2": {
+          "gate": [
+            1.1335,
+            1.1468,
+            1.1439,
+            0.5757
+          ],
+          "entropy": 1.352512,
+          "entropy_deficit": 0.033782,
+          "gate_spread": 0.5711
+        },
+        "3": {
+          "gate": [
+            1.083,
+            1.0134,
+            1.0796,
+            0.824
+          ],
+          "entropy": 1.38054,
+          "entropy_deficit": 0.005755,
+          "gate_spread": 0.259
+        },
+        "4": {
+          "gate": [
+            1.5279,
+            1.0634,
+            1.0226,
+            0.386
+          ],
+          "entropy": 1.294141,
+          "entropy_deficit": 0.092153,
+          "gate_spread": 1.142
+        },
+        "5": {
+          "gate": [
+            0.8858,
+            0.9326,
+            1.0851,
+            1.0964
+          ],
+          "entropy": 1.38201,
+          "entropy_deficit": 0.004284,
+          "gate_spread": 0.2106
+        },
+        "6": {
+          "gate": [
+            1.1837,
+            0.9646,
+            1.1616,
+            0.69
+          ],
+          "entropy": 1.365564,
+          "entropy_deficit": 0.02073,
+          "gate_spread": 0.4937
+        },
+        "8": {
+          "gate": [
+            1.0743,
+            0.9322,
+            1.1026,
+            0.8909
+          ],
+          "entropy": 1.382212,
+          "entropy_deficit": 0.004082,
+          "gate_spread": 0.2117
+        }
+      },
+      "entropy_min": 1.23404,
+      "entropy_max": 1.382212,
+      "max_entropy_deficit_pct": 10.9828,
+      "gate_spread_max": 1.5402
+    },
+    "cross_layers.1.router.weight": {
+      "K": 4,
+      "max_entropy": 1.386294,
+      "per_scenario": {
+        "0": {
+          "gate": [
+            1.3777,
+            1.0519,
+            1.1324,
+            0.4379
+          ],
+          "entropy": 1.317812,
+          "entropy_deficit": 0.068483,
+          "gate_spread": 0.9398
+        },
+        "1": {
+          "gate": [
+            0.7985,
+            0.9512,
+            1.5797,
+            0.6706
+          ],
+          "entropy": 1.32954,
+          "entropy_deficit": 0.056754,
+          "gate_spread": 0.909
+        },
+        "2": {
+          "gate": [
+            0.6671,
+            0.8383,
+            1.7838,
+            0.7108
+          ],
+          "entropy": 1.293331,
+          "entropy_deficit": 0.092964,
+          "gate_spread": 1.1168
+        },
+        "3": {
+          "gate": [
+            1.0993,
+            1.0191,
+            1.0594,
+            0.8221
+          ],
+          "entropy": 1.380409,
+          "entropy_deficit": 0.005885,
+          "gate_spread": 0.2772
+        },
+        "4": {
+          "gate": [
+            1.1377,
+            1.0113,
+            1.2087,
+            0.6423
+          ],
+          "entropy": 1.360573,
+          "entropy_deficit": 0.025721,
+          "gate_spread": 0.5664
+        },
+        "5": {
+          "gate": [
+            0.7824,
+            0.8181,
+            1.177,
+            1.2224
+          ],
+          "entropy": 1.366006,
+          "entropy_deficit": 0.020288,
+          "gate_spread": 0.44
+        },
+        "6": {
+          "gate": [
+            0.9163,
+            0.9801,
+            1.2072,
+            0.8964
+          ],
+          "entropy": 1.378922,
+          "entropy_deficit": 0.007372,
+          "gate_spread": 0.3108
+        },
+        "8": {
+          "gate": [
+            1.0343,
+            0.9673,
+            1.0257,
+            0.9727
+          ],
+          "entropy": 1.385839,
+          "entropy_deficit": 0.000455,
+          "gate_spread": 0.0669
+        }
+      },
+      "entropy_min": 1.293331,
+      "entropy_max": 1.385839,
+      "max_entropy_deficit_pct": 6.7059,
+      "gate_spread_max": 1.1168
+    },
+    "cross_layers.2.router.weight": {
+      "K": 4,
+      "max_entropy": 1.386294,
+      "per_scenario": {
+        "0": {
+          "gate": [
+            1.4463,
+            1.0784,
+            0.9539,
+            0.5215
+          ],
+          "entropy": 1.328682,
+          "entropy_deficit": 0.057613,
+          "gate_spread": 0.9248
+        },
+        "1": {
+          "gate": [
+            1.0752,
+            0.8718,
+            1.2833,
+            0.7698
+          ],
+          "entropy": 1.367057,
+          "entropy_deficit": 0.019237,
+          "gate_spread": 0.5135
+        },
+        "2": {
+          "gate": [
+            0.7275,
+            1.0245,
+            1.5268,
+            0.7212
+          ],
+          "entropy": 1.335362,
+          "entropy_deficit": 0.050932,
+          "gate_spread": 0.8056
+        },
+        "3": {
+          "gate": [
+            1.1842,
+            0.9952,
+            1.0556,
+            0.7649
+          ],
+          "entropy": 1.374386,
+          "entropy_deficit": 0.011909,
+          "gate_spread": 0.4193
+        },
+        "4": {
+          "gate": [
+            1.0118,
+            0.8625,
+            1.4934,
+            0.6324
+          ],
+          "entropy": 1.337961,
+          "entropy_deficit": 0.048334,
+          "gate_spread": 0.861
+        },
+        "5": {
+          "gate": [
+            0.8163,
+            0.8841,
+            1.2153,
+            1.0844
+          ],
+          "entropy": 1.373755,
+          "entropy_deficit": 0.012539,
+          "gate_spread": 0.3991
+        },
+        "6": {
+          "gate": [
+            0.9497,
+            0.8805,
+            1.1625,
+            1.0073
+          ],
+          "entropy": 1.380969,
+          "entropy_deficit": 0.005326,
+          "gate_spread": 0.2821
+        },
+        "8": {
+          "gate": [
+            0.9953,
+            0.9945,
+            1.091,
+            0.9191
+          ],
+          "entropy": 1.384441,
+          "entropy_deficit": 0.001853,
+          "gate_spread": 0.1719
+        }
+      },
+      "entropy_min": 1.328682,
+      "entropy_max": 1.384441,
+      "max_entropy_deficit_pct": 4.1559,
+      "gate_spread_max": 0.9248
+    },
+    "_verdict": {
+      "max_gate_spread": 1.5402,
+      "max_entropy_deficit_pct": 10.9828,
+      "verdict": "Router 明显分化（熵亏损 >10%）"
+    }
+  },
+  "cache/adatask_moe_suppress.pt": {
+    "cross_layers.0.router.weight": {
+      "K": 4,
+      "max_entropy": 1.386294,
+      "per_scenario": {
+        "0": {
+          "gate": [
+            1.5122,
+            0.8739,
+            1.0811,
+            0.5328
+          ],
+          "entropy": 1.322176,
+          "entropy_deficit": 0.064118,
+          "gate_spread": 0.9794
+        },
+        "1": {
+          "gate": [
+            1.0771,
+            0.9999,
+            1.3752,
+            0.5478
+          ],
+          "entropy": 1.339218,
+          "entropy_deficit": 0.047076,
+          "gate_spread": 0.8273
+        },
+        "2": {
+          "gate": [
+            1.1347,
+            0.8135,
+            1.3021,
+            0.7497
+          ],
+          "entropy": 1.360488,
+          "entropy_deficit": 0.025807,
+          "gate_spread": 0.5524
+        },
+        "3": {
+          "gate": [
+            1.1177,
+            1.0111,
+            1.0339,
+            0.8373
+          ],
+          "entropy": 1.380967,
+          "entropy_deficit": 0.005328,
+          "gate_spread": 0.2804
+        },
+        "4": {
+          "gate": [
+            1.307,
+            1.0347,
+            1.1569,
+            0.5013
+          ],
+          "entropy": 1.334348,
+          "entropy_deficit": 0.051946,
+          "gate_spread": 0.8057
+        },
+        "5": {
+          "gate": [
+            0.843,
+            0.8179,
+            1.1251,
+            1.214
+          ],
+          "entropy": 1.371381,
+          "entropy_deficit": 0.014913,
+          "gate_spread": 0.3961
+        },
+        "6": {
+          "gate": [
+            0.9653,
+            0.9962,
+            1.2709,
+            0.7677
+          ],
+          "entropy": 1.37036,
+          "entropy_deficit": 0.015935,
+          "gate_spread": 0.5032
+        },
+        "8": {
+          "gate": [
+            1.0244,
+            0.9157,
+            1.0664,
+            0.9934
+          ],
+          "entropy": 1.384761,
+          "entropy_deficit": 0.001533,
+          "gate_spread": 0.1507
+        }
+      },
+      "entropy_min": 1.322176,
+      "entropy_max": 1.384761,
+      "max_entropy_deficit_pct": 4.6252,
+      "gate_spread_max": 0.9794
+    },
+    "cross_layers.1.router.weight": {
+      "K": 4,
+      "max_entropy": 1.386294,
+      "per_scenario": {
+        "0": {
+          "gate": [
+            1.3099,
+            1.19,
+            0.9995,
+            0.5006
+          ],
+          "entropy": 1.332866,
+          "entropy_deficit": 0.053429,
+          "gate_spread": 0.8093
+        },
+        "1": {
+          "gate": [
+            1.0523,
+            1.0929,
+            1.171,
+            0.6838
+          ],
+          "entropy": 1.367372,
+          "entropy_deficit": 0.018922,
+          "gate_spread": 0.4872
+        },
+        "2": {
+          "gate": [
+            0.8044,
+            0.8369,
+            1.6562,
+            0.7025
+          ],
+          "entropy": 1.320427,
+          "entropy_deficit": 0.065867,
+          "gate_spread": 0.9538
+        },
+        "3": {
+          "gate": [
+            1.0743,
+            0.9891,
+            1.1073,
+            0.8292
+          ],
+          "entropy": 1.380339,
+          "entropy_deficit": 0.005956,
+          "gate_spread": 0.2782
+        },
+        "4": {
+          "gate": [
+            1.0342,
+            1.0875,
+            1.2556,
+            0.6226
+          ],
+          "entropy": 1.357082,
+          "entropy_deficit": 0.029212,
+          "gate_spread": 0.6329
+        },
+        "5": {
+          "gate": [
+            0.7839,
+            0.7628,
+            1.1183,
+            1.3351
+          ],
+          "entropy": 1.357943,
+          "entropy_deficit": 0.028352,
+          "gate_spread": 0.5723
+        },
+        "6": {
+          "gate": [
+            0.9487,
+            1.0346,
+            1.0822,
+            0.9344
+          ],
+          "entropy": 1.384439,
+          "entropy_deficit": 0.001856,
+          "gate_spread": 0.1478
+        },
+        "8": {
+          "gate": [
+            1.0938,
+            0.8974,
+            0.9861,
+            1.0227
+          ],
+          "entropy": 1.383776,
+          "entropy_deficit": 0.002518,
+          "gate_spread": 0.1964
+        }
+      },
+      "entropy_min": 1.320427,
+      "entropy_max": 1.384439,
+      "max_entropy_deficit_pct": 4.7513,
+      "gate_spread_max": 0.9538
+    },
+    "cross_layers.2.router.weight": {
+      "K": 4,
+      "max_entropy": 1.386294,
+      "per_scenario": {
+        "0": {
+          "gate": [
+            1.0743,
+            1.1413,
+            1.2054,
+            0.579
+          ],
+          "entropy": 1.352138,
+          "entropy_deficit": 0.034157,
+          "gate_spread": 0.6264
+        },
+        "1": {
+          "gate": [
+            1.0168,
+            0.9081,
+            1.3073,
+            0.7678
+          ],
+          "entropy": 1.36709,
+          "entropy_deficit": 0.019204,
+          "gate_spread": 0.5394
+        },
+        "2": {
+          "gate": [
+            0.8326,
+            0.8839,
+            1.4641,
+            0.8194
+          ],
+          "entropy": 1.352961,
+          "entropy_deficit": 0.033333,
+          "gate_spread": 0.6446
+        },
+        "3": {
+          "gate": [
+            0.9963,
+            1.0578,
+            1.0816,
+            0.8644
+          ],
+          "entropy": 1.382662,
+          "entropy_deficit": 0.003633,
+          "gate_spread": 0.2172
+        },
+        "4": {
+          "gate": [
+            1.0243,
+            0.8821,
+            1.3364,
+            0.7573
+          ],
+          "entropy": 1.363581,
+          "entropy_deficit": 0.022714,
+          "gate_spread": 0.5792
+        },
+        "5": {
+          "gate": [
+            0.9571,
+            0.7697,
+            1.1846,
+            1.0886
+          ],
+          "entropy": 1.373882,
+          "entropy_deficit": 0.012412,
+          "gate_spread": 0.4149
+        },
+        "6": {
+          "gate": [
+            0.9434,
+            0.9295,
+            1.0888,
+            1.0382
+          ],
+          "entropy": 1.384111,
+          "entropy_deficit": 0.002183,
+          "gate_spread": 0.1594
+        },
+        "8": {
+          "gate": [
+            1.0028,
+            0.8455,
+            1.1634,
+            0.9882
+          ],
+          "entropy": 1.379956,
+          "entropy_deficit": 0.006338,
+          "gate_spread": 0.3179
+        }
+      },
+      "entropy_min": 1.352138,
+      "entropy_max": 1.384111,
+      "max_entropy_deficit_pct": 2.4639,
+      "gate_spread_max": 0.6446
+    },
+    "_verdict": {
+      "max_gate_spread": 0.9794,
+      "max_entropy_deficit_pct": 4.7513,
+      "verdict": "Router 轻微分化（熵亏损 1%-10%）"
+    }
+  }
+}
