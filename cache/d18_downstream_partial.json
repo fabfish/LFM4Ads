@@ -1,0 +1,29 @@
+{
+  "note": "D18 (partial, running): three-level downstream eval for V1 rx-only K=4 lr=5e-4 --shuffle seed=42. Delta = MoE - Vanilla, per usage method.",
+  "status": "IN PROGRESS — scenario order [1,0,4,2,6,3,8,5], ~78min/scenario",
+  "by_scenario": {
+    "1": {
+      "n_methods": 14,
+      "mean_delta": -0.00038,
+      "n_negative": 10,
+      "max_abs_delta": 0.0014,
+      "per_method": {
+        "SUM": -0.0002,
+        "concat CR_0": 0.0007,
+        "concat CR_1": -0.0005,
+        "concat CR_2": -0.0005,
+        "concat CR_3": -0.0002,
+        "concat CR_4": -0.0014,
+        "concat CR_5": 0.0,
+        "gate CR_0": -0.0006,
+        "gate CR_1": -0.0012,
+        "gate CR_2": -0.0013,
+        "gate CR_3": -0.0005,
+        "gate CR_4": -0.0006,
+        "gate CR_5": 0.0005,
+        "Vanilla": 0.0005
+      }
+    }
+  },
+  "interim_verdict": "On the first completed scenario every usage method lands within +-0.0014 of Vanilla (mean -0.0004, 10/14 negative). The upstream rx-only MoE gain does NOT transfer to any of the three downstream usage levels: the Cross Representations are not measurably better than the vanilla ones."
+}
