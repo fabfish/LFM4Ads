@@ -1,0 +1,63 @@
+{
+  "note": "D17 closes D9-E: K sweep redone with a WORKING seed (--shuffle), V1 rx-only, lr=5e-4, max_epochs=8. K=4 group reused from D15.",
+  "by_K": {
+    "1": {
+      "per_seed": {
+        "1": 0.75706,
+        "42": 0.75651
+      },
+      "n": 2,
+      "mean": 0.75679,
+      "std": 0.00039
+    },
+    "2": {
+      "per_seed": {
+        "1": 0.77344,
+        "7": 0.77402,
+        "42": 0.77167
+      },
+      "n": 3,
+      "mean": 0.77304,
+      "std": 0.00123
+    },
+    "4": {
+      "per_seed": {
+        "1": 0.77336,
+        "7": 0.77369,
+        "42": 0.77344,
+        "2024": 0.77326
+      },
+      "n": 4,
+      "mean": 0.77344,
+      "std": 0.00018
+    },
+    "8": {
+      "per_seed": {
+        "1": 0.77295,
+        "7": 0.77364,
+        "42": 0.77338
+      },
+      "n": 3,
+      "mean": 0.77332,
+      "std": 0.00035
+    }
+  },
+  "tests": {
+    "K2_vs_K1": {
+      "diff": 0.01625,
+      "welch_t": 21.33,
+      "verdict": "HUGE and highly significant: +0.0163."
+    },
+    "K4_vs_K2": {
+      "diff": 0.0004,
+      "welch_t": 0.56,
+      "verdict": "not significant."
+    },
+    "K8_vs_K4": {
+      "diff": -0.00012,
+      "welch_t": -0.54,
+      "verdict": "not significant."
+    }
+  },
+  "verdict": "The multi-expert gain is REAL but saturates completely at K=2. K=1 (architecturally equivalent to plain DCNv2 Cross) loses 0.0163; K=2/4/8 are indistinguishable within 0.0004. Do NOT claim scaling in K."
+}
