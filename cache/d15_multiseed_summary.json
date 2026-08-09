@@ -1,0 +1,38 @@
+{
+  "note": "D15: multi-seed with --shuffle (the only stochastic source). rx-only, K=4, lr=5e-4, max_epochs=8. Vanilla full-finetune ref 0.7775.",
+  "V1_pure_experts": {
+    "per_seed": {
+      "1": 0.77336,
+      "7": 0.77369,
+      "42": 0.77344,
+      "2024": 0.77326
+    },
+    "n": 4,
+    "mean": 0.77344,
+    "std": 0.00018,
+    "min": 0.77326,
+    "max": 0.77369
+  },
+  "V2_shared_soft": {
+    "per_seed": {
+      "1": 0.75771,
+      "7": 0.75748,
+      "42": 0.75998,
+      "2024": 0.75498
+    },
+    "n": 4,
+    "mean": 0.75754,
+    "std": 0.00205,
+    "min": 0.75498,
+    "max": 0.75998
+  },
+  "comparison": {
+    "mean_diff_V1_minus_V2": 0.0159,
+    "pooled_std": 0.00146,
+    "cohens_d": 10.93,
+    "welch_t": 15.45,
+    "df_approx": 6,
+    "verdict": "V1 beats V2 by 0.0159 AUC; V1 std is ~12x smaller. Effect size is enormous relative to seed noise -> the V1>V2 conclusion is NOT a single-seed artifact."
+  },
+  "g4_note": "Without --shuffle all seeds return bit-identical AUC; every earlier \"multi-seed\" plan in D7/DRIVERS was infeasible. See DRIVERS G-4."
+}
