@@ -1,0 +1,55 @@
+{
+  "note": "D18 final: three-level downstream (Feature/Module/Model) x 8 scenarios x 14 usages. delta = MoE - Vanilla, identical downstream training for both arms. Both arms: K=4, lr=5e-4, --shuffle, seed=42, rx-only freeze.",
+  "V1_pure_experts": {
+    "n": 112,
+    "mean_delta": -0.00445,
+    "std": 0.01732,
+    "n_negative": 68,
+    "t_vs_0": -2.72
+  },
+  "V2_shared_soft": {
+    "n": 112,
+    "mean_delta": 0.00115,
+    "std": 0.02894,
+    "n_negative": 50,
+    "t_vs_0": 0.42
+  },
+  "V1_by_method": {
+    "SUM": -0.0035,
+    "concat CR_0": -0.00232,
+    "concat CR_1": -0.00655,
+    "concat CR_2": 0.00549,
+    "concat CR_3": 0.00251,
+    "concat CR_4": -0.01114,
+    "concat CR_5": -0.01194,
+    "gate CR_0": 0.00159,
+    "gate CR_1": 0.00471,
+    "gate CR_2": -0.00241,
+    "gate CR_3": -0.00846,
+    "gate CR_4": -0.01096,
+    "gate CR_5": -0.00667,
+    "Vanilla": -0.01266
+  },
+  "V2_by_method": {
+    "SUM": 0.0051,
+    "concat CR_0": -0.00341,
+    "concat CR_1": -0.00159,
+    "concat CR_2": -0.00249,
+    "concat CR_3": -0.01329,
+    "concat CR_4": -0.00549,
+    "concat CR_5": 0.01479,
+    "gate CR_0": -0.01665,
+    "gate CR_1": 0.01548,
+    "gate CR_2": -0.00039,
+    "gate CR_3": -0.00242,
+    "gate CR_4": 0.01516,
+    "gate CR_5": 0.00811,
+    "Vanilla": 0.00314
+  },
+  "upstream_for_reference": {
+    "V1": 0.77344,
+    "V2": 0.75754,
+    "vanilla": 0.7775
+  },
+  "verdict": "UPSTREAM RANKING DOES NOT PREDICT DOWNSTREAM. V1 wins upstream by +0.0159 (t=15.45) yet is significantly WORSE downstream (-0.00445, t=-2.72), while V2 loses upstream but is downstream-neutral (+0.00115, t=0.42). Selecting a multi-scenario backbone on upstream AUC alone is unsound."
+}
