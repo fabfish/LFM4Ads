@@ -134,7 +134,8 @@ graph TD
 | D1-H（新增） | SpecializationLoss 仅叠加在内层循环**泄漏的最后一个 sub** 的 gate+tab（D5），其余 sub 未受约束 | D1 | ✅ 已修复（2026-08-09）：改为每个 sub 各自叠加本 sub 的 gate+tab |
 | D1-F（原 D6） | `result_moe_downstream.csv` 仅表头、下游数据只存于 `moe_pretrain.log` | D3 | ✅ 已从日志重建（224 行 / 8 场景，真实数据非编造） |
 | D14（新增） | 下游（05:16 run 日志）与 Phase1（13:40 run 的 `result_moe.csv` / 缓存权重）**不同源**；跨两者比较须显式标注 run，不可混用 | D3 | 📝 文档须声明，必要时择机对 13:40 权重补跑下游 |
-| G-1 | 全部实验单 seed 单 trial，无显著性 | 全部 | 🔄 待多 seed 复跑（见 D7 §5.3 P0） |
+| G-1 | 全部实验单 seed 单 trial，无显著性 | 全部 | 🔄 待多 seed；**但见 G-4：改 seed 本身无效** |
+| **G-4（D9 新增，严重）** | **`--seed` 在 MoE 路径上是空操作**：训练 DataLoader 未开 shuffle，MoE 权重来自固定 ckpt，Router 零初始化 → 全流程无随机源。实测 seed=1/42/2024 得到**逐位相同**的 `test_auc_all = 0.7750083012867384`。此前所有「换 seed 复跑」的计划均不可能产生方差 | 全部（尤 D7 §5.3 P0、G-1） | ✅ 已定位并修复：`train.py:train_moe` / `main_moe_v2.py` 训练 loader 加 `shuffle` 开关，`main_moe.py` / `main_moe_v2.py` 加 `--shuffle`（默认 False 以保持历史结果可复现）。D15 用 `--shuffle` + 4 seeds 重做方差估计 |
 | G-2（D7新增） | D0–D5 标记 ✅ 但均有未完成 backlog；需 D7 路线图统管执行 | D0–D5, D7 | 🔄 见 D7 §5.1 Backlog 汇总 |
 | G-3（D7新增） | AdaTask 与 Phase 1 存在 7 项口径差异（batch / epoch / 训练集 / 基座 ckpt / optimizer / valid 缺失 / LR 显式 vs 默认），需统一重做 | D4, D7, D8, D9 | ⚠️ 差异已文档化于 D8 §格局；**D9 §4 Q-A 已按此 caveat 将 AdaTask 数据降级为"方向性参考"，不参与机制裁决**；统一重做仍待 P1 |
 | D9-A（新增） | D9 全部实验 `--skip-downstream`，Feature/Module/Model 三级下游未评估 | D9 | 📝 待补 |
