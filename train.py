@@ -70,7 +70,7 @@ def train(model, scenario):
 # ============================================================
 
 def train_moe(model, scenario, tracker=None, spec_loss=None, lr=1e-3,
-              beta2=0.999):
+              beta2=0.999, shuffle=False):
     """Train DCNv2MoE with per-scenario forward+backward for clean AU tracking.
 
     Each batch is split by scenario; each sub-batch gets its own forward+backward.
@@ -99,6 +99,7 @@ def train_moe(model, scenario, tracker=None, spec_loss=None, lr=1e-3,
         epoch += 1
         loader = torch.utils.data.DataLoader(
             Dataset(train_set), batch_size=10000, num_workers=10,
+            shuffle=shuffle,
         )
         all_gates.clear()
         all_tabs.clear()
