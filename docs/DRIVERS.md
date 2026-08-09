@@ -25,7 +25,8 @@
 | D5 | [20250808-1740-LFM4Ads-base遗忘与持续学习](./20250808-1740-LFM4Ads-base遗忘与持续学习.md) | 实验 | ✅ 已闭合（单 order 单 seed） | `cache/continual_results.json` | `main_continual.py <device>` |
 | D6 | [20260809-1801-LFM4Ads-MoE升级设计与实现](./20260809-1801-LFM4Ads-MoE升级设计与实现.md) | **设计+实现** | ⚠️ 代码就绪 / 实验待跑 | `model.py` (V2 classes)、`main_moe_v2.py` | `python main_moe_v2.py <device>` |
 | D7 | [20260809-1905-LFM4Ads-综合问答与实验路线图](./20260809-1905-LFM4Ads-综合问答与实验路线图.md) | **问答+路线图** | ⚠️ 路线图就绪 / 实验待执行 | 全部 `cache/*`、全部 `docs/*` | 各文档对应入口 |
-| D8 | [20260809-1957-LFM4Ads-lfm4ads-watch技能设计与实验流水线](./20260809-1957-LFM4Ads-lfm4ads-watch技能设计与实验流水线.md) | **设计+技能** | ⚠️ 设计定稿 / 技能待创建 | D7、`cache/dcnv2_vanilla.pt`、`cache/vanilla_pretrain.pt` | `.codebuddy/skills/lfm4ads-watch/` |
+| D8 | [20260809-1957-LFM4Ads-lfm4ads-watch技能设计与实验流水线](./20260809-1957-LFM4Ads-lfm4ads-watch技能设计与实验流水线.md) | **设计+技能** | ✅ 设计定稿 + 技能已创建并驱动 D9/D10/D11 | D7、`cache/dcnv2_vanilla.pt`、`cache/vanilla_pretrain.pt` | `.codebuddy/skills/lfm4ads-watch/` |
+| D9 | [20260809-2314-LFM4Ads-MoE机制验证与双卡实验](./20260809-2314-LFM4Ads-MoE机制验证与双卡实验.md) | **实验（机制裁决）** | ✅ 主结论闭合（单 seed）/ D11 外推进行中 | `cache/moe_v1_summary_*.json`、`cache/moe_v2_train_history*.json`、`cache/grad_dominance_*.json`、`cache/d10_summary.json` | `main_moe.py` / `main_moe_v2.py` + `cache/d11_chain.sh` |
 
 **状态图例**：✅ 已闭合（数字全部可溯源、backlog 已标注）｜⚠️ 部分完成｜🔄 进行中｜⛔ 阻塞
 
@@ -43,6 +44,8 @@ graph TD
     D5["D5 base 遗忘与持续学习"]
     D6["D6 MoE V2 升级<br/>(Shared Expert + Top-K)"]
     D7["D7 综合问答与实验路线图<br/>(Q1-Q5 分析 / 全局路线图)"]
+    D8["D8 lfm4ads-watch 技能<br/>(公平口径 + 双卡流水线)"]
+    D9["D9 MoE 机制验证与双卡实验<br/>(rx-only / 稀疏路由裁决 / 梯度诊断预测力)"]
 
     D0 --> D1
     D1 --> D3
@@ -57,6 +60,10 @@ graph TD
     D5 --> D7
     D6 --> D7
     D7 --> D8
+    D8 --> D9
+    D6 --> D9
+    D4 -. AdaTask 三模式数据 .-> D9
+    D5 -. 持续学习数据 .-> D9
     D2 -. 校验 .-> D3
     D2 -. 校验 .-> D4
     D2 -. 校验 .-> D5
@@ -86,7 +93,13 @@ graph TD
 | `docs/20260809-1905-*.md` | 本文（D7） | D7 | ✅ 已写入（路线图就绪） |
 | `docs/20260809-1957-*.md` | 本文（D8） | D8 | ✅ 已写入（设计定稿） |
 | `cache/vanilla_pretrain.pt` | `main_adatask.py` Phase 0 | D4、D8 | ⚠️ 与 `dcnv2_vanilla.pt` 不同源（D8 §格局 已记录） |
-| `.codebuddy/skills/lfm4ads-watch/` | 本文（D8）产物 | D8 | ⏳ 待创建 |
+| `.codebuddy/skills/lfm4ads-watch/` | 本文（D8）产物 | D8、D9 | ✅ 已创建，驱动 D9/D10/D11 双卡自循环 |
+| `cache/moe_v1_summary_{k1,k2,k4,k8}_*.json` | `main_moe.py`（`--freeze` / `--K` 扫描） | D9 §3.1 | ✅ 8 组配置 × (test_auc_all + 8 场景) |
+| `cache/moe_v2_train_history*.json` | `main_moe_v2.py` | D9 §3.2/3.3 | ✅ 全量 1 组 + rx-only 3 组 + D10 6 组 |
+| `cache/grad_dominance_*.json` | `scripts/measure_gradient_dominance.py` | D9 §3.4 | ✅ 8 组：groups(RMS) + per_unit + per_unit_scenario + verdict |
+| `cache/d10_summary.json` | D10 汇总脚本 | D9 §3.3 | ✅ 6 组消融 + 三项裁决 |
+| `cache/d11_chain.sh` / `cache/d10_chain.sh` | 本文（D9）部署 | D9 §8 | ✅ 双卡链式调度器 |
+| `docs/20260809-2314-*.md` | 本文（D9） | D9 | ✅ 已写入（主结论闭合） |
 
 ---
 
@@ -123,7 +136,10 @@ graph TD
 | D14（新增） | 下游（05:16 run 日志）与 Phase1（13:40 run 的 `result_moe.csv` / 缓存权重）**不同源**；跨两者比较须显式标注 run，不可混用 | D3 | 📝 文档须声明，必要时择机对 13:40 权重补跑下游 |
 | G-1 | 全部实验单 seed 单 trial，无显著性 | 全部 | 🔄 待多 seed 复跑（见 D7 §5.3 P0） |
 | G-2（D7新增） | D0–D5 标记 ✅ 但均有未完成 backlog；需 D7 路线图统管执行 | D0–D5, D7 | 🔄 见 D7 §5.1 Backlog 汇总 |
-| G-3（D7新增） | AdaTask 与 Phase 1 存在 7 项口径差异（batch / epoch / 训练集 / 基座 ckpt / optimizer / valid 缺失 / LR 显式 vs 默认），需统一重做 | D4, D7, D8 | ✅ 差异已文档化于 D8 §格局（7 项逐条标注可比性影响 + 统一公平口径表）；待 P1 统一重做 |
+| G-3（D7新增） | AdaTask 与 Phase 1 存在 7 项口径差异（batch / epoch / 训练集 / 基座 ckpt / optimizer / valid 缺失 / LR 显式 vs 默认），需统一重做 | D4, D7, D8, D9 | ⚠️ 差异已文档化于 D8 §格局；**D9 §4 Q-A 已按此 caveat 将 AdaTask 数据降级为"方向性参考"，不参与机制裁决**；统一重做仍待 P1 |
+| D9-A（新增） | D9 全部实验 `--skip-downstream`，Feature/Module/Model 三级下游未评估 | D9 | 📝 待补 |
+| D9-B（新增） | K=2/4/8 之间差异 <0.001（0.7714/0.7723/0.7721），落在单 seed 噪声内，**不可断言 K 的边际收益** | D9 | 🔄 需多 seed 才能定论（属 G-1） |
+| D9-C（新增） | 「LR 与 β₂ 联调」结论目前仅在 V2 验证，V1 复现实验（`d11_v1_rx_lr3e3_b95`）进行中 | D9 | 🔄 D11 进行中 |
 
 ---
 

@@ -69,7 +69,8 @@ def train(model, scenario):
 #  MoE training with gradient tracking
 # ============================================================
 
-def train_moe(model, scenario, tracker=None, spec_loss=None, lr=1e-3):
+def train_moe(model, scenario, tracker=None, spec_loss=None, lr=1e-3,
+              beta2=0.999):
     """Train DCNv2MoE with per-scenario forward+backward for clean AU tracking.
 
     Each batch is split by scenario; each sub-batch gets its own forward+backward.
@@ -85,7 +86,8 @@ def train_moe(model, scenario, tracker=None, spec_loss=None, lr=1e-3):
     """
     train_set, valid_set, test_set = Split(scenario)
     criterion = torch.nn.BCEWithLogitsLoss()
-    optimizer = torch.optim.AdamW(_trainable(model), lr=lr)
+    optimizer = torch.optim.AdamW(_trainable(model), lr=lr,
+                                  betas=(0.9, beta2))
     device = next(model.parameters()).device
     auc_best = 0
     epoch = 0

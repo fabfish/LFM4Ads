@@ -48,6 +48,9 @@ def _parse_args(argv):
                          "are trained')")
     ap.add_argument("--lr", type=float, default=1e-3,
                     help="AdamW lr; matters for the frozen (rx-only) setting")
+    ap.add_argument("--beta2", type=float, default=0.999,
+                    help="AdamW beta2; lower (e.g. 0.95) speeds up expert updates "
+                         "diagnosed as under-trained (RMS(Expert)/RMS(DNN)<<1)")
     ap.add_argument("--spec-loss", action="store_true", default=True)
     ap.add_argument("--no-spec-loss", dest="spec_loss", action="store_false")
     ap.add_argument("--skip-downstream", action="store_true",
@@ -139,7 +142,8 @@ tracker = GradientTracker(moe, beta=0.99)
 tracker.register()
 spec_loss = SpecializationLoss(threshold=0.3, lmbda=0.01) if USE_SPEC_LOSS else None
 
-moe_auc = train_moe(moe, "all", tracker=tracker, spec_loss=spec_loss, lr=ARGS.lr)
+moe_auc = train_moe(moe, "all", tracker=tracker, spec_loss=spec_loss, lr=ARGS.lr,
+                    beta2=ARGS.beta2)
 print(f"  MoE test AUC (all): {moe_auc:.4f}")
 torch.save(moe.state_dict(), MOE_PATH)
 
@@ -199,6 +203,7 @@ with open(RESULT_CSV, "w") as f:
 with open(SUMMARY_JSON, "w") as f:
     json.dump({
         "config": {"device": DEVICE, "seed": ARGS.seed, "K": K, "lr": ARGS.lr,
+                   "beta2": ARGS.beta2,
                    "freeze": ARGS.freeze, "tag": ARGS.tag,
                    "spec_loss": USE_SPEC_LOSS},
         "freeze": freeze_info,
