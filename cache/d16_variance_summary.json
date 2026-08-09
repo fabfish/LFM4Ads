@@ -1,0 +1,61 @@
+{
+  "note": "D16 re-checks the two headline claims under real seed variance (--shuffle). rx-only, K=4, max_epochs=8.",
+  "groups": {
+    "V1_lr5e-4(D15)": {
+      "per_seed": {
+        "1": 0.77336,
+        "7": 0.77369,
+        "42": 0.77344,
+        "2024": 0.77326
+      },
+      "n": 4,
+      "mean": 0.77344,
+      "std": 0.00018
+    },
+    "V1_lr1e-3(D16)": {
+      "per_seed": {
+        "1": 0.77268,
+        "7": 0.77348,
+        "42": 0.77074
+      },
+      "n": 3,
+      "mean": 0.7723,
+      "std": 0.00141
+    },
+    "V2_soft_tk4(D15)": {
+      "per_seed": {
+        "1": 0.75771,
+        "7": 0.75748,
+        "42": 0.75998,
+        "2024": 0.75498
+      },
+      "n": 4,
+      "mean": 0.75754,
+      "std": 0.00205
+    },
+    "V2_sparse_tk2(D16)": {
+      "per_seed": {
+        "1": 0.74841,
+        "7": 0.74316,
+        "42": 0.7529
+      },
+      "n": 3,
+      "mean": 0.74816,
+      "std": 0.00488
+    }
+  },
+  "tests": {
+    "LR_peak_5e-4_vs_1e-3": {
+      "diff": 0.00114,
+      "welch_t": 1.39,
+      "verdict": "NOT significant: diff=+0.00114 but Welch t=1.39 (df~2), p>0.2. The lr=5e-4 \"peak\" found in the single-seed D12/D13 sweep is INSIDE seed noise once lr=1e-3 variance (std 0.00141, ~8x that of lr=5e-4) is accounted for. Claim downgraded: lr in [5e-4,1e-3] is a plateau, not a peak. What IS robust is that both beat lr>=2e-3 (0.7650) and lr<=5e-5 (0.7109) by a wide margin."
+    },
+    "soft_vs_sparse_routing": {
+      "diff": 0.00938,
+      "welch_t": 3.13,
+      "verdict": "Significant: diff=+0.00938, Welch t=3.13 (df~3), p<0.05. top_k=K (soft) > top_k=2 (sparse) survives seed variance; sparse routing also carries ~2.4x larger seed variance."
+    }
+  },
+  "meta_finding": "Across every comparison, the WORSE configuration also has the LARGER seed variance (V2>V1, lr1e-3>lr5e-4, sparse>soft). Instability and inferiority co-occur, consistent with the gradient-mismatch diagnosis.",
+  "correction_note": "An earlier reading claimed the LR peak was \"6x the std\" — that incorrectly used only the low-variance arm. Using the pooled standard error the LR claim does not survive; the routing claim does. Recorded here to keep the numbers auditable."
+}
