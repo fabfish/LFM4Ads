@@ -59,6 +59,9 @@ def _parse_args(argv):
     ap.add_argument("--lb-alpha", type=float, default=0.01)
     ap.add_argument("--lr", type=float, default=1e-3,
                     help="AdamW lr; matters for the frozen (rx-only) setting")
+    ap.add_argument("--beta2", type=float, default=0.999,
+                    help="AdamW beta2; lower (e.g. 0.9) speeds up expert updates "
+                         "diagnosed as under-trained (RMS(Expert)/RMS(DNN)<<1)")
     ap.add_argument("--batch-size", type=int, default=10000)
     ap.add_argument("--num-workers", type=int, default=10)
     ap.add_argument("--max-epochs", type=int, default=8)
@@ -151,7 +154,8 @@ print()
 # Training with warmup + load balance loss
 train_set, valid_set, test_set = Split("all")
 criterion = torch.nn.BCEWithLogitsLoss()
-optimizer = torch.optim.AdamW(trainable_parameters(moe_v2), lr=ARGS.lr)
+optimizer = torch.optim.AdamW(trainable_parameters(moe_v2), lr=ARGS.lr,
+                              betas=(0.9, ARGS.beta2))
 device = torch.device(DEVICE)
 auc_best = 0.0
 epoch = 0
@@ -246,7 +250,7 @@ with open(HISTORY_JSON, "w") as f:
             "device": DEVICE, "seed": ARGS.seed, "K": K,
             "top_k_target": TOP_K_TARGET, "routing": ARGS.routing,
             "noise_scale": ARGS.noise_scale, "lb_alpha": ARGS.lb_alpha,
-            "batch_size": ARGS.batch_size, "lr": ARGS.lr,
+            "batch_size": ARGS.batch_size, "lr": ARGS.lr, "beta2": ARGS.beta2,
             "freeze": ARGS.freeze, "tag": ARGS.tag,
         },
         "freeze": freeze_info,
