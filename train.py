@@ -32,10 +32,23 @@ def evaluate(model, dataset):
     return AUC.compute()
 
 
+def _trainable(model):
+    """Only optimize parameters with requires_grad=True.
+
+    Needed by the router+experts-only ablation (`--freeze dnn,head,sparse`) and
+    by the frozen-backbone downstream heads; equivalent to `model.parameters()`
+    when nothing is frozen.
+    """
+    params = [p for p in model.parameters() if p.requires_grad]
+    if not params:
+        raise ValueError("No trainable parameters — check the --freeze setting.")
+    return params
+
+
 def train(model, scenario):
     train_set, valid_set, test_set = Split(scenario)
     criterion = torch.nn.BCEWithLogitsLoss()
-    optimizer = torch.optim.AdamW(model.parameters())
+    optimizer = torch.optim.AdamW(_trainable(model))
     auc_best = 0
     while True:
         for batch in infer(model, train_set, True):
@@ -56,7 +69,7 @@ def train(model, scenario):
 #  MoE training with gradient tracking
 # ============================================================
 
-def train_moe(model, scenario, tracker=None, spec_loss=None):
+def train_moe(model, scenario, tracker=None, spec_loss=None, lr=1e-3):
     """Train DCNv2MoE with per-scenario forward+backward for clean AU tracking.
 
     Each batch is split by scenario; each sub-batch gets its own forward+backward.
@@ -72,7 +85,7 @@ def train_moe(model, scenario, tracker=None, spec_loss=None):
     """
     train_set, valid_set, test_set = Split(scenario)
     criterion = torch.nn.BCEWithLogitsLoss()
-    optimizer = torch.optim.AdamW(model.parameters())
+    optimizer = torch.optim.AdamW(_trainable(model), lr=lr)
     device = next(model.parameters()).device
     auc_best = 0
     epoch = 0
@@ -183,7 +196,7 @@ def train_continual(model, scenario, scenario_order=None):
 
         # Get train/valid/test for this scenario
         train_set, valid_set, test_set = Split(train_scenario)
-        optimizer = torch.optim.AdamW(model.parameters())
+        optimizer = torch.optim.AdamW(_trainable(model))
         auc_best = 0
 
         # Train on current scenario

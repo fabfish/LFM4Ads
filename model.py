@@ -483,6 +483,131 @@ class SpecializationLoss:
         return False
 
 
+# ============================================================
+#  Parameter grouping & selective freezing
+#
+#  用于两类实验:
+#   1. router+experts-only 消融 (冻结 dnn/head/sparse, 只训 MoE 本体)
+#   2. 梯度主导度测量 (按组统计每参数 RMS 梯度)
+#
+#  组定义对 DCNv2 / DCNv2MoE(V1) / DCNv2MoE_V2 三种架构通用。
+# ============================================================
+
+#: 组名 → 判定函数（输入 named_parameters 的 name）
+PARAM_GROUPS: dict = {
+    # 类别特征 embedding 表 —— 占总参数 ~99.2%, 与 MoE 无关
+    "Sparse":       lambda n: n.startswith("sparse."),
+    # V2 shared expert（始终激活）
+    "CrossShared":  lambda n: "cross_layers." in n and ".shared." in n,
+    # V1 的 K 个 expert / V2 的 K 个 routed expert
+    "CrossExpert":  lambda n: "cross_layers." in n and ".experts." in n,
+    # 路由器: V1 ScenarioRouter/DataRouter (.router.) ; V2 w_gate/w_noise
+    "Router":       lambda n: "cross_layers." in n
+                              and (".router." in n or ".w_gate" in n or ".w_noise" in n),
+    # vanilla DCNv2 的 cross 层 (layers.0-2)，MoE 架构下不存在
+    "CrossVanilla": lambda n: n.startswith("layers.")
+                              and n.split(".")[1].isdigit() and int(n.split(".")[1]) < 3,
+    "DNN":          lambda n: n.startswith("dnn.")
+                              or (n.startswith("layers.") and n.split(".")[1].isdigit()
+                                  and 3 <= int(n.split(".")[1]) <= 4),
+    "Head":         lambda n: n.startswith("head.")
+                              or (n.startswith("layers.") and n.split(".")[1].isdigit()
+                                  and int(n.split(".")[1]) == 5),
+}
+
+#: `--freeze` 可接受的别名 → 对应的组集合
+FREEZE_ALIASES: dict = {
+    "sparse":  {"Sparse"},
+    "dnn":     {"DNN"},
+    "head":    {"Head"},
+    "cross":   {"CrossShared", "CrossExpert", "CrossVanilla"},
+    "experts": {"CrossExpert"},
+    "shared":  {"CrossShared"},
+    "router":  {"Router"},
+}
+
+
+def param_group_of(name: str) -> str:
+    """Return the group name for a parameter, or 'Other' if unmatched."""
+    for group, pred in PARAM_GROUPS.items():
+        if pred(name):
+            return group
+    return "Other"
+
+
+def group_param_counts(model: nn.Module) -> dict:
+    """{group: n_params} for every group present in the model."""
+    counts: dict = {}
+    for n, p in model.named_parameters():
+        counts[param_group_of(n)] = counts.get(param_group_of(n), 0) + p.numel()
+    return counts
+
+
+def apply_freeze(model: nn.Module, freeze: str) -> dict:
+    """Freeze parameter groups in-place, e.g. freeze='dnn,head,sparse'.
+
+    对 router+experts-only 消融: `apply_freeze(model, 'dnn,head,sparse')`
+    ⇒ 仅 CrossShared + CrossExpert + Router 保持 requires_grad=True。
+
+    Args:
+        model:  DCNv2 / DCNv2MoE / DCNv2MoE_V2
+        freeze: 逗号分隔的别名（见 FREEZE_ALIASES），空串/None 表示不冻结
+    Returns:
+        {'frozen_groups', 'trainable': {group: n}, 'frozen': {group: n},
+         'n_trainable', 'n_frozen'} —— 供日志核对
+    """
+    targets: set = set()
+    for token in (freeze or "").split(","):
+        token = token.strip().lower()
+        if not token:
+            continue
+        if token not in FREEZE_ALIASES:
+            raise ValueError(
+                f"Unknown freeze target '{token}'. "
+                f"Valid: {sorted(FREEZE_ALIASES)}"
+            )
+        targets |= FREEZE_ALIASES[token]
+
+    trainable, frozen = {}, {}
+    for n, p in model.named_parameters():
+        g = param_group_of(n)
+        if g in targets:
+            p.requires_grad_(False)
+            frozen[g] = frozen.get(g, 0) + p.numel()
+        else:
+            trainable[g] = trainable.get(g, 0) + p.numel()
+
+    return {
+        "frozen_groups": sorted(targets),
+        "trainable": trainable,
+        "frozen": frozen,
+        "n_trainable": sum(trainable.values()),
+        "n_frozen": sum(frozen.values()),
+    }
+
+
+def freeze_summary(info: dict) -> str:
+    """Human-readable summary of apply_freeze() output."""
+    total = info["n_trainable"] + info["n_frozen"]
+    lines = [f"Freeze summary (frozen groups: {info['frozen_groups'] or 'none'}):"]
+    for tag in ("trainable", "frozen"):
+        if not info[tag]:
+            continue
+        lines.append(f"  [{tag}]")
+        for g, n in sorted(info[tag].items(), key=lambda kv: -kv[1]):
+            lines.append(f"    {g:<14s}: {n:>12,}  ({n / total * 100:6.3f}% of all)")
+    lines.append(
+        f"  TOTAL trainable: {info['n_trainable']:,} / {total:,} "
+        f"({info['n_trainable'] / total * 100:.3f}%)"
+    )
+    return "\n".join(lines)
+
+
+def trainable_parameters(model: nn.Module):
+    """Iterator over parameters with requires_grad=True (for the optimizer)."""
+    return (p for p in model.parameters() if p.requires_grad)
+
+
 class FeatureUsage(DCNv2):
     def __init__(self, LFM4Ads, method):
         super().__init__(360 if "gate" in method else 370)

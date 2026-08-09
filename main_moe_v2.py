@@ -15,6 +15,7 @@ Flow:
   5. Run downstream eval (FeatureUsage/ModuleUsage/ModelUsage)
 """
 
+import argparse
 import json
 import os
 import sys
@@ -33,18 +34,60 @@ from model import (
     FeatureUsage,
     ModelUsage,
     ModuleUsage,
+    apply_freeze,
+    freeze_summary,
+    trainable_parameters,
 )
 from train import evaluate, infer, train as train_fn
 
-DEVICE = sys.argv[1] if len(sys.argv) > 1 else "cuda"
-K = 4  # number of routed experts
-TOP_K_TARGET = 2  # target sparsity (active routed experts at inference)
+
+def _parse_args(argv):
+    ap = argparse.ArgumentParser(description="MoE V2 pretraining & evaluation")
+    ap.add_argument("device", nargs="?", default="cuda",
+                    help="e.g. cuda:0 (positional, backward compatible)")
+    ap.add_argument("--freeze", default="",
+                    help="comma list of groups to freeze, e.g. 'dnn,head,sparse' "
+                         "(router+experts-only ablation)")
+    ap.add_argument("--tag", default="",
+                    help="suffix for all output artifacts, e.g. 'rxonly'")
+    ap.add_argument("--seed", type=int, default=42)
+    ap.add_argument("--K", type=int, default=4, help="number of routed experts")
+    ap.add_argument("--top-k-target", type=int, default=2,
+                    help="active routed experts after warmup")
+    ap.add_argument("--routing", default="data", choices=["data", "scenario"])
+    ap.add_argument("--noise-scale", type=float, default=0.1)
+    ap.add_argument("--lb-alpha", type=float, default=0.01)
+    ap.add_argument("--lr", type=float, default=1e-3,
+                    help="AdamW lr; matters for the frozen (rx-only) setting")
+    ap.add_argument("--batch-size", type=int, default=10000)
+    ap.add_argument("--num-workers", type=int, default=10)
+    ap.add_argument("--max-epochs", type=int, default=8)
+    ap.add_argument("--skip-downstream", action="store_true",
+                    help="skip Step 5 (224 downstream trainings, very slow)")
+    return ap.parse_args(argv)
+
+
+ARGS = _parse_args(sys.argv[1:])
+DEVICE = ARGS.device
+K = ARGS.K                       # number of routed experts
+TOP_K_TARGET = ARGS.top_k_target  # target sparsity (active routed experts)
 CACHE_DIR = "cache"
+SUF = f"_{ARGS.tag}" if ARGS.tag else ""
+
+torch.manual_seed(ARGS.seed)
 
 os.makedirs(CACHE_DIR, exist_ok=True)
 VANILLA_PATH = f"{CACHE_DIR}/dcnv2_vanilla.pt"
-MOE_V2_PATH = f"{CACHE_DIR}/dcnv2_moe_v2_k{K}.pt"
+MOE_V2_PATH = f"{CACHE_DIR}/dcnv2_moe_v2_k{K}{SUF}.pt"
 MOE_V1_PATH = f"{CACHE_DIR}/dcnv2_moe_k{K}.pt"
+RESULT_CSV = f"result_moe_v2{SUF}.csv"
+DOWNSTREAM_CSV = f"result_moe_v2_downstream{SUF}.csv"
+GATE_JSON = f"{CACHE_DIR}/gate_stats_v2{SUF}.json"
+HISTORY_JSON = f"{CACHE_DIR}/moe_v2_train_history{SUF}.json"
+
+print(f"[config] device={DEVICE} seed={ARGS.seed} K={K} top_k_target={TOP_K_TARGET} "
+      f"routing={ARGS.routing} freeze='{ARGS.freeze or 'none'}' tag='{ARGS.tag}' "
+      f"skip_downstream={ARGS.skip_downstream}")
 
 
 # ===========================================================
@@ -94,37 +137,43 @@ print("=" * 60)
 
 moe_v2 = DCNv2MoE_V2(
     dim=360, K=K, top_k=K,  # start full-soft (warmup)
-    routing='data', noise_scale=0.1, lb_alpha=0.01,
+    routing=ARGS.routing, noise_scale=ARGS.noise_scale, lb_alpha=ARGS.lb_alpha,
 ).to(DEVICE)
 moe_v2.load_pretrained(vanilla)
 print(f"\n  {DCNv2MoE_V2.param_summary(moe_v2)}")
+
+# ---- router+experts-only ablation: freeze everything but the MoE itself ----
+freeze_info = apply_freeze(moe_v2, ARGS.freeze)
+print()
+print(freeze_summary(freeze_info))
 print()
 
 # Training with warmup + load balance loss
 train_set, valid_set, test_set = Split("all")
 criterion = torch.nn.BCEWithLogitsLoss()
-optimizer = torch.optim.AdamW(moe_v2.parameters())
+optimizer = torch.optim.AdamW(trainable_parameters(moe_v2), lr=ARGS.lr)
 device = torch.device(DEVICE)
-auc_best = 0
+auc_best = 0.0
 epoch = 0
+history = []
+warmup_auc = None
+best_state, best_top_k = None, None
 
 while True:
     epoch += 1
     loader = torch.utils.data.DataLoader(
-        Dataset(train_set), batch_size=10000, num_workers=10,
+        Dataset(train_set), batch_size=ARGS.batch_size, num_workers=ARGS.num_workers,
     )
     total_steps = len(loader)
     lb_total_epoch = 0.0
 
     # ---- Warmup schedule ----
-    # Epoch 1: top_k = K = 4 (soft routing, vanilla-equiv)
+    # Epoch 1: top_k = K (soft routing, vanilla-equiv)
     # Epoch 2+: top_k = TOP_K_TARGET (sparse routing)
-    if epoch == 1:
-        moe_v2.set_top_k(K)
-        print(f"  [Warmup] Epoch {epoch}: top_k={K} (soft routing)")
-    else:
-        moe_v2.set_top_k(TOP_K_TARGET)
-        print(f"  [Sparse]  Epoch {epoch}: top_k={TOP_K_TARGET}")
+    cur_top_k = K if epoch == 1 else TOP_K_TARGET
+    moe_v2.set_top_k(cur_top_k)
+    phase = "Warmup" if cur_top_k >= K else "Sparse"
+    print(f"  [{phase}] Epoch {epoch}: top_k={cur_top_k}")
 
     for batch in tqdm(loader, desc=f"Epoch {epoch}"):
         moe_v2.train()
@@ -150,20 +199,65 @@ while True:
         optimizer.step()
         optimizer.zero_grad()
 
-    auc = evaluate(moe_v2, valid_set)
-    print(f"  Epoch {epoch} valid AUC: {auc:.4f}  "
-          f"LB loss: {lb_total_epoch / max(total_steps, 1):.6f}")
+    auc = float(evaluate(moe_v2, valid_set))
+    lb_mean = lb_total_epoch / max(total_steps, 1)
+    print(f"  Epoch {epoch} valid AUC: {auc:.4f}  LB loss: {lb_mean:.6f}")
+    history.append({"epoch": epoch, "top_k": cur_top_k,
+                    "valid_auc": auc, "lb_loss": lb_mean})
+
+    # ---- Fix (2026-08-09): warmup(top_k=K) 与 sparse(top_k<K) 是两个不同的
+    # 路由体制，用 warmup 的 AUC 去 early-stop 稀疏体制的第一个 epoch 会导致
+    # 训练在 epoch 2 立刻中断，并且回滚到 warmup 权重却保留 top_k=TOP_K_TARGET
+    # （权重/路由模式错配）。因此：体制切换时重置 early-stop 基线，
+    # 并把 best 权重对应的 top_k 一起记录、恢复时一并还原。
+    if epoch == 1 and TOP_K_TARGET < K:
+        warmup_auc = auc
+        print(f"  [regime switch] warmup valid AUC={auc:.4f} recorded; "
+              f"early-stop baseline reset for the sparse regime")
+        auc_best = 0.0
+        continue
 
     if auc_best < auc - 0.001:
         auc_best = auc
-        state_dict = deepcopy(moe_v2.state_dict())
+        best_state = deepcopy(moe_v2.state_dict())
+        best_top_k = cur_top_k
     else:
-        moe_v2.load_state_dict(state_dict)
         break
+
+    if epoch >= ARGS.max_epochs:
+        print(f"  [max-epochs] stop at epoch {epoch}")
+        break
+
+if best_state is not None:
+    moe_v2.load_state_dict(best_state)
+    moe_v2.set_top_k(best_top_k)
+    print(f"  restored best state (valid AUC={auc_best:.4f}, top_k={best_top_k})")
 
 moe_v2_auc = evaluate(moe_v2, test_set)
 print(f"  MoE V2 test AUC (all): {moe_v2_auc:.4f}")
+if warmup_auc is not None:
+    print(f"  (warmup-epoch valid AUC was {warmup_auc:.4f} vs best sparse "
+          f"{auc_best:.4f})")
 torch.save(moe_v2.state_dict(), MOE_V2_PATH)
+
+with open(HISTORY_JSON, "w") as f:
+    json.dump({
+        "config": {
+            "device": DEVICE, "seed": ARGS.seed, "K": K,
+            "top_k_target": TOP_K_TARGET, "routing": ARGS.routing,
+            "noise_scale": ARGS.noise_scale, "lb_alpha": ARGS.lb_alpha,
+            "batch_size": ARGS.batch_size, "lr": ARGS.lr,
+            "freeze": ARGS.freeze, "tag": ARGS.tag,
+        },
+        "freeze": freeze_info,
+        "history": history,
+        "warmup_valid_auc": warmup_auc,
+        "best_valid_auc": auc_best,
+        "best_top_k": best_top_k,
+        "test_auc_all": float(moe_v2_auc),
+        "vanilla_test_auc_all": float(vanilla_auc),
+    }, f, indent=2)
+print(f"  training history → {HISTORY_JSON}")
 
 
 # ===========================================================
@@ -211,7 +305,7 @@ if moe_v1_per_scenario:
 print(line)
 
 # Write comparison CSV
-with open("result_moe_v2.csv", "w") as f:
+with open(RESULT_CSV, "w") as f:
     header = "Scenario,Vanilla_AUC,MoE_V2_AUC,Delta_V2"
     if moe_v1_per_scenario:
         header += ",MoE_V1_AUC,Delta_V1"
@@ -228,64 +322,9 @@ with open("result_moe_v2.csv", "w") as f:
 
 
 # ===========================================================
-#  Step 5: Load MoE V1 for downstream comparison (if available)
-#  OR: just run V2 downstream standalone
-# ===========================================================
-print()
-print("=" * 60)
-print("Step 5: Downstream evaluation (FeatureUsage/ModuleUsage)")
-print("=" * 60)
-
-# Aggregate CRs for MoE V2
-moe_v2.CRs = torch.zeros(1000, 6, 360).to(DEVICE)
-train_valid_set = pd.concat(Split("all")[:2])
-for _ in infer(moe_v2, train_valid_set):
-    pass
-moe_v2.CRs = torch.nn.functional.layer_norm(moe_v2.CRs, [360])
-
-vanilla.requires_grad_(False)
-moe_v2.requires_grad_(False)
-
-# Aggregate vanilla CRs if needed
-if not hasattr(vanilla, "CRs"):
-    vanilla.CRs = torch.zeros(1000, 6, 360).to(DEVICE)
-    for _ in infer(vanilla, train_valid_set):
-        pass
-    vanilla.CRs = torch.nn.functional.layer_norm(vanilla.CRs, [360])
-
-
-def run_downstream(Usage, LFM4Ads_model, method, scenario, tag):
-    model = Usage(LFM4Ads_model, method).to(DEVICE)
-    auc = train_fn(model, scenario)
-    print(f"  [{tag}] scenario={scenario} method={method:>12} AUC={auc:.4f}")
-    return f"{tag},{scenario},{method},{auc:.4f}\n"
-
-
-header = "Model,Scenario,Method,AUC\n"
-with open("result_moe_v2_downstream.csv", "w") as f:
-    f.write(header)
-
-for s in [1, 0, 4, 2, 6, 3, 8, 5]:
-    with open("result_moe_v2_downstream.csv", "a") as f:
-        # Vanilla downstream (baseline)
-        f.write(run_downstream(FeatureUsage, vanilla, "SUM", s, "Vanilla"))
-        for layer_idx in range(6):
-            f.write(run_downstream(FeatureUsage, vanilla, f"concat CR_{layer_idx}", s, "Vanilla"))
-        for layer_idx in range(6):
-            f.write(run_downstream(FeatureUsage, vanilla, f"gate CR_{layer_idx}", s, "Vanilla"))
-        f.write(run_downstream(ModuleUsage, vanilla, "Vanilla", s, "Vanilla"))
-
-        # MoE V2 downstream
-        f.write(run_downstream(FeatureUsage, moe_v2, "SUM", s, "MoE_V2"))
-        for layer_idx in range(6):
-            f.write(run_downstream(FeatureUsage, moe_v2, f"concat CR_{layer_idx}", s, "MoE_V2"))
-        for layer_idx in range(6):
-            f.write(run_downstream(FeatureUsage, moe_v2, f"gate CR_{layer_idx}", s, "MoE_V2"))
-        f.write(run_downstream(ModuleUsage, moe_v2, "Vanilla", s, "MoE_V2"))
-
-
-# ===========================================================
 #  Step 6: Expert specialization analysis
+#  (moved BEFORE the expensive downstream step so the core
+#   mechanism evidence is persisted even if Step 5 is skipped)
 # ===========================================================
 print()
 print("=" * 60)
@@ -326,15 +365,76 @@ for s in [0, 1, 2, 3, 4, 5, 6, 8]:
             gate_json[f"scenario_{s}"][f"layer_{li}_std"] = \
                 gate_stats[s][li].std(0).tolist()
 
-with open(f"{CACHE_DIR}/gate_stats_v2.json", "w") as f:
+with open(GATE_JSON, "w") as f:
     json.dump(gate_json, f, indent=2)
+print(f"\n  gate statistics → {GATE_JSON}")
+
+
+# ===========================================================
+#  Step 5: Downstream evaluation (FeatureUsage / ModuleUsage)
+#  224 trainings — skip with --skip-downstream when only the
+#  MoE mechanism question is being answered.
+# ===========================================================
+print()
+print("=" * 60)
+if ARGS.skip_downstream:
+    print("Step 5: Downstream evaluation — SKIPPED (--skip-downstream)")
+    print("=" * 60)
+else:
+    print("Step 5: Downstream evaluation (FeatureUsage/ModuleUsage)")
+    print("=" * 60)
+
+    # Aggregate CRs for MoE V2
+    moe_v2.CRs = torch.zeros(1000, 6, 360).to(DEVICE)
+    train_valid_set = pd.concat(Split("all")[:2])
+    for _ in infer(moe_v2, train_valid_set):
+        pass
+    moe_v2.CRs = torch.nn.functional.layer_norm(moe_v2.CRs, [360])
+
+    vanilla.requires_grad_(False)
+    moe_v2.requires_grad_(False)
+
+    # Aggregate vanilla CRs if needed
+    if not hasattr(vanilla, "CRs"):
+        vanilla.CRs = torch.zeros(1000, 6, 360).to(DEVICE)
+        for _ in infer(vanilla, train_valid_set):
+            pass
+        vanilla.CRs = torch.nn.functional.layer_norm(vanilla.CRs, [360])
+
+    def run_downstream(Usage, LFM4Ads_model, method, scenario, tag):
+        model = Usage(LFM4Ads_model, method).to(DEVICE)
+        auc = train_fn(model, scenario)
+        print(f"  [{tag}] scenario={scenario} method={method:>12} AUC={auc:.4f}")
+        return f"{tag},{scenario},{method},{auc:.4f}\n"
+
+    with open(DOWNSTREAM_CSV, "w") as f:
+        f.write("Model,Scenario,Method,AUC\n")
+
+    for s in [1, 0, 4, 2, 6, 3, 8, 5]:
+        with open(DOWNSTREAM_CSV, "a") as f:
+            # Vanilla downstream (baseline)
+            f.write(run_downstream(FeatureUsage, vanilla, "SUM", s, "Vanilla"))
+            for layer_idx in range(6):
+                f.write(run_downstream(FeatureUsage, vanilla, f"concat CR_{layer_idx}", s, "Vanilla"))
+            for layer_idx in range(6):
+                f.write(run_downstream(FeatureUsage, vanilla, f"gate CR_{layer_idx}", s, "Vanilla"))
+            f.write(run_downstream(ModuleUsage, vanilla, "Vanilla", s, "Vanilla"))
+
+            # MoE V2 downstream
+            f.write(run_downstream(FeatureUsage, moe_v2, "SUM", s, "MoE_V2"))
+            for layer_idx in range(6):
+                f.write(run_downstream(FeatureUsage, moe_v2, f"concat CR_{layer_idx}", s, "MoE_V2"))
+            for layer_idx in range(6):
+                f.write(run_downstream(FeatureUsage, moe_v2, f"gate CR_{layer_idx}", s, "MoE_V2"))
+            f.write(run_downstream(ModuleUsage, moe_v2, "Vanilla", s, "MoE_V2"))
 
 
 print()
 print("=" * 60)
 print("Done! Results saved to:")
-print("  result_moe_v2.csv             — per-scenario AUC comparison")
-print("  result_moe_v2_downstream.csv  — downstream eval comparison")
-print(f"  {CACHE_DIR}/gate_stats_v2.json — expert gate statistics")
-print(f"  {CACHE_DIR}/dcnv2_vanilla.pt  — cached vanilla model")
-print(f"  {CACHE_DIR}/dcnv2_moe_v2_k{K}.pt — cached MoE V2 model")
+print(f"  {RESULT_CSV}                  — per-scenario AUC comparison")
+if not ARGS.skip_downstream:
+    print(f"  {DOWNSTREAM_CSV}           — downstream eval comparison")
+print(f"  {GATE_JSON}    — expert gate statistics")
+print(f"  {HISTORY_JSON} — training history / freeze summary")
+print(f"  {MOE_V2_PATH}  — cached MoE V2 model")

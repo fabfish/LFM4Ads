@@ -24,6 +24,8 @@
 | D4 | [20250808-1730-LFM4Ads-专家特异性鼓励与抑制](./20250808-1730-LFM4Ads-专家特异性鼓励与抑制.md) | 实验 | ✅ 已闭合（单 seed） | `cache/adatask_results.csv`、`cache/adatask_au_*.json` | `main_adatask.py <device>` |
 | D5 | [20250808-1740-LFM4Ads-base遗忘与持续学习](./20250808-1740-LFM4Ads-base遗忘与持续学习.md) | 实验 | ✅ 已闭合（单 order 单 seed） | `cache/continual_results.json` | `main_continual.py <device>` |
 | D6 | [20260809-1801-LFM4Ads-MoE升级设计与实现](./20260809-1801-LFM4Ads-MoE升级设计与实现.md) | **设计+实现** | ⚠️ 代码就绪 / 实验待跑 | `model.py` (V2 classes)、`main_moe_v2.py` | `python main_moe_v2.py <device>` |
+| D7 | [20260809-1905-LFM4Ads-综合问答与实验路线图](./20260809-1905-LFM4Ads-综合问答与实验路线图.md) | **问答+路线图** | ⚠️ 路线图就绪 / 实验待执行 | 全部 `cache/*`、全部 `docs/*` | 各文档对应入口 |
+| D8 | [20260809-1957-LFM4Ads-lfm4ads-watch技能设计与实验流水线](./20260809-1957-LFM4Ads-lfm4ads-watch技能设计与实验流水线.md) | **设计+技能** | ⚠️ 设计定稿 / 技能待创建 | D7、`cache/dcnv2_vanilla.pt`、`cache/vanilla_pretrain.pt` | `.codebuddy/skills/lfm4ads-watch/` |
 
 **状态图例**：✅ 已闭合（数字全部可溯源、backlog 已标注）｜⚠️ 部分完成｜🔄 进行中｜⛔ 阻塞
 
@@ -40,14 +42,21 @@ graph TD
     D4["D4 专家特异性 鼓励/抑制"]
     D5["D5 base 遗忘与持续学习"]
     D6["D6 MoE V2 升级<br/>(Shared Expert + Top-K)"]
+    D7["D7 综合问答与实验路线图<br/>(Q1-Q5 分析 / 全局路线图)"]
 
     D0 --> D1
     D1 --> D3
     D1 --> D4
     D1 --> D5
     D1 --> D6
+    D1 --> D7
     D3 --> D6
     D3 --> D5
+    D3 --> D7
+    D4 --> D7
+    D5 --> D7
+    D6 --> D7
+    D7 --> D8
     D2 -. 校验 .-> D3
     D2 -. 校验 .-> D4
     D2 -. 校验 .-> D5
@@ -74,6 +83,10 @@ graph TD
 | `result_moe_v2.csv` | `main_moe_v2.py` Step 4 | D6 | ⏳ 待生成 |
 | `result_moe_v2_downstream.csv` | `main_moe_v2.py` Step 5 | D6 | ⏳ 待生成 |
 | `cache/gate_stats_v2.json` | `main_moe_v2.py` Step 6 | D6 | ⏳ 待生成 |
+| `docs/20260809-1905-*.md` | 本文（D7） | D7 | ✅ 已写入（路线图就绪） |
+| `docs/20260809-1957-*.md` | 本文（D8） | D8 | ✅ 已写入（设计定稿） |
+| `cache/vanilla_pretrain.pt` | `main_adatask.py` Phase 0 | D4、D8 | ⚠️ 与 `dcnv2_vanilla.pt` 不同源（D8 §格局 已记录） |
+| `.codebuddy/skills/lfm4ads-watch/` | 本文（D8）产物 | D8 | ⏳ 待创建 |
 
 ---
 
@@ -108,7 +121,9 @@ graph TD
 | D1-H（新增） | SpecializationLoss 仅叠加在内层循环**泄漏的最后一个 sub** 的 gate+tab（D5），其余 sub 未受约束 | D1 | ✅ 已修复（2026-08-09）：改为每个 sub 各自叠加本 sub 的 gate+tab |
 | D1-F（原 D6） | `result_moe_downstream.csv` 仅表头、下游数据只存于 `moe_pretrain.log` | D3 | ✅ 已从日志重建（224 行 / 8 场景，真实数据非编造） |
 | D14（新增） | 下游（05:16 run 日志）与 Phase1（13:40 run 的 `result_moe.csv` / 缓存权重）**不同源**；跨两者比较须显式标注 run，不可混用 | D3 | 📝 文档须声明，必要时择机对 13:40 权重补跑下游 |
-| G-1 | 全部实验单 seed 单 trial，无显著性 | 全部 | 🔄 待多 seed 复跑 |
+| G-1 | 全部实验单 seed 单 trial，无显著性 | 全部 | 🔄 待多 seed 复跑（见 D7 §5.3 P0） |
+| G-2（D7新增） | D0–D5 标记 ✅ 但均有未完成 backlog；需 D7 路线图统管执行 | D0–D5, D7 | 🔄 见 D7 §5.1 Backlog 汇总 |
+| G-3（D7新增） | AdaTask 与 Phase 1 存在 7 项口径差异（batch / epoch / 训练集 / 基座 ckpt / optimizer / valid 缺失 / LR 显式 vs 默认），需统一重做 | D4, D7, D8 | ✅ 差异已文档化于 D8 §格局（7 项逐条标注可比性影响 + 统一公平口径表）；待 P1 统一重做 |
 
 ---
 
