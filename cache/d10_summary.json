@@ -1,0 +1,184 @@
+{
+  "note": "D10 rx-only ablation (freeze dnn,head,sparse; K=4; seed=42; max_epochs=8). Baseline k4_rxonly_lr3e3 (lr3e3,beta2=0.999)=0.6946.",
+  "results": [
+    {
+      "tag": "d10_beta2_09",
+      "test_auc": 0.7416,
+      "best_valid": 0.7408,
+      "lr": 0.003,
+      "beta2": 0.9,
+      "lb_alpha": 0.01,
+      "top_k": 2,
+      "K": 4,
+      "freeze": {
+        "frozen_groups": [
+          "DNN",
+          "Head",
+          "Sparse"
+        ],
+        "trainable": {
+          "CrossShared": 77976,
+          "CrossExpert": 311904,
+          "Router": 8664
+        },
+        "frozen": {
+          "Sparse": 84017390,
+          "DNN": 259920,
+          "Head": 5415
+        },
+        "n_trainable": 398544,
+        "n_frozen": 84282725
+      }
+    },
+    {
+      "tag": "d10_beta2_095",
+      "test_auc": 0.7418,
+      "best_valid": 0.7408,
+      "lr": 0.003,
+      "beta2": 0.95,
+      "lb_alpha": 0.01,
+      "top_k": 2,
+      "K": 4,
+      "freeze": {
+        "frozen_groups": [
+          "DNN",
+          "Head",
+          "Sparse"
+        ],
+        "trainable": {
+          "CrossShared": 77976,
+          "CrossExpert": 311904,
+          "Router": 8664
+        },
+        "frozen": {
+          "Sparse": 84017390,
+          "DNN": 259920,
+          "Head": 5415
+        },
+        "n_trainable": 398544,
+        "n_frozen": 84282725
+      }
+    },
+    {
+      "tag": "d10_lbalpha_05",
+      "test_auc": 0.7481,
+      "best_valid": 0.7446,
+      "lr": 0.001,
+      "beta2": 0.999,
+      "lb_alpha": 0.05,
+      "top_k": 2,
+      "K": 4,
+      "freeze": {
+        "frozen_groups": [
+          "DNN",
+          "Head",
+          "Sparse"
+        ],
+        "trainable": {
+          "CrossShared": 77976,
+          "CrossExpert": 311904,
+          "Router": 8664
+        },
+        "frozen": {
+          "Sparse": 84017390,
+          "DNN": 259920,
+          "Head": 5415
+        },
+        "n_trainable": 398544,
+        "n_frozen": 84282725
+      }
+    },
+    {
+      "tag": "d10_lbalpha_10",
+      "test_auc": 0.7362,
+      "best_valid": 0.7319,
+      "lr": 0.001,
+      "beta2": 0.999,
+      "lb_alpha": 0.1,
+      "top_k": 2,
+      "K": 4,
+      "freeze": {
+        "frozen_groups": [
+          "DNN",
+          "Head",
+          "Sparse"
+        ],
+        "trainable": {
+          "CrossShared": 77976,
+          "CrossExpert": 311904,
+          "Router": 8664
+        },
+        "frozen": {
+          "Sparse": 84017390,
+          "DNN": 259920,
+          "Head": 5415
+        },
+        "n_trainable": 398544,
+        "n_frozen": 84282725
+      }
+    },
+    {
+      "tag": "d10_topk_3",
+      "test_auc": 0.7503,
+      "best_valid": 0.7489,
+      "lr": 0.001,
+      "beta2": 0.999,
+      "lb_alpha": 0.01,
+      "top_k": 3,
+      "K": 4,
+      "freeze": {
+        "frozen_groups": [
+          "DNN",
+          "Head",
+          "Sparse"
+        ],
+        "trainable": {
+          "CrossShared": 77976,
+          "CrossExpert": 311904,
+          "Router": 8664
+        },
+        "frozen": {
+          "Sparse": 84017390,
+          "DNN": 259920,
+          "Head": 5415
+        },
+        "n_trainable": 398544,
+        "n_frozen": 84282725
+      }
+    },
+    {
+      "tag": "d10_topk_4",
+      "test_auc": 0.7566,
+      "best_valid": 0.7554,
+      "lr": 0.001,
+      "beta2": 0.999,
+      "lb_alpha": 0.01,
+      "top_k": 4,
+      "K": 4,
+      "freeze": {
+        "frozen_groups": [
+          "DNN",
+          "Head",
+          "Sparse"
+        ],
+        "trainable": {
+          "CrossShared": 77976,
+          "CrossExpert": 311904,
+          "Router": 8664
+        },
+        "frozen": {
+          "Sparse": 84017390,
+          "DNN": 259920,
+          "Head": 5415
+        },
+        "n_trainable": 398544,
+        "n_frozen": 84282725
+      }
+    }
+  ],
+  "verdict": {
+    "beta2": "lowering beta2 0.999->0.95/0.9 rescues high-lr rx-only (+0.047), confirms grad-diagnosis RMS(Expert)/RMS(DNN)=0.089",
+    "lb_alpha": "sweet spot at 0.05 (>0.01,0.10); too strong LB steals capacity from main task",
+    "top_k": "monotone up; top_k=K (soft routing)=0.7566 best -> sparse routing is the main rx-only drop cause"
+  }
+}
