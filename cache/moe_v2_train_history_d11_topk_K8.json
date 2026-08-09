@@ -1,0 +1,78 @@
+{
+  "config": {
+    "device": "cuda:0",
+    "seed": 42,
+    "K": 8,
+    "top_k_target": 8,
+    "routing": "data",
+    "noise_scale": 0.1,
+    "lb_alpha": 0.01,
+    "batch_size": 10000,
+    "lr": 0.001,
+    "beta2": 0.999,
+    "freeze": "dnn,head,sparse",
+    "tag": "d11_topk_K8"
+  },
+  "freeze": {
+    "frozen_groups": [
+      "DNN",
+      "Head",
+      "Sparse"
+    ],
+    "trainable": {
+      "CrossShared": 43320,
+      "CrossExpert": 346560,
+      "Router": 17328
+    },
+    "frozen": {
+      "Sparse": 84017390,
+      "DNN": 259920,
+      "Head": 5415
+    },
+    "n_trainable": 407208,
+    "n_frozen": 84282725
+  },
+  "history": [
+    {
+      "epoch": 1,
+      "top_k": 8,
+      "valid_auc": 0.710789605812646,
+      "lb_loss": 0.0
+    },
+    {
+      "epoch": 2,
+      "top_k": 8,
+      "valid_auc": 0.7409865059126628,
+      "lb_loss": 0.0
+    },
+    {
+      "epoch": 3,
+      "top_k": 8,
+      "valid_auc": 0.7506188542350034,
+      "lb_loss": 0.0
+    },
+    {
+      "epoch": 4,
+      "top_k": 8,
+      "valid_auc": 0.7538322727657045,
+      "lb_loss": 0.0
+    },
+    {
+      "epoch": 5,
+      "top_k": 8,
+      "valid_auc": 0.7551582449927615,
+      "lb_loss": 0.0
+    },
+    {
+      "epoch": 6,
+      "top_k": 8,
+      "valid_auc": 0.7561146770271481,
+      "lb_loss": 0.0
+    }
+  ],
+  "warmup_valid_auc": null,
+  "best_valid_auc": 0.7551582449927615,
+  "best_top_k": 8,
+  "test_auc_all": 0.7567181498258833,
+  "vanilla_test_auc_all": 0.777490043006877
+}

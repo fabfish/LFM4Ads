@@ -1,0 +1,138 @@
+{
+  "note": "D11-D13 follow-ups to D10. rx-only unless tag says full. seed=42, max_epochs=8, vanilla full-finetune reference test_auc_all=0.7775.",
+  "results": [
+    {
+      "tag": "d12_v1_lr5e4",
+      "arch": "V1",
+      "lr": 0.0005,
+      "beta2": 0.999,
+      "K": 4,
+      "top_k": null,
+      "test_auc": 0.775
+    },
+    {
+      "tag": "d13_v1_lr3e4",
+      "arch": "V1",
+      "lr": 0.0003,
+      "beta2": 0.999,
+      "K": 4,
+      "top_k": null,
+      "test_auc": 0.7741
+    },
+    {
+      "tag": "d13_v1_lr2e4",
+      "arch": "V1",
+      "lr": 0.0002,
+      "beta2": 0.999,
+      "K": 4,
+      "top_k": null,
+      "test_auc": 0.7741
+    },
+    {
+      "tag": "d12_v1_lr1e3_b95",
+      "arch": "V1",
+      "lr": 0.001,
+      "beta2": 0.95,
+      "K": 4,
+      "top_k": null,
+      "test_auc": 0.7713
+    },
+    {
+      "tag": "d12_v1_lr2e3",
+      "arch": "V1",
+      "lr": 0.002,
+      "beta2": 0.999,
+      "K": 4,
+      "top_k": null,
+      "test_auc": 0.765
+    },
+    {
+      "tag": "d11_v1_rx_lr3e3_b95",
+      "arch": "V1",
+      "lr": 0.003,
+      "beta2": 0.95,
+      "K": 4,
+      "top_k": null,
+      "test_auc": 0.7581
+    },
+    {
+      "tag": "d13_v1_lr5e5",
+      "arch": "V1",
+      "lr": 5e-05,
+      "beta2": 0.999,
+      "K": 4,
+      "top_k": null,
+      "test_auc": 0.7109
+    },
+    {
+      "tag": "d11_soft_full",
+      "arch": "V2",
+      "lr": 0.001,
+      "beta2": 0.999,
+      "K": 4,
+      "top_k": 4,
+      "test_auc": 0.7696
+    },
+    {
+      "tag": "d12_v2soft_b95",
+      "arch": "V2",
+      "lr": 0.001,
+      "beta2": 0.95,
+      "K": 4,
+      "top_k": 4,
+      "test_auc": 0.7578
+    },
+    {
+      "tag": "d11_topk_K8",
+      "arch": "V2",
+      "lr": 0.001,
+      "beta2": 0.999,
+      "K": 8,
+      "top_k": 8,
+      "test_auc": 0.7567
+    },
+    {
+      "tag": "d12_v2soft_lr5e4",
+      "arch": "V2",
+      "lr": 0.0005,
+      "beta2": 0.999,
+      "K": 4,
+      "top_k": 4,
+      "test_auc": 0.7558
+    },
+    {
+      "tag": "d11_topk4_lr3e3_b95",
+      "arch": "V2",
+      "lr": 0.003,
+      "beta2": 0.95,
+      "K": 4,
+      "top_k": 4,
+      "test_auc": 0.7396
+    },
+    {
+      "tag": "d11_combo_best",
+      "arch": "V2",
+      "lr": 0.003,
+      "beta2": 0.95,
+      "K": 4,
+      "top_k": 4,
+      "test_auc": 0.7396
+    },
+    {
+      "tag": "d11_K8_sparse2",
+      "arch": "V2",
+      "lr": 0.001,
+      "beta2": 0.999,
+      "K": 8,
+      "top_k": 2,
+      "test_auc": 0.7198
+    }
+  ],
+  "verdict": {
+    "soft_routing_extrapolates": "top_k=K wins in the full regime too (d11_soft_full 0.7696 > V2 full top_k=2 0.7672) and at K=8 (0.7567 ~= K=4 0.7566); strongest sparsity K=8/top_k=2 is worst (0.7198).",
+    "lr_is_the_dominant_knob": "V1 rx-only LR curve is single-peaked: 5e-5=0.7109, 2e-4=0.7741, 3e-4=0.7741, 5e-4=0.7750(peak), 1e-3=0.7723, 2e-3=0.7650, 3e-3=0.7526.",
+    "beta2_only_compensates_overshoot": "at lr=3e-3 beta2=0.95 helps (V1 0.7526->0.7581); at the good lr=1e-3 it hurts slightly (0.7723->0.7713). beta2 is not an independent gain.",
+    "V1_beats_V2_head_to_head": "same lr=5e-4 rx-only: V1 0.7750 vs V2-soft 0.7558 (+0.019 for V1). V2 shared+router is a liability in the small-trainable-budget regime.",
+    "headline": "V1 rx-only @ lr=5e-4 reaches 0.7750 vs 0.7775 full finetune, training only 390060 params (0.46%)."
+  }
+}
