@@ -1,0 +1,74 @@
+{
+  "note": "D18 final (V1 side): three-level downstream eval, V1 rx-only K=4 lr=5e-4 --shuffle seed=42. delta = MoE - Vanilla, same downstream training for both.",
+  "n_scenarios": 8,
+  "scenarios": [
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "8"
+  ],
+  "by_scenario": {
+    "0": {
+      "mean_delta": 0.00011,
+      "n_negative": 7
+    },
+    "1": {
+      "mean_delta": -0.00038,
+      "n_negative": 10
+    },
+    "2": {
+      "mean_delta": -3e-05,
+      "n_negative": 8
+    },
+    "3": {
+      "mean_delta": -0.00878,
+      "n_negative": 8
+    },
+    "4": {
+      "mean_delta": -0.00217,
+      "n_negative": 8
+    },
+    "5": {
+      "mean_delta": -0.01678,
+      "n_negative": 11
+    },
+    "6": {
+      "mean_delta": -0.00032,
+      "n_negative": 8
+    },
+    "8": {
+      "mean_delta": -0.00726,
+      "n_negative": 8
+    }
+  },
+  "by_method_mean": {
+    "SUM": -0.0035,
+    "concat CR_0": -0.00233,
+    "concat CR_1": -0.00655,
+    "concat CR_2": 0.00549,
+    "concat CR_3": 0.00251,
+    "concat CR_4": -0.01114,
+    "concat CR_5": -0.01194,
+    "gate CR_0": 0.00159,
+    "gate CR_1": 0.00471,
+    "gate CR_2": -0.00241,
+    "gate CR_3": -0.00846,
+    "gate CR_4": -0.01096,
+    "gate CR_5": -0.00668,
+    "Vanilla": -0.01266
+  },
+  "overall": {
+    "n": 112,
+    "mean_delta": -0.00445,
+    "std": 0.01732,
+    "n_negative": 68,
+    "max_abs": 0.0727,
+    "one_sample_t_vs_0": -2.72
+  },
+  "verdict": "The upstream rx-only MoE advantage does NOT transfer. Mean delta -0.00445 over 112 (scenario, usage) pairs, t=-2.72. ModuleUsage is the worst hit (-0.0137): handing the MoE Cross layers directly to a downstream model is actively harmful. Only 4 of 14 usage methods are positive on average.",
+  "implication": "Scope the headline strictly to upstream parameter efficiency. The rx-only regime buys cheap upstream AUC, not better transferable representations — plausibly because freezing the embedding table forces the Cross experts to absorb scenario-specific signal that does not generalise. D19 tests this by re-running downstream under full and partial freeze regimes."
+}
