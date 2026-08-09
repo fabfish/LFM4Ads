@@ -1,4 +1,5 @@
 import torch
+import torch.nn.functional as F
 from torch import nn
 
 import fields
@@ -534,3 +535,302 @@ class ModelUsage(nn.Module):
         UR = self.linear(UR)
         IR = E[:, -90:]
         batch["logit"] = (UR * IR).sum(-1)
+
+
+# ============================================================
+#  CrossExpertLayerV2 — Advanced MoE (Qwen/DeepSeek–style)
+#
+#  核心创新:
+#   1. Shared Expert: dim → dim_shared, 始终激活 (捕获 common knowledge)
+#   2. Routed Experts: K×dim→dim_routed, top-k 稀疏激活 (捕获 specialized knowledge)
+#   3. Zero-parameter: dim_shared + K·dim_routed = dim (param count ≡ vanilla)
+#   4. Noisy Top-K Gating: 训练时加噪声, 推理时纯 top-k
+#   5. Load Balancing Loss: Switch Transformer 风格, 防止专家坍塌
+#   6. Warmup → Sparsify: 从 top_k=K (soft routing) 逐渐过渡到 top_k=2
+# ============================================================
+
+class CrossExpertLayerV2(nn.Module):
+    """Advanced MoE Cross layer with shared expert + noisy top-k routing.
+
+    参数量: dim_shared + K·dim_routed = dim, 与 vanilla Cross layer 严格相等。
+    计算量: dim×dim_shared + top_k×dim×dim_routed < dim×dim (inference 时更少).
+
+    Args:
+        dim:        Cross layer dimension (360)
+        K:          number of routed experts (4)
+        top_k:      number of active routed experts (2 at inference, K at warmup)
+        routing:    'scenario' (Embedding router) or 'data' (Linear router)
+        noise_scale:std of gating noise during training
+        lb_alpha:   load balancing loss coefficient
+    """
+
+    def __init__(self, dim=360, K=4, top_k=None, routing='data',
+                 noise_scale=0.1, lb_alpha=0.01):
+        super().__init__()
+        self.dim, self.K, self.routing = dim, K, routing
+        self.top_k = top_k if top_k is not None else K  # K=soft routing default
+        self.noise_scale = noise_scale
+        self.lb_alpha = lb_alpha
+
+        # Zero-parameter split: shared takes 1/(K+1), each routed takes 1/(K+1)
+        dim_shared = dim // (K + 1)
+        dim_routed = dim // (K + 1)
+        assert dim_shared + K * dim_routed == dim, \
+            f"dim mismatch: {dim_shared}+{K}×{dim_routed}={dim_shared+K*dim_routed}≠{dim}"
+
+        self.dim_shared = dim_shared
+        self.dim_routed = dim_routed
+
+        # Shared expert — always active, captures common knowledge
+        self.shared = nn.Linear(dim, dim_shared)
+
+        # Routed experts — selectively activated via top-k
+        self.experts = nn.ModuleList(
+            [nn.Linear(dim, dim_routed) for _ in range(K)])
+
+        # Router: small gate network
+        if routing == 'scenario':
+            self.w_gate = nn.Embedding(15, K)
+            nn.init.zeros_(self.w_gate.weight)
+            self.w_noise = nn.Embedding(15, K)
+            nn.init.normal_(self.w_noise.weight, std=0.001)
+        else:
+            self.w_gate = nn.Linear(dim, K)
+            nn.init.normal_(self.w_gate.weight, std=0.01)
+            nn.init.zeros_(self.w_gate.bias)
+            self.w_noise = nn.Linear(dim, K)
+            nn.init.normal_(self.w_noise.weight, std=0.001)
+            nn.init.zeros_(self.w_noise.bias)
+
+        # Record last load-balance loss for training loop
+        self._last_lb_loss = torch.tensor(0.0)
+
+    def set_top_k(self, k: int):
+        """Update top_k for warmup → sparsify schedule."""
+        self.top_k = min(k, self.K)
+
+    def load_pretrained(self, pretrained_linear: nn.Linear):
+        """Split pretrained Linear(dim,dim) into shared + K routed experts.
+
+        布局: shared → first dim_shared rows; expert_i → next dim_routed rows.
+        这样 init 时 (top_k=K, gate uniform), 输出 ≡ vanilla.
+        """
+        w, b = pretrained_linear.weight.data, pretrained_linear.bias.data
+        # Shared: first dim_shared output rows
+        self.shared.weight.data.copy_(w[:self.dim_shared])
+        self.shared.bias.data.copy_(b[:self.dim_shared])
+        # Routed: remaining K × dim_routed rows
+        for i, expert in enumerate(self.experts):
+            start = self.dim_shared + i * self.dim_routed
+            end = start + self.dim_routed
+            expert.weight.data.copy_(w[start:end])
+            expert.bias.data.copy_(b[start:end])
+
+    def _gate(self, x_or_tab, training: bool):
+        """Compute noisy top-k gates.
+
+        Returns:
+            gates:      [B, K] — softmax over selected experts, 0 for unselected
+            topk_idx:   [B, top_k] — indices of selected experts (None if k==K)
+            clean_prob: [B, K] — clean softmax (for load balance loss)
+        """
+        if self.routing == 'scenario':
+            clean_logits = self.w_gate(x_or_tab)      # [B, K]
+            noise_logits = self.w_noise(x_or_tab)      # [B, K]
+        else:
+            clean_logits = self.w_gate(x_or_tab)
+            noise_logits = self.w_noise(x_or_tab)
+
+        # Noisy gating during training (exploration)
+        if training and self.noise_scale > 0:
+            noise_std = F.softplus(noise_logits) + 1e-2
+            noise = torch.randn_like(clean_logits) * noise_std * self.noise_scale
+            logits = clean_logits + noise
+        else:
+            logits = clean_logits
+
+        # Top-k selection
+        if self.top_k < self.K:
+            # Sparse mode: top-k hard selection
+            topk_logits, topk_idx = logits.topk(self.top_k, dim=-1)  # [B, k]
+            topk_gates = F.softmax(topk_logits, dim=-1)
+            gates = torch.zeros_like(logits).scatter_(-1, topk_idx, topk_gates)
+        else:
+            # Warmup mode (top_k = K): scale softmax by K so uniform→1.0,
+            # giving raw concatenation (= vanilla Cross layer equivalence)
+            gates = F.softmax(logits, dim=-1) * self.K
+            topk_idx = None
+
+        clean_prob = F.softmax(clean_logits, dim=-1)  # for load balance
+        return gates, topk_idx, clean_prob
+
+    def _load_balance_loss(self, gates: torch.Tensor,
+                           clean_prob: torch.Tensor,
+                           topk_idx) -> torch.Tensor:
+        """Switch Transformer–style load balancing loss.
+
+        L_balance = K · Σ_i f_i · P_i
+          f_i = fraction of tokens dispatched to expert i
+          P_i = mean softmax probability for expert i
+
+        仅在稀疏模式 (top_k < K) 计算; warmup 模式下返回 0.
+        """
+        if self.lb_alpha <= 0 or topk_idx is None:
+            return torch.tensor(0.0, device=gates.device)
+
+        P_i = clean_prob.mean(0)  # [K]
+
+        # f_i: fraction of tokens where expert i is in top-k
+        disp = torch.zeros(self.K, device=gates.device)
+        for i in range(self.K):
+            disp[i] = (topk_idx == i).any(dim=-1).float().mean()
+        f_i = disp + 1e-8
+
+        return self.lb_alpha * self.K * (f_i * P_i).sum()
+
+    def forward(self, x, x0, tab=None):
+        """Cross layer forward with MoE.
+
+        Args:
+            x:   [B, dim] current cross representation
+            x0:  [B, dim] original embedding (x₀ in DCNv2 formula)
+            tab: [B] scenario ids (required for 'scenario' routing)
+
+        Returns:
+            output: [B, dim] cross layer output
+            gates:  [B, K] routing weights
+            lb_loss: scalar load balance loss
+        """
+        # Shared expert — always active
+        shared_out = self.shared(x)  # [B, dim_shared]
+
+        # Warmup mode (top_k == K): raw concatenation, no gating → exact vanilla equiv
+        if self.top_k >= self.K:
+            expert_outs = [expert(x) for expert in self.experts]
+            routed_out = torch.cat(expert_outs, dim=-1)  # [B, K*dim_routed]
+            gates = torch.ones(x.shape[0], self.K, device=x.device)
+            lb_loss = torch.tensor(0.0, device=x.device)
+        else:
+            # Sparse mode: noisy top-k routing + load balance
+            router_input = tab if self.routing == 'scenario' else x
+            gates, topk_idx, clean_prob = self._gate(router_input, self.training)
+
+            expert_outs = [expert(x) for expert in self.experts]  # K × [B, dim_routed]
+            routed_out = torch.cat(
+                [gates[:, i:i + 1] * expert_outs[i] for i in range(self.K)], dim=-1
+            )  # [B, K*dim_routed]
+
+            lb_loss = self._load_balance_loss(gates, clean_prob, topk_idx)
+
+        # Combine: [B, dim_shared + K*dim_routed] = [B, dim]
+        combined = torch.cat([shared_out, routed_out], dim=-1)
+
+        # Cross operation: x_{l+1} = x₀ ⊙ f(x_l) + x_l
+        output = combined * x0 + x
+
+        return output, gates, lb_loss
+
+
+class DCNv2MoE_V2(nn.Module):
+    """DCNv2 with advanced MoE: shared expert + noisy top-k routing + load balancing.
+
+    架构:
+      3 × CrossExpertLayerV2 (MoE Cross) + 2 × DNN Linear + Head
+      Sparse Embedding 层与 vanilla DCNv2 完全一致.
+
+    Warmup 机制:
+      默认 top_k=K (soft routing), 训练过程中逐渐降至 target_k=2.
+      set_top_k(k) 控制每个 CrossExpertLayerV2 的稀疏度.
+
+    Args:
+        dim:                Cross layer dim (360)
+        K:                  number of routed experts (4)
+        top_k:              initial/target active routed experts (default K = soft routing)
+        routing:            'scenario' or 'data'
+        noise_scale:        gate noise std
+        lb_alpha:           load balance loss coefficient
+    """
+
+    def __init__(self, dim=360, K=4, top_k=None, routing='data',
+                 noise_scale=0.1, lb_alpha=0.01):
+        super().__init__()
+        self.dim, self.K, self.routing = dim, K, routing
+        # Default: top_k=K → warmup mode (vanilla-equiv at init). Training
+        # script should call set_top_k(2) after warmup epoch to enable sparsity.
+        top_k = top_k if top_k is not None else K
+        self.sparse = Sparse()
+        self.cross_layers = nn.ModuleList([
+            CrossExpertLayerV2(dim, K, top_k=top_k, routing=routing,
+                               noise_scale=noise_scale, lb_alpha=lb_alpha)
+            for _ in range(3)
+        ])
+        self.dnn = nn.ModuleList([nn.Linear(dim, dim) for _ in range(2)])
+        self.head = nn.Linear(dim, 15)
+
+    def embed(self, batch):
+        return self.sparse(batch)
+
+    def set_top_k(self, k: int):
+        """Update top_k for all MoE layers (warmup control)."""
+        for layer in self.cross_layers:
+            layer.set_top_k(k)
+
+    def load_pretrained(self, pretrained: DCNv2):
+        """Initialize from pretrained DCNv2: split Cross + copy Sparse/DNN/Head."""
+        self.sparse.load_state_dict(pretrained.sparse.state_dict())
+        for i, cross_layer in enumerate(self.cross_layers):
+            cross_layer.load_pretrained(pretrained.layers[i])
+        self.dnn[0].load_state_dict(pretrained.layers[3].state_dict())
+        self.dnn[1].load_state_dict(pretrained.layers[4].state_dict())
+        self.head.load_state_dict(pretrained.layers[5].state_dict())
+
+    def forward(self, batch):
+        x0 = self.embed(batch)
+        x = x0
+        gates = []
+        lb_total = torch.tensor(0.0, device=x.device)
+        CRs = [x0.detach()]
+        for layer in self.cross_layers:
+            tab = batch["tab"] if self.routing == 'scenario' else None
+            x, gate, lb = layer(x, x0, tab)
+            gates.append(gate)
+            lb_total = lb_total + lb
+            CRs.append(x.detach())
+        for layer in self.dnn:
+            x = layer(x.relu())
+            CRs.append(x.detach())
+        batch["logit"] = self.head(x)[range(len(x)), batch["tab"]]
+        batch["_gate"] = gates
+        batch["_load_balance_loss"] = lb_total
+        if hasattr(self, "CRs"):
+            for uid, c in zip(batch["user_id"], torch.stack(CRs, 1)):
+                self.CRs[uid] *= 0.99
+                self.CRs[uid] += c
+
+    @staticmethod
+    def param_summary(model) -> str:
+        """Human-readable parameter count by module group."""
+        groups = {
+            'Sparse': ['sparse'],
+            'Shared Experts': ['cross_layers.0.shared', 'cross_layers.1.shared',
+                               'cross_layers.2.shared'],
+            'Routed Experts': ['cross_layers.0.experts', 'cross_layers.1.experts',
+                               'cross_layers.2.experts'],
+            'Routers': ['cross_layers.0.w_gate', 'cross_layers.0.w_noise',
+                        'cross_layers.1.w_gate', 'cross_layers.1.w_noise',
+                        'cross_layers.2.w_gate', 'cross_layers.2.w_noise'],
+            'DNN': ['dnn'],
+            'Head': ['head'],
+        }
+        lines = ['Parameter Summary:']
+        total = 0
+        for name, prefixes in groups.items():
+            count = 0
+            for n, p in model.named_parameters():
+                if any(n.startswith(px) for px in prefixes):
+                    count += p.numel()
+            total += count
+            pct = count / total * 100 if total > 0 else 0
+            lines.append(f'  {name:20s}: {count:>10,}  ({pct:5.1f}%)')
+        lines.append(f'  {"TOTAL":20s}: {total:>10,}')
+        return '\n'.join(lines)

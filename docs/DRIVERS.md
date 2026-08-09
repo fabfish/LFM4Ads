@@ -23,6 +23,7 @@
 | D3 | [20250808-1720-LFM4Ads-base-vs-MoE效果对比](./20250808-1720-LFM4Ads-base-vs-MoE效果对比.md) | 实验 | ✅ 已闭合（单 seed） | `result_moe.csv`、`cache/moe_pretrain.log` | `main_moe.py <device>` |
 | D4 | [20250808-1730-LFM4Ads-专家特异性鼓励与抑制](./20250808-1730-LFM4Ads-专家特异性鼓励与抑制.md) | 实验 | ✅ 已闭合（单 seed） | `cache/adatask_results.csv`、`cache/adatask_au_*.json` | `main_adatask.py <device>` |
 | D5 | [20250808-1740-LFM4Ads-base遗忘与持续学习](./20250808-1740-LFM4Ads-base遗忘与持续学习.md) | 实验 | ✅ 已闭合（单 order 单 seed） | `cache/continual_results.json` | `main_continual.py <device>` |
+| D6 | [20260809-1801-LFM4Ads-MoE升级设计与实现](./20260809-1801-LFM4Ads-MoE升级设计与实现.md) | **设计+实现** | ⚠️ 代码就绪 / 实验待跑 | `model.py` (V2 classes)、`main_moe_v2.py` | `python main_moe_v2.py <device>` |
 
 **状态图例**：✅ 已闭合（数字全部可溯源、backlog 已标注）｜⚠️ 部分完成｜🔄 进行中｜⛔ 阻塞
 
@@ -38,16 +39,19 @@ graph TD
     D3["D3 base vs MoE 效果对比"]
     D4["D4 专家特异性 鼓励/抑制"]
     D5["D5 base 遗忘与持续学习"]
+    D6["D6 MoE V2 升级<br/>(Shared Expert + Top-K)"]
 
     D0 --> D1
     D1 --> D3
     D1 --> D4
     D1 --> D5
+    D1 --> D6
+    D3 --> D6
+    D3 --> D5
     D2 -. 校验 .-> D3
     D2 -. 校验 .-> D4
     D2 -. 校验 .-> D5
     D2 -. 校验 .-> D1
-    D3 --> D5
 ```
 
 ---
@@ -67,6 +71,9 @@ graph TD
 | `cache/dcnv2_moe_k4_spec.pt` | `scripts/run_phase3_spec.py`（2026-08-09 独立 Phase 3 run） | D1 §7.6 | ✅ 69/69 张量与 Phase1 不同（SpecLoss 真实生效） |
 | `cache/phase3_spec_results.json` | `scripts/run_phase3_spec.py` | D1 §7.6 | ✅ 逐 epoch 轨迹 + 逐场景 AUC 对比 |
 | `cache/provenance_report.json` | `scripts/verify_provenance.py` | D2 | 🔄 每次核查重新生成 |
+| `result_moe_v2.csv` | `main_moe_v2.py` Step 4 | D6 | ⏳ 待生成 |
+| `result_moe_v2_downstream.csv` | `main_moe_v2.py` Step 5 | D6 | ⏳ 待生成 |
+| `cache/gate_stats_v2.json` | `main_moe_v2.py` Step 6 | D6 | ⏳ 待生成 |
 
 ---
 
