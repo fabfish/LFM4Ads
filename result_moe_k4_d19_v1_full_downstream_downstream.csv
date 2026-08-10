@@ -1,0 +1,225 @@
+Model,Scenario,Method,AUC
+Vanilla,1,SUM,0.7312
+Vanilla,1,concat CR_0,0.7309
+Vanilla,1,concat CR_1,0.7319
+Vanilla,1,concat CR_2,0.7330
+Vanilla,1,concat CR_3,0.7330
+Vanilla,1,concat CR_4,0.7326
+Vanilla,1,concat CR_5,0.7321
+Vanilla,1,gate CR_0,0.7327
+Vanilla,1,gate CR_1,0.7334
+Vanilla,1,gate CR_2,0.7338
+Vanilla,1,gate CR_3,0.7339
+Vanilla,1,gate CR_4,0.7330
+Vanilla,1,gate CR_5,0.7323
+Vanilla,1,Vanilla,0.7315
+MoE,1,SUM,0.7306
+MoE,1,concat CR_0,0.7315
+MoE,1,concat CR_1,0.7321
+MoE,1,concat CR_2,0.7327
+MoE,1,concat CR_3,0.7332
+MoE,1,concat CR_4,0.7324
+MoE,1,concat CR_5,0.7325
+MoE,1,gate CR_0,0.7322
+MoE,1,gate CR_1,0.7338
+MoE,1,gate CR_2,0.7336
+MoE,1,gate CR_3,0.7337
+MoE,1,gate CR_4,0.7338
+MoE,1,gate CR_5,0.7332
+MoE,1,Vanilla,0.7309
+Vanilla,0,SUM,0.7115
+Vanilla,0,concat CR_0,0.7138
+Vanilla,0,concat CR_1,0.7121
+Vanilla,0,concat CR_2,0.7100
+Vanilla,0,concat CR_3,0.7109
+Vanilla,0,concat CR_4,0.7127
+Vanilla,0,concat CR_5,0.7123
+Vanilla,0,gate CR_0,0.7098
+Vanilla,0,gate CR_1,0.7125
+Vanilla,0,gate CR_2,0.7127
+Vanilla,0,gate CR_3,0.7119
+Vanilla,0,gate CR_4,0.7111
+Vanilla,0,gate CR_5,0.7127
+Vanilla,0,Vanilla,0.7084
+MoE,0,SUM,0.7124
+MoE,0,concat CR_0,0.7132
+MoE,0,concat CR_1,0.7128
+MoE,0,concat CR_2,0.7125
+MoE,0,concat CR_3,0.7130
+MoE,0,concat CR_4,0.7124
+MoE,0,concat CR_5,0.7112
+MoE,0,gate CR_0,0.7141
+MoE,0,gate CR_1,0.7125
+MoE,0,gate CR_2,0.7123
+MoE,0,gate CR_3,0.7138
+MoE,0,gate CR_4,0.7095
+MoE,0,gate CR_5,0.7111
+MoE,0,Vanilla,0.7120
+Vanilla,4,SUM,0.7104
+Vanilla,4,concat CR_0,0.7083
+Vanilla,4,concat CR_1,0.7051
+Vanilla,4,concat CR_2,0.7207
+Vanilla,4,concat CR_3,0.7236
+Vanilla,4,concat CR_4,0.7150
+Vanilla,4,concat CR_5,0.7201
+Vanilla,4,gate CR_0,0.6993
+Vanilla,4,gate CR_1,0.7047
+Vanilla,4,gate CR_2,0.7193
+Vanilla,4,gate CR_3,0.7243
+Vanilla,4,gate CR_4,0.7160
+Vanilla,4,gate CR_5,0.7202
+Vanilla,4,Vanilla,0.7176
+MoE,4,SUM,0.7101
+MoE,4,concat CR_0,0.7090
+MoE,4,concat CR_1,0.7067
+MoE,4,concat CR_2,0.7199
+MoE,4,concat CR_3,0.7177
+MoE,4,concat CR_4,0.7191
+MoE,4,concat CR_5,0.7219
+MoE,4,gate CR_0,0.7122
+MoE,4,gate CR_1,0.6996
+MoE,4,gate CR_2,0.7179
+MoE,4,gate CR_3,0.7204
+MoE,4,gate CR_4,0.7231
+MoE,4,gate CR_5,0.7211
+MoE,4,Vanilla,0.7123
+Vanilla,2,SUM,0.7978
+Vanilla,2,concat CR_0,0.7984
+Vanilla,2,concat CR_1,0.7970
+Vanilla,2,concat CR_2,0.8000
+Vanilla,2,concat CR_3,0.7952
+Vanilla,2,concat CR_4,0.7983
+Vanilla,2,concat CR_5,0.8021
+Vanilla,2,gate CR_0,0.7969
+Vanilla,2,gate CR_1,0.7980
+Vanilla,2,gate CR_2,0.7976
+Vanilla,2,gate CR_3,0.7997
+Vanilla,2,gate CR_4,0.7982
+Vanilla,2,gate CR_5,0.8017
+Vanilla,2,Vanilla,0.7990
+MoE,2,SUM,0.7981
+MoE,2,concat CR_0,0.7943
+MoE,2,concat CR_1,0.7949
+MoE,2,concat CR_2,0.7991
+MoE,2,concat CR_3,0.7963
+MoE,2,concat CR_4,0.7992
+MoE,2,concat CR_5,0.8030
+MoE,2,gate CR_0,0.8022
+MoE,2,gate CR_1,0.7942
+MoE,2,gate CR_2,0.7989
+MoE,2,gate CR_3,0.7983
+MoE,2,gate CR_4,0.7993
+MoE,2,gate CR_5,0.8003
+MoE,2,Vanilla,0.7984
+Vanilla,6,SUM,0.7183
+Vanilla,6,concat CR_0,0.7162
+Vanilla,6,concat CR_1,0.7247
+Vanilla,6,concat CR_2,0.7284
+Vanilla,6,concat CR_3,0.7310
+Vanilla,6,concat CR_4,0.7216
+Vanilla,6,concat CR_5,0.7285
+Vanilla,6,gate CR_0,0.7140
+Vanilla,6,gate CR_1,0.7178
+Vanilla,6,gate CR_2,0.7240
+Vanilla,6,gate CR_3,0.7244
+Vanilla,6,gate CR_4,0.7244
+Vanilla,6,gate CR_5,0.7212
+Vanilla,6,Vanilla,0.7180
+MoE,6,SUM,0.7203
+MoE,6,concat CR_0,0.7198
+MoE,6,concat CR_1,0.7260
+MoE,6,concat CR_2,0.7287
+MoE,6,concat CR_3,0.7293
+MoE,6,concat CR_4,0.7331
+MoE,6,concat CR_5,0.7261
+MoE,6,gate CR_0,0.7216
+MoE,6,gate CR_1,0.7144
+MoE,6,gate CR_2,0.7292
+MoE,6,gate CR_3,0.7257
+MoE,6,gate CR_4,0.7283
+MoE,6,gate CR_5,0.7225
+MoE,6,Vanilla,0.7161
+Vanilla,3,SUM,0.7136
+Vanilla,3,concat CR_0,0.7061
+Vanilla,3,concat CR_1,0.6905
+Vanilla,3,concat CR_2,0.7250
+Vanilla,3,concat CR_3,0.7235
+Vanilla,3,concat CR_4,0.7193
+Vanilla,3,concat CR_5,0.7258
+Vanilla,3,gate CR_0,0.6972
+Vanilla,3,gate CR_1,0.7670
+Vanilla,3,gate CR_2,0.7138
+Vanilla,3,gate CR_3,0.7373
+Vanilla,3,gate CR_4,0.7455
+Vanilla,3,gate CR_5,0.7295
+Vanilla,3,Vanilla,0.7260
+MoE,3,SUM,0.7132
+MoE,3,concat CR_0,0.7085
+MoE,3,concat CR_1,0.7196
+MoE,3,concat CR_2,0.7346
+MoE,3,concat CR_3,0.7195
+MoE,3,concat CR_4,0.7432
+MoE,3,concat CR_5,0.6945
+MoE,3,gate CR_0,0.6704
+MoE,3,gate CR_1,0.7018
+MoE,3,gate CR_2,0.7181
+MoE,3,gate CR_3,0.7316
+MoE,3,gate CR_4,0.7310
+MoE,3,gate CR_5,0.6950
+MoE,3,Vanilla,0.7087
+Vanilla,8,SUM,0.7744
+Vanilla,8,concat CR_0,0.7609
+Vanilla,8,concat CR_1,0.7571
+Vanilla,8,concat CR_2,0.7639
+Vanilla,8,concat CR_3,0.7655
+Vanilla,8,concat CR_4,0.7738
+Vanilla,8,concat CR_5,0.7710
+Vanilla,8,gate CR_0,0.6886
+Vanilla,8,gate CR_1,0.7630
+Vanilla,8,gate CR_2,0.7835
+Vanilla,8,gate CR_3,0.7831
+Vanilla,8,gate CR_4,0.6070
+Vanilla,8,gate CR_5,0.7581
+Vanilla,8,Vanilla,0.7592
+MoE,8,SUM,0.7825
+MoE,8,concat CR_0,0.7325
+MoE,8,concat CR_1,0.7496
+MoE,8,concat CR_2,0.7592
+MoE,8,concat CR_3,0.7558
+MoE,8,concat CR_4,0.7392
+MoE,8,concat CR_5,0.7617
+MoE,8,gate CR_0,0.7478
+MoE,8,gate CR_1,0.7590
+MoE,8,gate CR_2,0.7694
+MoE,8,gate CR_3,0.7842
+MoE,8,gate CR_4,0.7813
+MoE,8,gate CR_5,0.7717
+MoE,8,Vanilla,0.7654
+Vanilla,5,SUM,0.6457
+Vanilla,5,concat CR_0,0.6722
+Vanilla,5,concat CR_1,0.6213
+Vanilla,5,concat CR_2,0.6607
+Vanilla,5,concat CR_3,0.6588
+Vanilla,5,concat CR_4,0.6318
+Vanilla,5,concat CR_5,0.6486
+Vanilla,5,gate CR_0,0.6716
+Vanilla,5,gate CR_1,0.6575
+Vanilla,5,gate CR_2,0.6751
+Vanilla,5,gate CR_3,0.6619
+Vanilla,5,gate CR_4,0.6738
+Vanilla,5,gate CR_5,0.6677
+Vanilla,5,Vanilla,0.6208
+MoE,5,SUM,0.6661
+MoE,5,concat CR_0,0.6698
+MoE,5,concat CR_1,0.6471
+MoE,5,concat CR_2,0.6555
+MoE,5,concat CR_3,0.6456
+MoE,5,concat CR_4,0.6604
+MoE,5,concat CR_5,0.6769
+MoE,5,gate CR_0,0.6602
+MoE,5,gate CR_1,0.6813
+MoE,5,gate CR_2,0.6737
+MoE,5,gate CR_3,0.6725
+MoE,5,gate CR_4,0.6694
+MoE,5,gate CR_5,0.6321
+MoE,5,Vanilla,0.6420
