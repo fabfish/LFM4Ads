@@ -136,6 +136,7 @@ graph TD
 | D14（新增） | 下游（05:16 run 日志）与 Phase1（13:40 run 的 `result_moe.csv` / 缓存权重）**不同源**；跨两者比较须显式标注 run，不可混用 | D3 | 📝 文档须声明，必要时择机对 13:40 权重补跑下游 |
 | G-1 | 全部实验单 seed 单 trial，无显著性 | 全部 | 🔄 待多 seed；**但见 G-4：改 seed 本身无效** |
 | **G-4（D9 新增，严重）** | **`--seed` 在 MoE 路径上是空操作**：训练 DataLoader 未开 shuffle，MoE 权重来自固定 ckpt，Router 零初始化 → 全流程无随机源。实测 seed=1/42/2024 得到**逐位相同**的 `test_auc_all = 0.7750083012867384`。此前所有「换 seed 复跑」的计划均不可能产生方差 | 全部（尤 D7 §5.3 P0、G-1） | ✅ 已定位并修复：`train.py:train_moe` / `main_moe_v2.py` 训练 loader 加 `shuffle` 开关，`main_moe.py` / `main_moe_v2.py` 加 `--shuffle`（默认 False 以保持历史结果可复现）。D15 用 `--shuffle` + 4 seeds 重做方差估计 |
+| **G-5（D19 收尾新增，严重）** | **下游评估路径同样无随机源**：`train.py:train()`/`infer()` 的 DataLoader 未开 shuffle，且 `--shuffle` 只接到上游 `train_moe`。故 D18/D19 全部 672 个下游 trial 中，给定 backbone 后唯一随机源是下游 head 的初始化 → 报告的 t 值测的是**比真实 run-to-run 方差更窄的噪声源**，显著性被系统性高估。与 G-4 同类陷阱 | D18, D19（尤 §13.0 / §14 的 t=−2.72） | ✅ 已修复：`train.py` 的 `infer()`/`train()` 加 `shuffle=` 形参，`main_moe.py` 加 `--shuffle-downstream`（默认 False 以保持 D18/D19 可复现）。**D20 正用 `--shuffle-downstream` × 3 seeds 复验 rx-only 臂**，以判定 D9-A 的否定结论是否幸存 |
 | G-2（D7新增） | D0–D5 标记 ✅ 但均有未完成 backlog；需 D7 路线图统管执行 | D0–D5, D7 | 🔄 见 D7 §5.1 Backlog 汇总 |
 | G-3（D7新增） | AdaTask 与 Phase 1 存在 7 项口径差异（batch / epoch / 训练集 / 基座 ckpt / optimizer / valid 缺失 / LR 显式 vs 默认），需统一重做 | D4, D7, D8, D9 | ⚠️ 差异已文档化于 D8 §格局；**D9 §4 Q-A 已按此 caveat 将 AdaTask 数据降级为"方向性参考"，不参与机制裁决**；统一重做仍待 P1 |
 | D9-A（新增） | D9 全部实验 `--skip-downstream`，Feature/Module/Model 三级下游未评估 | D9 | 📝 待补 |

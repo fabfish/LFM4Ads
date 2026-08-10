@@ -9,13 +9,14 @@ import fields
 from dataset import Dataset, Split
 
 
-def infer(model, dataset, train=False):
+def infer(model, dataset, train=False, shuffle=False):
     model.train(train)
     device = next(model.parameters()).device
     loader = torch.utils.data.DataLoader(
         Dataset(dataset),
         batch_size=10000,
         num_workers=10,
+        shuffle=shuffle,
     )
     for batch in tqdm(loader):
         for field in fields.all:
@@ -45,13 +46,20 @@ def _trainable(model):
     return params
 
 
-def train(model, scenario):
+def train(model, scenario, shuffle=False):
+    """Downstream training loop.
+
+    `shuffle=False` is the historical default and keeps every D18/D19 result
+    reproducible. Note that with shuffle=False the only stochastic source in a
+    downstream trial is the head's random init, so `--seed` alone understates
+    true run-to-run variance (same class of trap as defect G-4 upstream).
+    """
     train_set, valid_set, test_set = Split(scenario)
     criterion = torch.nn.BCEWithLogitsLoss()
     optimizer = torch.optim.AdamW(_trainable(model))
     auc_best = 0
     while True:
-        for batch in infer(model, train_set, True):
+        for batch in infer(model, train_set, True, shuffle=shuffle):
             criterion(batch["logit"], batch["is_click"].float()).backward()
             optimizer.step()
             optimizer.zero_grad()

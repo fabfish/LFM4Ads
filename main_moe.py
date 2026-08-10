@@ -56,6 +56,11 @@ def _parse_args(argv):
                          "have any effect (weights come from a fixed ckpt and "
                          "the router is zero-init, so data order is the only "
                          "stochastic source)")
+    ap.add_argument("--shuffle-downstream", action="store_true",
+                    help="also shuffle the DOWNSTREAM training loader. Without "
+                         "this, a downstream trial's only stochastic source is "
+                         "the head init, so --seed understates true run-to-run "
+                         "variance. Off by default to keep D18/D19 reproducible.")
     ap.add_argument("--spec-loss", action="store_true", default=True)
     ap.add_argument("--no-spec-loss", dest="spec_loss", action="store_false")
     ap.add_argument("--skip-downstream", action="store_true",
@@ -210,6 +215,7 @@ with open(SUMMARY_JSON, "w") as f:
         "config": {"device": DEVICE, "seed": ARGS.seed, "K": K, "lr": ARGS.lr,
                    "beta2": ARGS.beta2, "shuffle": ARGS.shuffle,
                    "freeze": ARGS.freeze, "tag": ARGS.tag,
+                   "shuffle_downstream": ARGS.shuffle_downstream,
                    "spec_loss": USE_SPEC_LOSS},
         "freeze": freeze_info,
         "test_auc_all": float(moe_auc),
@@ -262,7 +268,7 @@ if not hasattr(vanilla, "CRs"):
 def run_downstream(Usage, LFM4Ads, method, scenario, tag):
     model = Usage(LFM4Ads, method).to(DEVICE)
     from train import train as train_fn
-    auc = train_fn(model, scenario)
+    auc = train_fn(model, scenario, shuffle=ARGS.shuffle_downstream)
     line = f"{tag},{scenario},{method},{auc:.4f}\n"
     print(f"  [{tag}] scenario={scenario} method={method} AUC={auc:.4f}")
     return line
