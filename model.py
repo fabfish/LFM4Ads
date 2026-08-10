@@ -278,8 +278,9 @@ class AdaTaskOptimizer:
         self.mode = mode
         self.alpha = alpha
         self.beta = beta
-        self.optimizer = torch.optim.AdamW(model.parameters(), lr=lr,
-                                           weight_decay=weight_decay)
+        self.optimizer = torch.optim.AdamW(
+            [p for p in model.parameters() if p.requires_grad],
+            lr=lr, weight_decay=weight_decay)
         # AU tracking: (layer_idx, expert_idx, scenario) → float
         self.AU: dict = {}
         self._hooks = []

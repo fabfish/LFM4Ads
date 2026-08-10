@@ -9,31 +9,67 @@ Compares three modes:
 Key design: per-scenario sub-batch backward + AdaTask gradient modulation + optimizer step.
 This ensures each scenario's gradient gets independently modulated before accumulation.
 """
+import argparse
 import json
+import sys
 from pathlib import Path
-from sys import argv
 
 import pandas as pd
 import torch
 from torcheval.metrics import BinaryAUROC
 
 from dataset import Dataset, Split
-from model import AdaTaskOptimizer, DCNv2, DCNv2MoE
+from model import (
+    AdaTaskOptimizer,
+    DCNv2,
+    DCNv2MoE,
+    apply_freeze,
+    freeze_summary,
+)
 from train import infer
 
-DEVICE = argv[1]
-K = 4
-ALPHA = 0.5
-BATCH_SIZE = 16384
+
+def _parse_args(argv):
+    ap = argparse.ArgumentParser(
+        description="AdaTask: encourage vs suppress expert specialization")
+    ap.add_argument("device", nargs="?", default="cuda")
+    ap.add_argument("--freeze", default="",
+                    help="comma list of groups to freeze, e.g. 'dnn,head,sparse'")
+    ap.add_argument("--tag", default="", help="suffix for output artifacts")
+    ap.add_argument("--seed", type=int, default=42)
+    ap.add_argument("--K", type=int, default=4)
+    ap.add_argument("--alpha", type=float, default=0.5)
+    ap.add_argument("--lr", type=float, default=1e-3)
+    ap.add_argument("--batch-size", type=int, default=16384)
+    ap.add_argument("--epochs", type=int, default=1,
+                    help="the frozen (rx-only) setting needs several epochs")
+    ap.add_argument("--vanilla-ckpt", default="cache/vanilla_pretrain.pt",
+                    help="use cache/dcnv2_vanilla.pt to share the base with the "
+                         "MoE V1/V2 experiments")
+    return ap.parse_args(argv)
+
+
+ARGS = _parse_args(sys.argv[1:])
+DEVICE = ARGS.device
+K = ARGS.K
+ALPHA = ARGS.alpha
+BATCH_SIZE = ARGS.batch_size
 OUTPUT_DIR = Path(__file__).parent / "cache"
 OUTPUT_DIR.mkdir(exist_ok=True)
+SUF = f"_{ARGS.tag}" if ARGS.tag else ""
+
+torch.manual_seed(ARGS.seed)
 
 SCENARIOS = [0, 1, 2, 3, 4, 5, 6, 8]
+
+print(f"[config] device={DEVICE} seed={ARGS.seed} K={K} alpha={ALPHA} lr={ARGS.lr} "
+      f"epochs={ARGS.epochs} batch={BATCH_SIZE} freeze='{ARGS.freeze or 'none'}' "
+      f"tag='{ARGS.tag}' vanilla={ARGS.vanilla_ckpt}")
 
 # ============================================================
 # Phase 0: Vanilla pretrain (or load cached)
 # ============================================================
-vanilla_path = OUTPUT_DIR / "vanilla_pretrain.pt"
+vanilla_path = Path(ARGS.vanilla_ckpt)
 if vanilla_path.exists():
     print("Phase 0: Loading cached vanilla pretrain...")
     vanilla = DCNv2().to(DEVICE)
@@ -78,7 +114,11 @@ def train_adatask(mode: str) -> tuple[dict, dict]:
     moe = DCNv2MoE(K=K).to(DEVICE)
     moe.load_pretrained(vanilla)
 
-    opt = AdaTaskOptimizer(moe, lr=1e-3, mode=mode,
+    freeze_info = apply_freeze(moe, ARGS.freeze)
+    if ARGS.freeze:
+        print(freeze_summary(freeze_info))
+
+    opt = AdaTaskOptimizer(moe, lr=ARGS.lr, mode=mode,
                            alpha=ALPHA, beta=0.99, weight_decay=0.01)
     opt.register_hooks()
 
@@ -87,7 +127,7 @@ def train_adatask(mode: str) -> tuple[dict, dict]:
 
     moe.train()
     n_batches = 0
-    for epoch in range(1):
+    for epoch in range(ARGS.epochs):
         dl = torch.utils.data.DataLoader(Dataset(all_data), batch_size=BATCH_SIZE,
                                          shuffle=True)
         for batch in dl:
@@ -149,7 +189,7 @@ for mode in MODES:
     all_auc[mode] = aucs
     all_au[mode] = aus
 
-    with open(OUTPUT_DIR / f"adatask_au_{mode}.json", "w") as f:
+    with open(OUTPUT_DIR / f"adatask_au_{mode}{SUF}.json", "w") as f:
         json.dump(aus, f)
 
 # ============================================================
@@ -180,6 +220,6 @@ for mode in ["encourage", "suppress"]:
     delta = res_df[mode].mean() - none_mean
     print(f"  {mode:10s} Δ vs none: {delta:+.4f}")
 
-res_df.to_csv(OUTPUT_DIR / "adatask_results.csv", index=False)
-print(f"\nResults: {OUTPUT_DIR / 'adatask_results.csv'}")
-print(f"AU data:  {OUTPUT_DIR / 'adatask_au_*.json'}")
+res_df.to_csv(OUTPUT_DIR / f"adatask_results{SUF}.csv", index=False)
+print(f"\nResults: {OUTPUT_DIR / f'adatask_results{SUF}.csv'}")
+print(f"AU data:  {OUTPUT_DIR / f'adatask_au_*{SUF}.json'}")

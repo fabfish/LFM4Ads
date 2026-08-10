@@ -28,6 +28,8 @@
 | D8 | [20260809-1957-LFM4Ads-lfm4ads-watch技能设计与实验流水线](./20260809-1957-LFM4Ads-lfm4ads-watch技能设计与实验流水线.md) | **设计+技能** | ✅ 设计定稿 + 技能已创建并驱动 D9/D10/D11 | D7、`cache/dcnv2_vanilla.pt`、`cache/vanilla_pretrain.pt` | `.codebuddy/skills/lfm4ads-watch/` |
 | D9 | [20260809-2314-LFM4Ads-MoE机制验证与双卡实验](./20260809-2314-LFM4Ads-MoE机制验证与双卡实验.md) | **实验（机制裁决）** | ✅ 主结论闭合（单 seed）/ D11 外推进行中 | `cache/moe_v1_summary_*.json`、`cache/moe_v2_train_history*.json`、`cache/grad_dominance_*.json`、`cache/d10_summary.json` | `main_moe.py` / `main_moe_v2.py` + `cache/d11_chain.sh` |
 | D12 | [20260810-1015-backbone选择标准与D6-V2并发实验](./20260810-1015-backbone选择标准与D6-V2并发实验.md) | **实验（并发填 GPU）** | 🔄 进行中（job 已并发下发，结果待回收） | `cache/lfm4ads_*.log`、`cache/dcnv2_vanilla.pt`、`cache/dcnv2_moe_k4.pt` | `scripts/launch_pack.py` + `main_moe.py` / `main_moe_v2.py` |
+| D13 | [20260810-1842-LFM4Ads-MoE全专家路由重证与汇报合规化](./20260810-1842-LFM4Ads-MoE全专家路由重证与汇报合规化.md) | **汇报合规化+补实验** | 🔄 文档已落盘 / A、B 实验已启动（cuda:1，seed42） | 既有 9 份 `result_moe_*.csv` + `cache/moe_v1_summary_*.json`、`cache/moe_v2_train_history_*.json` | `main_moe_v2.py`（A: K=4 top-4）+ `main_moe.py`（B: K=4），均 `--shuffle --seed 42 --skip-downstream` |
+| **总览** | [20260810-2010-研究状态总览与方向建议](./20260810-2010-研究状态总览与方向建议.md) | **State-of-the-Union（索引+方向）** | 🔄 已落盘 / 待用户确认方向 | 全部 `docs/*` + DRIVERS.md 缺陷表 | —（纯梳理，无新实验） |
 
 **状态图例**：✅ 已闭合（数字全部可溯源、backlog 已标注）｜⚠️ 部分完成｜🔄 进行中｜⛔ 阻塞
 
@@ -101,6 +103,7 @@ graph TD
 | `cache/d10_summary.json` | D10 汇总脚本 | D9 §3.3 | ✅ 6 组消融 + 三项裁决 |
 | `cache/d11_chain.sh` / `cache/d10_chain.sh` | 本文（D9）部署 | D9 §8 | ✅ 双卡链式调度器 |
 | `docs/20260809-2314-*.md` | 本文（D9） | D9 | ✅ 已写入（主结论闭合） |
+| `docs/20260810-2000-下游负迁移与冻结强度扫描.md` | 下游调查链 D18→D19→D20→D20b 整理（代号+内容+真实数据） | D9-A、D18、D19、D20 | ✅ 已写入（D20b 待触发） |
 
 ---
 
@@ -140,7 +143,7 @@ graph TD
 | **G-5（D19 收尾新增，严重）** | **下游评估路径同样无随机源**：`train.py:train()`/`infer()` 的 DataLoader 未开 shuffle，且 `--shuffle` 只接到上游 `train_moe`。故 D18/D19 全部 672 个下游 trial 中，给定 backbone 后唯一随机源是下游 head 的初始化 → 报告的 t 值测的是**比真实 run-to-run 方差更窄的噪声源**，显著性被系统性高估。与 G-4 同类陷阱 | D18, D19（尤 §13.0 / §14 的 t=−2.72） | ✅ 已修复：`train.py` 的 `infer()`/`train()` 加 `shuffle=` 形参，`main_moe.py` 加 `--shuffle-downstream`（默认 False 以保持 D18/D19 可复现）。**D20 正用 `--shuffle-downstream` × 3 seeds 复验 rx-only 臂**，以判定 D9-A 的否定结论是否幸存 |
 | G-2（D7新增） | D0–D5 标记 ✅ 但均有未完成 backlog；需 D7 路线图统管执行 | D0–D5, D7 | 🔄 见 D7 §5.1 Backlog 汇总 |
 | G-3（D7新增） | AdaTask 与 Phase 1 存在 7 项口径差异（batch / epoch / 训练集 / 基座 ckpt / optimizer / valid 缺失 / LR 显式 vs 默认），需统一重做 | D4, D7, D8, D9 | ⚠️ 差异已文档化于 D8 §格局；**D9 §4 Q-A 已按此 caveat 将 AdaTask 数据降级为"方向性参考"，不参与机制裁决**；统一重做仍待 P1 |
-| D9-A（新增） | D9 全部实验 `--skip-downstream`，Feature/Module/Model 三级下游未评估 | D9 | 🔄 **D20 rx-only 2/3 seed 已 DONE**（s1/s7：MoE 0.7734/0.7737 vs vanilla 0.7775，Δ≈-0.004，负迁移稳健复现）；s2024 ~20:45 收尾；D20b full/freeze-dnn-head 待触发（已修 freeze-dnn-head 臂，21bb17a） |
+| D9-A（新增） | D9 全部实验 `--skip-downstream`，Feature/Module/Model 三级下游未评估 | D9 | 🔄 **D20 rx-only 2/3 seed 已 DONE**（s1/s7：MoE 0.7734/0.7737 vs vanilla 0.7775，Δ≈-0.004，负迁移稳健复现）；s2024 进行中（~21:05–21:10 收尾）；D20b full/freeze-dnn-head 待触发（cache/d20b_chain.sh，6 跑串行单卡，~12–15h，预计 8/11 早收尾）。详见 docs/20260810-2000-下游负迁移与冻结强度扫描.md |
 | D9-B（新增） | K=2/4/8 之间差异 <0.001（0.7714/0.7723/0.7721），落在单 seed 噪声内，**不可断言 K 的边际收益** | D9 | 🔄 需多 seed 才能定论（属 G-1） |
 | D9-C（新增） | 「LR 与 β₂ 联调」结论目前仅在 V2 验证，V1 复现实验（`d11_v1_rx_lr3e3_b95`）进行中 | D9 | 🔄 D11 进行中 |
 

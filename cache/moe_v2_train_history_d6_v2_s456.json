@@ -1,0 +1,56 @@
+{
+  "config": {
+    "device": "cuda:0",
+    "seed": 456,
+    "K": 4,
+    "top_k_target": 2,
+    "routing": "data",
+    "noise_scale": 0.1,
+    "lb_alpha": 0.01,
+    "batch_size": 10000,
+    "lr": 0.001,
+    "beta2": 0.999,
+    "shuffle": true,
+    "freeze": "",
+    "tag": "d6_v2_s456"
+  },
+  "freeze": {
+    "frozen_groups": [],
+    "trainable": {
+      "Sparse": 84017390,
+      "CrossShared": 77976,
+      "CrossExpert": 311904,
+      "Router": 8664,
+      "DNN": 259920,
+      "Head": 5415
+    },
+    "frozen": {},
+    "n_trainable": 84681269,
+    "n_frozen": 0
+  },
+  "history": [
+    {
+      "epoch": 1,
+      "top_k": 4,
+      "valid_auc": 0.7734552894345469,
+      "lb_loss": 0.0
+    },
+    {
+      "epoch": 2,
+      "top_k": 2,
+      "valid_auc": 0.7688223303530569,
+      "lb_loss": 0.7965861079598846
+    },
+    {
+      "epoch": 3,
+      "top_k": 2,
+      "valid_auc": 0.7648997608588997,
+      "lb_loss": 0.8091781282691191
+    }
+  ],
+  "warmup_valid_auc": 0.7734552894345469,
+  "best_valid_auc": 0.7688223303530569,
+  "best_top_k": 2,
+  "test_auc_all": 0.7706788790627777,
+  "vanilla_test_auc_all": 0.777490043006877
+}

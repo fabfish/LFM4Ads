@@ -258,6 +258,9 @@ def measure_rms_dominance(model, train_set, args):
     specialization = {}
     layers = sorted({li for (li, u) in unit_n if u.startswith("E")})
     expert_ids = sorted({u for (li, u) in unit_n if u.startswith("E")})
+    # K=1 时只有一个 expert，"分工/均衡" 无定义（且熵归一化会除以 log(1)=0）
+    if len(expert_ids) < 2:
+        layers = []
     for li in layers:
         mat, scns = {}, []
         for si in SCENARIOS:
@@ -274,18 +277,50 @@ def measure_rms_dominance(model, train_set, args):
             continue
         K = len(expert_ids)
         uniform = 1.0 / K
-        max_shares = [max(v) for v in mat.values()]
-        entropies = []
-        for v in mat.values():
-            h = -sum(p * math.log(p + 1e-12) for p in v) / math.log(K)
-            entropies.append(h)
+        rows = list(mat.values())
+        max_shares = [max(v) for v in rows]
+        entropies = [
+            -sum(p * math.log(p + 1e-12) for p in v) / math.log(K) for v in rows
+        ]
+
+        # ---- 两个必须分开的现象 ----
+        # (a) load imbalance: 平均而言某个 expert 吃掉了大部分梯度
+        #     （即使所有 scenario 表现一致 —— 这是塌缩，不是特殊化）
+        mean_row = [sum(r[i] for r in rows) / len(rows) for i in range(K)]
+        load_imbalance = (max(mean_row) - uniform) / (1 - uniform)
+
+        # (b) scenario differentiation: 不同 scenario 是否用了 *不同* 的 expert
+        #     用行间平均成对 Jensen-Shannon 散度（以 ln2 归一化到 [0,1]）度量。
+        #     只有这一项高，才是「specific 专家特殊化」。
+        def _h(v):
+            return -sum(p * math.log(p + 1e-12) for p in v)
+
+        js_vals = []
+        for i in range(len(rows)):
+            for j in range(i + 1, len(rows)):
+                m = [(a + b) / 2 for a, b in zip(rows[i], rows[j])]
+                js_vals.append((_h(m) - (_h(rows[i]) + _h(rows[j])) / 2) / math.log(2))
+        scenario_divergence = sum(js_vals) / len(js_vals) if js_vals else 0.0
+
+        # 每个 expert 的 share 在 scenario 间的极差（哪个 expert 在分化）
+        share_range = [
+            max(r[i] for r in rows) - min(r[i] for r in rows) for i in range(K)
+        ]
+
         specialization[f"layer_{li}"] = {
             "experts": expert_ids,
             "scenario_normalized_share": mat,     # share[e | s], 行=scenario
             "uniform_baseline": uniform,
+            "mean_share": mean_row,
             "max_share_mean": sum(max_shares) / len(max_shares),
             "normalized_entropy_mean": sum(entropies) / len(entropies),
-            # 0 = 完全均衡, 1 = 完全特殊化
+            # 0 = 各 expert 平均吃到的梯度均等, 1 = 单个 expert 吃掉全部（塌缩）
+            "load_imbalance": load_imbalance,
+            # 0 = 所有 scenario 用同一套 expert 权重, 越大 = scenario 分工越明显
+            "scenario_divergence": scenario_divergence,
+            "share_range_per_expert": share_range,
+            # 保留旧字段（行内尖锐度），但它同时被 (a)(b) 两种现象抬高，
+            # 不能单独用来判定特殊化
             "specialization_index": (
                 (sum(max_shares) / len(max_shares) - uniform) / (1 - uniform)
             ),
@@ -296,16 +331,22 @@ def measure_rms_dominance(model, train_set, args):
         return groups.get(g, {}).get("rms", 0.0)
 
     expert_rms = rms("CrossExpert") or rms("CrossVanilla")
+
+    def _mean(key):
+        if not specialization:
+            return None
+        return sum(v[key] for v in specialization.values()) / len(specialization)
+
     verdict = {
         "expert_vs_dnn": (expert_rms / rms("DNN")) if rms("DNN") else None,
         "router_vs_expert": (rms("Router") / expert_rms) if expert_rms else None,
         "shared_vs_routed": (
-            rms("CrossShared") / rms("CrossExpert") if rms("CrossExpert") else None
+            rms("CrossShared") / rms("CrossExpert")
+            if (rms("CrossExpert") and "CrossShared" in groups) else None
         ),
-        "specialization_index_mean": (
-            sum(v["specialization_index"] for v in specialization.values())
-            / len(specialization) if specialization else None
-        ),
+        "load_imbalance_mean": _mean("load_imbalance"),
+        "scenario_divergence_mean": _mean("scenario_divergence"),
+        "specialization_index_mean": _mean("specialization_index"),
     }
     verdict["readings"] = []
     if verdict["expert_vs_dnn"] is not None:
@@ -330,12 +371,21 @@ def measure_rms_dominance(model, train_set, args):
             + ("共性知识由 shared 承担，routed 未分化" if r > 2
                else "shared 与 routed 更新强度相当")
         )
-    if verdict["specialization_index_mean"] is not None:
-        r = verdict["specialization_index_mean"]
+    if verdict["scenario_divergence_mean"] is not None:
+        div = verdict["scenario_divergence_mean"]
+        imb = verdict["load_imbalance_mean"]
+        if div > 0.03 and imb > 0.15:
+            reading = "scenario 特殊化 + 负载不均（部分 expert 被特定场景独占）"
+        elif div > 0.03:
+            reading = "scenario 特殊化（不同场景用不同 expert，负载仍大体均衡）"
+        elif imb > 0.15:
+            reading = ("负载塌缩：单个 expert 在**所有** scenario 都占主导 —— "
+                       "这不是特殊化，是路由退化")
+        else:
+            reading = "均衡化：各 expert 在各 scenario 上分工不明显"
         verdict["readings"].append(
-            f"specialization_index={r:.3f} (0=均衡,1=特殊化) → "
-            + ("routed 专家特殊化" if r > 0.3
-               else "routed 专家均衡化 (无明显分工)")
+            f"scenario_divergence={div:.4f} (跨场景分工), "
+            f"load_imbalance={imb:.3f} (单专家独占度) → {reading}"
         )
 
     return {
@@ -429,7 +479,8 @@ def main():
         print("Scenario→expert share (column-normalized, uniform="
               f"{1 / args.K:.3f}):")
         for lname, sp in result["specialization"].items():
-            print(f"  {lname}  spec_index={sp['specialization_index']:+.3f}  "
+            print(f"  {lname}  divergence={sp['scenario_divergence']:.4f}  "
+                  f"imbalance={sp['load_imbalance']:+.3f}  "
                   f"H={sp['normalized_entropy_mean']:.3f}")
             for s, row in sp["scenario_normalized_share"].items():
                 print(f"    {s:<4}" + "".join(f"{p:8.3f}" for p in row))
