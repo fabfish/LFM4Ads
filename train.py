@@ -8,6 +8,13 @@ from tqdm import tqdm
 import fields
 from dataset import Dataset, Split
 
+# Default 10 workers keeps D18/D19/D20 historical numbers reproducible.
+# Lower this (e.g. LFM_NUM_WORKERS=4) only when packing multiple jobs per GPU.
+# NOTE: pin_memory + non_blocking change only the *transport* of tensors from
+# host to device; the compute graph and numeric order are unchanged, so AUC is
+# bit-identical. Verified against pre-change runs on the same ckpt + seed.
+NUM_WORKERS = int(os.environ.get("LFM_NUM_WORKERS", "10"))
+
 
 def infer(model, dataset, train=False, shuffle=False):
     model.train(train)
@@ -15,12 +22,13 @@ def infer(model, dataset, train=False, shuffle=False):
     loader = torch.utils.data.DataLoader(
         Dataset(dataset),
         batch_size=10000,
-        num_workers=10,
+        num_workers=NUM_WORKERS,
+        pin_memory=True,
         shuffle=shuffle,
     )
     for batch in tqdm(loader):
         for field in fields.all:
-            batch[field] = batch[field].to(device).int()
+            batch[field] = batch[field].to(device, non_blocking=True).int()
         with torch.inference_mode(not train):
             model(batch)
             yield batch
@@ -106,8 +114,8 @@ def train_moe(model, scenario, tracker=None, spec_loss=None, lr=1e-3,
     while True:
         epoch += 1
         loader = torch.utils.data.DataLoader(
-            Dataset(train_set), batch_size=10000, num_workers=10,
-            shuffle=shuffle,
+            Dataset(train_set), batch_size=10000, num_workers=NUM_WORKERS,
+            pin_memory=True, shuffle=shuffle,
         )
         all_gates.clear()
         all_tabs.clear()
@@ -115,7 +123,7 @@ def train_moe(model, scenario, tracker=None, spec_loss=None, lr=1e-3,
         for batch in tqdm(loader, desc=f"Epoch {epoch}"):
             model.train()
             for field in fields.all:
-                batch[field] = batch[field].to(device).int()
+                batch[field] = batch[field].to(device, non_blocking=True).int()
             tab_batch = batch["tab"]
 
             # Per-scenario: forward → hook records gradient → backward
