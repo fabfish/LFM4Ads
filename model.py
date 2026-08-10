@@ -253,35 +253,47 @@ class GradientTracker:
 # ============================================================
 
 class AdaTaskOptimizer:
-    """AdaTask-inspired optimizer that modulates per-expert learning rates.
+    """子任务自适应学习率调制器（泛化版）。
 
-    Core insight from AdaTask (Yang et al., 2023):
-    AU (accumulated squared gradient) tracks per-task gradient magnitude,
-    naturally identifying which parameters are important for which task.
+    在按场景切分的子批量上，用梯度平方累计（AU）驱动逐目标的梯度缩放，
+    用于观察「路由网络 / 专家」被「促进 / 抑制」时对上游任务的影响。
 
-    We adapt this to MoE experts across scenarios:
-    - Track AU per (layer, expert, scenario) via backward hooks
-    - Modulate per-expert gradient magnitude based on AU
+    旋钮：
+      - target='expert'：调制专家梯度。部分路由加共享专家模型（DCNv2MoE_V2）
+                          仅调制路由专家，共享专家保持不动，以保留「共享=均衡」语义。
+      - target='router'：调制路由网络（w_gate / w_noise）梯度。
+      - direction=0：不调制（等同正常训练基线，仅做 AU 跟踪）。
+      - direction=+1：促进（factor = (au / mean_au)^alpha）。
+      - direction=-1：抑制（factor = (mean_au / au)^alpha）。
 
-    Three modes:
-    - "encourage": LR ∝ AU^α — amplify high-AU experts, push specialization
-    - "suppress":  LR ∝ (1/AU)^α — dampen dominant experts, force sharing
-    - "none":      No modulation (baseline MoE, only tracks AU)
+    AU 跟踪通过反向钩子完成，梯度调制每步 O(K)（专家）或 O(1)（路由）。
 
-    This is a zero-overhead optimizer: AU tracking is done via backward hooks,
-    gradient modulation is O(K) per optimizer step.
+    向后兼容：旧接口 mode=encourage/suppress/none 仍可用
+    （encourage→target=expert,direction=+1；suppress→expert,-1；none→expert,0）。
     """
 
-    def __init__(self, model: DCNv2MoE, lr=1e-3, mode="none",
-                 alpha=0.5, beta=0.99, weight_decay=0.01):
+    TARGET_SCENARIOS = [0, 1, 2, 3, 4, 5, 6, 8]
+
+    def __init__(self, model, lr=1e-3, target="expert", direction=0,
+                 alpha=0.5, beta=0.99, weight_decay=0.01, mode=None):
+        # 向后兼容：旧脚本用 mode=encourage/suppress/none
+        if mode is not None:
+            if mode == "encourage":
+                target, direction = "expert", 1
+            elif mode == "suppress":
+                target, direction = "expert", -1
+            elif mode == "none":
+                target, direction = "expert", 0
         self.model = model
-        self.mode = mode
+        self.target = target
+        self.direction = direction
         self.alpha = alpha
         self.beta = beta
         self.optimizer = torch.optim.AdamW(
             [p for p in model.parameters() if p.requires_grad],
             lr=lr, weight_decay=weight_decay)
-        # AU tracking: (layer_idx, expert_idx, scenario) → float
+        # AU 跟踪：专家目标键 (layer_idx, expert_idx, scenario)；
+        #          路由目标键 (layer_idx, 'r', scenario)
         self.AU: dict = {}
         self._hooks = []
         self._current_scenario: int | None = None
@@ -289,23 +301,31 @@ class AdaTaskOptimizer:
     def set_scenario(self, scenario: int):
         self._current_scenario = scenario
 
-    def _make_hook(self, layer_idx: int, expert_idx: int):
+    def _make_hook(self, key):
         def hook(grad: torch.Tensor):
             if self._current_scenario is None:
                 return
-            key = (layer_idx, expert_idx, int(self._current_scenario))
+            k = (key[0], key[1], int(self._current_scenario))
             gsq = grad.detach().norm().item() ** 2
-            prev = self.AU.get(key, 0.0)
-            self.AU[key] = self.beta * prev + (1 - self.beta) * gsq
+            prev = self.AU.get(k, 0.0)
+            self.AU[k] = self.beta * prev + (1 - self.beta) * gsq
         return hook
 
     def register_hooks(self):
-        """Register backward hooks on all expert parameters."""
+        """按调制目标注册反向钩子。"""
         for li, layer in enumerate(self.model.cross_layers):
-            for ei, expert in enumerate(layer.experts):
-                for param in expert.parameters():
-                    h = param.register_hook(self._make_hook(li, ei))
-                    self._hooks.append(h)
+            if self.target == "expert":
+                # 两类模型：layer.experts 均为「路由专家」（V2 的共享专家独立存储，不在此列）
+                for ei, expert in enumerate(layer.experts):
+                    for param in expert.parameters():
+                        self._hooks.append(
+                            param.register_hook(self._make_hook((li, ei))))
+            elif self.target == "router":
+                # V1 路由器为 layer.router（ScenarioRouter/DataRouter）；
+                # V2 路由器为 layer.w_gate / layer.w_noise。两者兼容。
+                for param in self._router_params(layer):
+                    self._hooks.append(
+                        param.register_hook(self._make_hook((li, "r"))))
 
     def remove_hooks(self):
         for h in self._hooks:
@@ -313,47 +333,68 @@ class AdaTaskOptimizer:
         self._hooks.clear()
 
     def _compute_factors(self) -> dict:
-        """Compute per-expert modulation factors for the current scenario.
-
-        Returns: dict mapping (layer_idx, expert_idx) → float factor
-        """
+        """计算当前场景下的调制因子。direction=0 返回空字典（不缩放）。"""
         s = self._current_scenario
-        if s is None or self.mode == "none":
+        if s is None or self.direction == 0:
             return {}
 
         factors = {}
-        for li, layer in enumerate(self.model.cross_layers):
-            aus = []
-            for ei in range(self.model.K):
-                au = self.AU.get((li, ei, s), 0.0)
-                aus.append(au)
-
-            mean_au = sum(aus) / len(aus) + 1e-30
-
-            for ei in range(self.model.K):
-                au = aus[ei] + 1e-30
-                if self.mode == "encourage":
-                    factor = (au / mean_au) ** self.alpha
-                elif self.mode == "suppress":
-                    factor = (mean_au / au) ** self.alpha
+        if self.target == "expert":
+            for li, layer in enumerate(self.model.cross_layers):
+                aus = [self.AU.get((li, ei, s), 0.0)
+                       for ei in range(self.model.K)]
+                mean_au = sum(aus) / len(aus) + 1e-30
+                for ei in range(self.model.K):
+                    au = aus[ei] + 1e-30
+                    if self.direction > 0:          # 促进
+                        f = (au / mean_au) ** self.alpha
+                    else:                            # 抑制
+                        f = (mean_au / au) ** self.alpha
+                    factors[(li, ei)] = float(f)
+        elif self.target == "router":
+            for li, layer in enumerate(self.model.cross_layers):
+                aus = [self.AU.get((li, "r", sc), 0.0)
+                       for sc in self.TARGET_SCENARIOS]
+                mean_au = sum(aus) / len(aus) + 1e-30
+                au = self.AU.get((li, "r", s), 0.0) + 1e-30
+                if self.direction > 0:
+                    f = (au / mean_au) ** self.alpha
                 else:
-                    factor = 1.0
-                factors[(li, ei)] = float(factor)
-
+                    f = (mean_au / au) ** self.alpha
+                factors[(li, "r")] = float(f)
         return factors
 
     def modulate_and_zero_grad(self):
-        """Apply gradient modulation + optimizer.step() + zero_grad."""
+        """应用梯度调制 + optimizer.step() + zero_grad。
+
+        direction=0 时 factors 为空，等价于正常训练基线（仅做 AU 跟踪）。
+        """
         factors = self._compute_factors()
         if factors:
-            for li, layer in enumerate(self.model.cross_layers):
-                for ei, expert in enumerate(layer.experts):
-                    f = factors.get((li, ei), 1.0)
-                    for param in expert.parameters():
+            if self.target == "expert":
+                for li, layer in enumerate(self.model.cross_layers):
+                    for ei, expert in enumerate(layer.experts):
+                        f = factors.get((li, ei), 1.0)
+                        for param in expert.parameters():
+                            if param.grad is not None:
+                                param.grad.mul_(f)
+            elif self.target == "router":
+                for li, layer in enumerate(self.model.cross_layers):
+                    f = factors.get((li, "r"), 1.0)
+                    for param in self._router_params(layer):
                         if param.grad is not None:
                             param.grad.mul_(f)
         self.optimizer.step()
         self.optimizer.zero_grad()
+
+    @staticmethod
+    def _router_params(layer):
+        """返回该交叉层的路由器参数（兼容 V1 与 V2）。"""
+        if hasattr(layer, "w_gate"):
+            return list(layer.w_gate.parameters()) + list(layer.w_noise.parameters())
+        if hasattr(layer, "router"):
+            return list(layer.router.parameters())
+        return []
 
     def step(self):
         self.optimizer.step()
@@ -361,9 +402,8 @@ class AdaTaskOptimizer:
     def zero_grad(self):
         self.optimizer.zero_grad()
 
-    TARGET_SCENARIOS = [0, 1, 2, 3, 4, 5, 6, 8]
-
     def dominance_matrix(self, layer_idx: int = 0) -> dict:
+        """专家主导性矩阵（仅专家目标有意义；路由目标无专家键则全 0）。"""
         ratios = {}
         for ei in range(self.model.K):
             au_per_scenario = {s: self.AU.get((layer_idx, ei, s), 0.0)
@@ -374,10 +414,10 @@ class AdaTaskOptimizer:
         return ratios
 
     def summary(self) -> str:
-        lines = []
+        lines = [f"[target={self.target} direction={self.direction}]"]
         for li in range(3):
             ratios = self.dominance_matrix(li)
-            lines.append(f"--- Cross Layer {li} Dominance ({self.mode}) ---")
+            lines.append(f"--- Cross Layer {li} Expert Dominance ---")
             for ei in range(self.model.K):
                 row = [f"{ratios.get((ei, s), 0):.3f}"
                        for s in self.TARGET_SCENARIOS[:4]]
@@ -830,11 +870,15 @@ class CrossExpertLayerV2(nn.Module):
         # Shared expert — always active
         shared_out = self.shared(x)  # [B, dim_shared]
 
-        # Warmup mode (top_k == K): raw concatenation, no gating → exact vanilla equiv
+        # 全软路由 (top_k == K)：所有路由专家按 w_gate 软加权，路由器始终激活
+        # （修正：原实现在此分支强制 gates=1 绕过路由器，导致 top_k=K 时路由网络死亡）
         if self.top_k >= self.K:
+            router_input = tab if self.routing == 'scenario' else x
+            gates, topk_idx, clean_prob = self._gate(router_input, self.training)
             expert_outs = [expert(x) for expert in self.experts]
-            routed_out = torch.cat(expert_outs, dim=-1)  # [B, K*dim_routed]
-            gates = torch.ones(x.shape[0], self.K, device=x.device)
+            routed_out = torch.cat(
+                [gates[:, i:i + 1] * expert_outs[i] for i in range(self.K)], dim=-1
+            )  # [B, K*dim_routed]
             lb_loss = torch.tensor(0.0, device=x.device)
         else:
             # Sparse mode: noisy top-k routing + load balance

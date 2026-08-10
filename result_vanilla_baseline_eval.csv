@@ -1,0 +1,2 @@
+model,ckpt,test_auc_all,mean_per_scenario,s0_auc,s1_auc,s2_auc,s3_auc,s4_auc,s5_auc,s6_auc,s8_auc
+vanilla-dcnv2,cache/dcnv2_vanilla.pt,0.7775,0.7173,0.7077,0.7315,0.7786,0.7251,0.7133,0.6764,0.7261,0.6799
