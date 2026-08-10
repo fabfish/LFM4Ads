@@ -21,11 +21,11 @@ for S in 1 7 42; do
       --seed $S --tag d20b_full_s$S
 done
 
-# 第二臂：freeze-dnn-head（冻结 dnn+head，仅 sparse 可训）
+# 第二臂：freeze-dnn-head（冻结 dnn+head，仅 sparse 可训 → 与 rx-only 的 dnn,head,sparse 区分）
 for S in 1 7 42; do
   echo "[d20b $(date +%H:%M:%S)] FREEZE-DNN-HEAD seed=$S"
   LFM_NUM_WORKERS=10 python main_moe.py $DEVICE \
-      --freeze dnn,head,sparse --K 4 --lr 5e-4 --shuffle --shuffle-downstream \
+      --freeze dnn,head --K 4 --lr 5e-4 --shuffle --shuffle-downstream \
       --seed $S --tag d20b_freeze_dnn_head_s$S
 done
 
