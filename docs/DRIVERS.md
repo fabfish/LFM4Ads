@@ -140,7 +140,7 @@ graph TD
 | **G-5（D19 收尾新增，严重）** | **下游评估路径同样无随机源**：`train.py:train()`/`infer()` 的 DataLoader 未开 shuffle，且 `--shuffle` 只接到上游 `train_moe`。故 D18/D19 全部 672 个下游 trial 中，给定 backbone 后唯一随机源是下游 head 的初始化 → 报告的 t 值测的是**比真实 run-to-run 方差更窄的噪声源**，显著性被系统性高估。与 G-4 同类陷阱 | D18, D19（尤 §13.0 / §14 的 t=−2.72） | ✅ 已修复：`train.py` 的 `infer()`/`train()` 加 `shuffle=` 形参，`main_moe.py` 加 `--shuffle-downstream`（默认 False 以保持 D18/D19 可复现）。**D20 正用 `--shuffle-downstream` × 3 seeds 复验 rx-only 臂**，以判定 D9-A 的否定结论是否幸存 |
 | G-2（D7新增） | D0–D5 标记 ✅ 但均有未完成 backlog；需 D7 路线图统管执行 | D0–D5, D7 | 🔄 见 D7 §5.1 Backlog 汇总 |
 | G-3（D7新增） | AdaTask 与 Phase 1 存在 7 项口径差异（batch / epoch / 训练集 / 基座 ckpt / optimizer / valid 缺失 / LR 显式 vs 默认），需统一重做 | D4, D7, D8, D9 | ⚠️ 差异已文档化于 D8 §格局；**D9 §4 Q-A 已按此 caveat 将 AdaTask 数据降级为"方向性参考"，不参与机制裁决**；统一重做仍待 P1 |
-| D9-A（新增） | D9 全部实验 `--skip-downstream`，Feature/Module/Model 三级下游未评估 | D9 | 🔄 D20 rx-only 臂进行中（D20b full/freeze-dnn-head 待 rx-only 后单卡补跑，见 `cache/d20b_chain.sh`） |
+| D9-A（新增） | D9 全部实验 `--skip-downstream`，Feature/Module/Model 三级下游未评估 | D9 | 🔄 **D20 rx-only 2/3 seed 已 DONE**（s1/s7：MoE 0.7734/0.7737 vs vanilla 0.7775，Δ≈-0.004，负迁移稳健复现）；s2024 ~20:45 收尾；D20b full/freeze-dnn-head 待触发（已修 freeze-dnn-head 臂，21bb17a） |
 | D9-B（新增） | K=2/4/8 之间差异 <0.001（0.7714/0.7723/0.7721），落在单 seed 噪声内，**不可断言 K 的边际收益** | D9 | 🔄 需多 seed 才能定论（属 G-1） |
 | D9-C（新增） | 「LR 与 β₂ 联调」结论目前仅在 V2 验证，V1 复现实验（`d11_v1_rx_lr3e3_b95`）进行中 | D9 | 🔄 D11 进行中 |
 
