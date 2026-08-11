@@ -1,0 +1,2 @@
+model,seed,routing,K,test_auc_all,mean_per_scenario,s0_auc,s1_auc,s2_auc,s3_auc,s4_auc,s5_auc,s6_auc,s8_auc
+lowrank-full-dim,456,data,4,0.7810,0.7353,0.7122,0.7339,0.8025,0.7360,0.7259,0.6644,0.7304,0.7773
