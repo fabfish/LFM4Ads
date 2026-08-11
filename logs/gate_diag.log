@@ -1,0 +1,47 @@
+[pretrain(未调制)] 均匀度=0.9541 按场景分工度=0.0491 专家间不均衡度=2.50
+    scenario 0: 0.342 0.331 0.197 0.130
+    scenario 1: 0.328 0.335 0.201 0.136
+    scenario 2: 0.370 0.312 0.194 0.124
+    scenario 3: 0.359 0.325 0.186 0.130
+    scenario 4: 0.334 0.337 0.198 0.130
+    scenario 5: 0.337 0.307 0.201 0.156
+    scenario 6: 0.327 0.329 0.197 0.148
+    scenario 8: 0.334 0.335 0.189 0.141
+[rsuppress_eencourage_snone] 均匀度=0.9558 按场景分工度=0.0492 专家间不均衡度=2.72
+    scenario 0: 0.290 0.219 0.361 0.130
+    scenario 1: 0.283 0.229 0.365 0.124
+    scenario 2: 0.322 0.200 0.351 0.127
+    scenario 3: 0.289 0.212 0.367 0.133
+    scenario 4: 0.301 0.224 0.348 0.128
+    scenario 5: 0.305 0.202 0.354 0.139
+    scenario 6: 0.288 0.221 0.359 0.131
+    scenario 8: 0.299 0.239 0.330 0.132
+  summary → cache/gate_diagnostics_fully-routed_seed42.json
+
+=== 相对未调制的变化 ===
+  rsuppress_eencourage_snone: Δ均匀度=+0.0018 Δ按场景分工度=+0.0001 Δ专家间不均衡度=+0.23
+      → 分工基本保持（路由未被冻结）
+[pretrain(未调制)] 均匀度=0.9508 按场景分工度=0.3832 专家间不均衡度=2.55
+    scenario 0: 1.021 1.597 0.834 0.548
+    scenario 1: 1.044 1.575 0.822 0.560
+    scenario 2: 0.831 1.766 0.709 0.695
+    scenario 3: 0.989 1.620 0.815 0.575
+    scenario 4: 1.050 1.583 0.800 0.567
+    scenario 5: 0.798 1.447 0.824 0.931
+    scenario 6: 1.056 1.546 0.804 0.593
+    scenario 8: 0.993 1.669 0.783 0.556
+[rsuppress_enone_sencourage] 均匀度=0.8286 按场景分工度=0.1827 专家间不均衡度=6.00
+    scenario 0: 1.168 2.032 0.434 0.366
+    scenario 1: 1.162 2.072 0.418 0.348
+    scenario 2: 1.132 2.174 0.395 0.300
+    scenario 3: 1.080 2.120 0.424 0.376
+    scenario 4: 1.141 2.064 0.432 0.363
+    scenario 5: 1.022 2.119 0.525 0.334
+    scenario 6: 1.163 2.056 0.427 0.353
+    scenario 8: 1.073 2.134 0.439 0.354
+  summary → cache/gate_diagnostics_partial-shared_seed42.json
+
+=== 相对未调制的变化 ===
+  rsuppress_enone_sencourage: Δ均匀度=-0.1222 Δ按场景分工度=-0.2006 Δ专家间不均衡度=+3.45
+      → 分工方式改变：按场景切换 → 固定偏好某专家
+GATE DIAG DONE

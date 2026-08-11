@@ -1,0 +1,135 @@
+=== [fully-routed @ cuda:1] router=none expert=none shared=none ===
+[config] model=fully-routed router=none expert=none shared=none device=cuda:1 seed=123 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_fully_routed_seed123.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=210, loss=0.4203
+  [epoch 0] batch 100, AU entries=210, loss=0.3540
+  [epoch 0] batch 150, AU entries=210, loss=0.3963
+  [epoch 0] batch 200, AU entries=210, loss=0.2563
+  [epoch 0] batch 250, AU entries=210, loss=0.1583
+  [epoch 0] batch 300, AU entries=210, loss=0.4076
+  [epoch 0] batch 350, AU entries=210, loss=0.0574
+  [epoch 0] batch 400, AU entries=210, loss=0.6717
+  [epoch 0] batch 450, AU entries=210, loss=0.1831
+  [epoch 0] batch 500, AU entries=210, loss=0.3410
+  [epoch 0] batch 550, AU entries=210, loss=0.0726
+  [epoch 0] batch 600, AU entries=210, loss=0.7486
+    scenario 0: 0.6839
+    scenario 1: 0.7171
+    scenario 2: 0.7916
+    scenario 3: 0.7259
+    scenario 4: 0.7133
+    scenario 5: 0.6269
+    scenario 6: 0.7173
+    scenario 8: 0.7683
+  mean per-scenario AUC: 0.7181
+  pooled test AUC: 0.7681
+  summary → cache/subtask_modulation_fully-routed_rnone_enone_snone_seed123.json
+=== [fully-routed @ cuda:1] router=suppress expert=none shared=none ===
+[config] model=fully-routed router=suppress expert=none shared=none device=cuda:1 seed=123 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_fully_routed_seed123.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=210, loss=0.4373
+  [epoch 0] batch 100, AU entries=210, loss=0.3993
+  [epoch 0] batch 150, AU entries=210, loss=0.3860
+  [epoch 0] batch 200, AU entries=210, loss=0.2293
+  [epoch 0] batch 250, AU entries=210, loss=0.1400
+  [epoch 0] batch 300, AU entries=210, loss=0.4637
+  [epoch 0] batch 350, AU entries=210, loss=0.0470
+  [epoch 0] batch 400, AU entries=210, loss=0.6529
+  [epoch 0] batch 450, AU entries=210, loss=0.2092
+  [epoch 0] batch 500, AU entries=210, loss=0.3382
+  [epoch 0] batch 550, AU entries=210, loss=0.0705
+  [epoch 0] batch 600, AU entries=210, loss=0.8171
+    scenario 0: 0.6875
+    scenario 1: 0.7190
+    scenario 2: 0.7973
+    scenario 3: 0.7627
+    scenario 4: 0.7146
+    scenario 5: 0.6371
+    scenario 6: 0.7209
+    scenario 8: 0.7700
+  mean per-scenario AUC: 0.7261
+  pooled test AUC: 0.7706
+  summary → cache/subtask_modulation_fully-routed_rsuppress_enone_snone_seed123.json
+=== [fully-routed @ cuda:1] router=suppress expert=encourage shared=none ===
+[config] model=fully-routed router=suppress expert=encourage shared=none device=cuda:1 seed=123 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_fully_routed_seed123.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=210, loss=0.4242
+  [epoch 0] batch 100, AU entries=210, loss=0.4245
+  [epoch 0] batch 150, AU entries=210, loss=0.3681
+  [epoch 0] batch 200, AU entries=210, loss=0.2659
+  [epoch 0] batch 250, AU entries=210, loss=0.1508
+  [epoch 0] batch 300, AU entries=210, loss=0.4891
+  [epoch 0] batch 350, AU entries=210, loss=0.0511
+  [epoch 0] batch 400, AU entries=210, loss=0.7777
+  [epoch 0] batch 450, AU entries=210, loss=0.1840
+  [epoch 0] batch 500, AU entries=210, loss=0.3289
+  [epoch 0] batch 550, AU entries=210, loss=0.0691
+  [epoch 0] batch 600, AU entries=210, loss=0.8860
+    scenario 0: 0.6892
+    scenario 1: 0.7190
+    scenario 2: 0.7921
+    scenario 3: 0.7285
+    scenario 4: 0.7184
+    scenario 5: 0.6532
+    scenario 6: 0.7168
+    scenario 8: 0.7773
+  mean per-scenario AUC: 0.7243
+  pooled test AUC: 0.7703
+  summary → cache/subtask_modulation_fully-routed_rsuppress_eencourage_snone_seed123.json
+=== [fully-routed @ cuda:1] router=suppress expert=suppress shared=none ===
+[config] model=fully-routed router=suppress expert=suppress shared=none device=cuda:1 seed=123 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_fully_routed_seed123.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=210, loss=0.4243
+  [epoch 0] batch 100, AU entries=210, loss=0.3819
+  [epoch 0] batch 150, AU entries=210, loss=0.3360
+  [epoch 0] batch 200, AU entries=210, loss=0.2180
+  [epoch 0] batch 250, AU entries=210, loss=0.0948
+  [epoch 0] batch 300, AU entries=210, loss=0.6037
+  [epoch 0] batch 350, AU entries=210, loss=0.0534
+  [epoch 0] batch 400, AU entries=210, loss=0.6513
+  [epoch 0] batch 450, AU entries=210, loss=0.1899
+  [epoch 0] batch 500, AU entries=210, loss=0.3230
+  [epoch 0] batch 550, AU entries=210, loss=0.0767
+  [epoch 0] batch 600, AU entries=210, loss=1.0279
+    scenario 0: 0.6860
+    scenario 1: 0.7185
+    scenario 2: 0.7962
+    scenario 3: 0.7306
+    scenario 4: 0.7176
+    scenario 5: 0.6550
+    scenario 6: 0.7108
+    scenario 8: 0.7555
+  mean per-scenario AUC: 0.7213
+  pooled test AUC: 0.7692
+  summary → cache/subtask_modulation_fully-routed_rsuppress_esuppress_snone_seed123.json
+WORKER DONE: fully-routed cuda:1 seed 123
+=== SKIP (exists) router=none expert=none shared=none ===
+=== SKIP (exists) router=suppress expert=none shared=none ===
+=== SKIP (exists) router=suppress expert=encourage shared=none ===
+=== [fully-routed @ cuda:1] router=suppress expert=suppress shared=none ===
+[config] model=fully-routed router=suppress expert=suppress shared=none device=cuda:1 seed=456 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_fully_routed_seed456.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=210, loss=0.2552
+  [epoch 0] batch 100, AU entries=210, loss=0.4749
+  [epoch 0] batch 150, AU entries=210, loss=0.4238
+  [epoch 0] batch 200, AU entries=210, loss=0.3069
+  [epoch 0] batch 250, AU entries=210, loss=0.2016
+  [epoch 0] batch 300, AU entries=210, loss=0.2317
+  [epoch 0] batch 350, AU entries=210, loss=0.3308
+  [epoch 0] batch 400, AU entries=210, loss=0.6551
+  [epoch 0] batch 450, AU entries=210, loss=0.5742
+  [epoch 0] batch 500, AU entries=210, loss=0.6968
+  [epoch 0] batch 550, AU entries=210, loss=0.1556
+  [epoch 0] batch 600, AU entries=210, loss=0.5657
+    scenario 0: 0.6806
+    scenario 1: 0.7206
+    scenario 2: 0.7960
+    scenario 3: 0.6800
+    scenario 4: 0.7177
+    scenario 5: 0.6817
+    scenario 6: 0.7255
+    scenario 8: 0.7281
+  mean per-scenario AUC: 0.7163
+  pooled test AUC: 0.7710
+  summary → cache/subtask_modulation_fully-routed_rsuppress_esuppress_snone_seed456.json
+WORKER DONE: fully-routed cuda:1 seed 456

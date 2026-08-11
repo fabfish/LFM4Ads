@@ -1,0 +1,1118 @@
+=== [partial-shared @ cuda:1] router=suppress expert=encourage shared=none ===
+[config] model=partial-shared router=suppress expert=encourage shared=none device=cuda:1 seed=42 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_partial_shared_seed42.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=234, loss=0.6642
+  [epoch 0] batch 100, AU entries=234, loss=0.2682
+  [epoch 0] batch 150, AU entries=234, loss=0.2284
+  [epoch 0] batch 200, AU entries=252, loss=0.3849
+  [epoch 0] batch 250, AU entries=252, loss=0.8808
+  [epoch 0] batch 300, AU entries=252, loss=0.2556
+  [epoch 0] batch 350, AU entries=252, loss=0.1160
+  [epoch 0] batch 400, AU entries=252, loss=0.3163
+  [epoch 0] batch 450, AU entries=252, loss=0.4419
+  [epoch 0] batch 500, AU entries=252, loss=0.1056
+  [epoch 0] batch 550, AU entries=252, loss=0.2526
+  [epoch 0] batch 600, AU entries=252, loss=0.0003
+    scenario 0: 0.6783
+    scenario 1: 0.7156
+    scenario 2: 0.7905
+    scenario 3: 0.6596
+    scenario 4: 0.7069
+    scenario 5: 0.6660
+    scenario 6: 0.7177
+    scenario 8: 0.7266
+  mean per-scenario AUC: 0.7077
+  pooled test AUC: 0.7676
+  summary → cache/subtask_modulation_partial-shared_rsuppress_eencourage_snone_seed42.json
+=== [partial-shared @ cuda:1] router=suppress expert=encourage shared=encourage ===
+[config] model=partial-shared router=suppress expert=encourage shared=encourage device=cuda:1 seed=42 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_partial_shared_seed42.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=234, loss=0.6003
+  [epoch 0] batch 100, AU entries=234, loss=0.2978
+  [epoch 0] batch 150, AU entries=234, loss=0.4845
+  [epoch 0] batch 200, AU entries=252, loss=0.4005
+  [epoch 0] batch 250, AU entries=252, loss=1.1243
+  [epoch 0] batch 300, AU entries=252, loss=0.2949
+  [epoch 0] batch 350, AU entries=252, loss=0.1702
+  [epoch 0] batch 400, AU entries=252, loss=0.3504
+  [epoch 0] batch 450, AU entries=252, loss=0.4328
+  [epoch 0] batch 500, AU entries=252, loss=0.0881
+  [epoch 0] batch 550, AU entries=252, loss=0.2491
+  [epoch 0] batch 600, AU entries=252, loss=0.0011
+    scenario 0: 0.6660
+    scenario 1: 0.7127
+    scenario 2: 0.7844
+    scenario 3: 0.7133
+    scenario 4: 0.7094
+    scenario 5: 0.6256
+    scenario 6: 0.7208
+    scenario 8: 0.7239
+  mean per-scenario AUC: 0.7070
+  pooled test AUC: 0.7653
+  summary → cache/subtask_modulation_partial-shared_rsuppress_eencourage_sencourage_seed42.json
+=== [partial-shared @ cuda:1] router=suppress expert=encourage shared=suppress ===
+[config] model=partial-shared router=suppress expert=encourage shared=suppress device=cuda:1 seed=42 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_partial_shared_seed42.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=234, loss=0.6271
+  [epoch 0] batch 100, AU entries=234, loss=0.2831
+  [epoch 0] batch 150, AU entries=234, loss=0.3943
+  [epoch 0] batch 200, AU entries=252, loss=0.4124
+  [epoch 0] batch 250, AU entries=252, loss=1.1275
+  [epoch 0] batch 300, AU entries=252, loss=0.3187
+  [epoch 0] batch 350, AU entries=252, loss=0.1393
+  [epoch 0] batch 400, AU entries=252, loss=0.3307
+  [epoch 0] batch 450, AU entries=252, loss=0.3996
+  [epoch 0] batch 500, AU entries=252, loss=0.0950
+  [epoch 0] batch 550, AU entries=252, loss=0.2609
+  [epoch 0] batch 600, AU entries=252, loss=0.0017
+    scenario 0: 0.6736
+    scenario 1: 0.7122
+    scenario 2: 0.7776
+    scenario 3: 0.6726
+    scenario 4: 0.7070
+    scenario 5: 0.6536
+    scenario 6: 0.7210
+    scenario 8: 0.6690
+  mean per-scenario AUC: 0.6983
+  pooled test AUC: 0.7652
+  summary → cache/subtask_modulation_partial-shared_rsuppress_eencourage_ssuppress_seed42.json
+=== [partial-shared @ cuda:1] router=suppress expert=suppress shared=none ===
+[config] model=partial-shared router=suppress expert=suppress shared=none device=cuda:1 seed=42 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_partial_shared_seed42.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=234, loss=0.7136
+  [epoch 0] batch 100, AU entries=234, loss=0.3234
+  [epoch 0] batch 150, AU entries=234, loss=0.1527
+  [epoch 0] batch 200, AU entries=252, loss=0.3900
+  [epoch 0] batch 250, AU entries=252, loss=0.9407
+  [epoch 0] batch 300, AU entries=252, loss=0.3721
+  [epoch 0] batch 350, AU entries=252, loss=0.1595
+  [epoch 0] batch 400, AU entries=252, loss=0.3484
+  [epoch 0] batch 450, AU entries=252, loss=0.3813
+  [epoch 0] batch 500, AU entries=252, loss=0.0918
+  [epoch 0] batch 550, AU entries=252, loss=0.2467
+  [epoch 0] batch 600, AU entries=252, loss=0.0021
+    scenario 0: 0.6738
+    scenario 1: 0.7103
+    scenario 2: 0.7873
+    scenario 3: 0.6953
+    scenario 4: 0.7048
+    scenario 5: 0.6486
+    scenario 6: 0.7117
+    scenario 8: 0.6884
+  mean per-scenario AUC: 0.7025
+  pooled test AUC: 0.7635
+  summary → cache/subtask_modulation_partial-shared_rsuppress_esuppress_snone_seed42.json
+=== [partial-shared @ cuda:1] router=suppress expert=suppress shared=encourage ===
+[config] model=partial-shared router=suppress expert=suppress shared=encourage device=cuda:1 seed=42 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_partial_shared_seed42.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=234, loss=1.1220
+  [epoch 0] batch 100, AU entries=234, loss=0.2716
+  [epoch 0] batch 150, AU entries=234, loss=0.1794
+  [epoch 0] batch 200, AU entries=252, loss=0.3938
+  [epoch 0] batch 250, AU entries=252, loss=0.9178
+  [epoch 0] batch 300, AU entries=252, loss=0.2718
+  [epoch 0] batch 350, AU entries=252, loss=0.1721
+  [epoch 0] batch 400, AU entries=252, loss=0.3303
+  [epoch 0] batch 450, AU entries=252, loss=0.4255
+  [epoch 0] batch 500, AU entries=252, loss=0.0960
+  [epoch 0] batch 550, AU entries=252, loss=0.2828
+  [epoch 0] batch 600, AU entries=252, loss=0.0002
+    scenario 0: 0.6772
+    scenario 1: 0.7148
+    scenario 2: 0.7903
+    scenario 3: 0.7234
+    scenario 4: 0.7023
+    scenario 5: 0.6405
+    scenario 6: 0.7157
+    scenario 8: 0.7360
+  mean per-scenario AUC: 0.7125
+  pooled test AUC: 0.7668
+  summary → cache/subtask_modulation_partial-shared_rsuppress_esuppress_sencourage_seed42.json
+=== [partial-shared @ cuda:1] router=suppress expert=suppress shared=suppress ===
+[config] model=partial-shared router=suppress expert=suppress shared=suppress device=cuda:1 seed=42 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_partial_shared_seed42.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=234, loss=1.0375
+  [epoch 0] batch 100, AU entries=234, loss=0.3506
+  [epoch 0] batch 150, AU entries=234, loss=0.3138
+  [epoch 0] batch 200, AU entries=252, loss=0.3232
+  [epoch 0] batch 250, AU entries=252, loss=1.1684
+  [epoch 0] batch 300, AU entries=252, loss=0.3981
+  [epoch 0] batch 350, AU entries=252, loss=0.1592
+  [epoch 0] batch 400, AU entries=252, loss=0.3527
+  [epoch 0] batch 450, AU entries=252, loss=0.4569
+  [epoch 0] batch 500, AU entries=252, loss=0.1097
+  [epoch 0] batch 550, AU entries=252, loss=0.2462
+  [epoch 0] batch 600, AU entries=252, loss=0.0007
+    scenario 0: 0.6758
+    scenario 1: 0.7118
+    scenario 2: 0.7841
+    scenario 3: 0.7148
+    scenario 4: 0.7043
+    scenario 5: 0.6517
+    scenario 6: 0.7163
+    scenario 8: 0.7062
+  mean per-scenario AUC: 0.7081
+  pooled test AUC: 0.7648
+  summary → cache/subtask_modulation_partial-shared_rsuppress_esuppress_ssuppress_seed42.json
+WORKER DONE: partial-shared cuda:1 seed 42
+=== [partial-shared @ cuda:1] router=none expert=none shared=none ===
+[config] model=partial-shared router=none expert=none shared=none device=cuda:1 seed=123 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_partial_shared_seed123.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=234, loss=0.3401
+  [epoch 0] batch 100, AU entries=234, loss=0.5375
+  [epoch 0] batch 150, AU entries=252, loss=0.1571
+  [epoch 0] batch 200, AU entries=252, loss=0.6980
+  [epoch 0] batch 250, AU entries=252, loss=0.7110
+  [epoch 0] batch 300, AU entries=252, loss=0.4645
+  [epoch 0] batch 350, AU entries=252, loss=0.0823
+  [epoch 0] batch 400, AU entries=252, loss=0.2388
+  [epoch 0] batch 450, AU entries=252, loss=0.4749
+  [epoch 0] batch 500, AU entries=252, loss=0.4185
+  [epoch 0] batch 550, AU entries=252, loss=0.6603
+  [epoch 0] batch 600, AU entries=252, loss=0.3976
+    scenario 0: 0.6487
+    scenario 1: 0.7001
+    scenario 2: 0.7757
+    scenario 3: 0.7192
+    scenario 4: 0.7000
+    scenario 5: 0.6646
+    scenario 6: 0.7162
+    scenario 8: 0.7091
+  mean per-scenario AUC: 0.7042
+  pooled test AUC: 0.7565
+  summary → cache/subtask_modulation_partial-shared_rnone_enone_snone_seed123.json
+=== [partial-shared @ cuda:1] router=suppress expert=encourage shared=none ===
+[config] model=partial-shared router=suppress expert=encourage shared=none device=cuda:1 seed=123 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_partial_shared_seed123.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=234, loss=0.3454
+  [epoch 0] batch 100, AU entries=234, loss=0.4775
+  [epoch 0] batch 150, AU entries=252, loss=0.1080
+  [epoch 0] batch 200, AU entries=252, loss=0.6204
+  [epoch 0] batch 250, AU entries=252, loss=0.9275
+  [epoch 0] batch 300, AU entries=252, loss=0.4487
+  [epoch 0] batch 350, AU entries=252, loss=0.1018
+  [epoch 0] batch 400, AU entries=252, loss=0.2295
+  [epoch 0] batch 450, AU entries=252, loss=0.4950
+  [epoch 0] batch 500, AU entries=252, loss=0.4067
+  [epoch 0] batch 550, AU entries=252, loss=0.5613
+  [epoch 0] batch 600, AU entries=252, loss=0.3475
+    scenario 0: 0.6742
+    scenario 1: 0.7108
+    scenario 2: 0.7932
+    scenario 3: 0.7244
+    scenario 4: 0.7105
+    scenario 5: 0.6733
+    scenario 6: 0.7169
+    scenario 8: 0.7456
+  mean per-scenario AUC: 0.7186
+  pooled test AUC: 0.7643
+  summary → cache/subtask_modulation_partial-shared_rsuppress_eencourage_snone_seed123.json
+=== [partial-shared @ cuda:1] router=suppress expert=none shared=encourage ===
+[config] model=partial-shared router=suppress expert=none shared=encourage device=cuda:1 seed=123 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_partial_shared_seed123.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=234, loss=0.4525
+  [epoch 0] batch 100, AU entries=234, loss=0.4070
+  [epoch 0] batch 150, AU entries=252, loss=0.2251
+  [epoch 0] batch 200, AU entries=252, loss=0.7153
+  [epoch 0] batch 250, AU entries=252, loss=0.7214
+  [epoch 0] batch 300, AU entries=252, loss=0.3967
+  [epoch 0] batch 350, AU entries=252, loss=0.0954
+  [epoch 0] batch 400, AU entries=252, loss=0.2471
+  [epoch 0] batch 450, AU entries=252, loss=0.4718
+  [epoch 0] batch 500, AU entries=252, loss=0.4384
+  [epoch 0] batch 550, AU entries=252, loss=0.6144
+  [epoch 0] batch 600, AU entries=252, loss=0.3457
+    scenario 0: 0.6708
+    scenario 1: 0.7138
+    scenario 2: 0.7926
+    scenario 3: 0.7233
+    scenario 4: 0.7136
+    scenario 5: 0.6748
+    scenario 6: 0.7206
+    scenario 8: 0.7365
+  mean per-scenario AUC: 0.7182
+  pooled test AUC: 0.7660
+  summary → cache/subtask_modulation_partial-shared_rsuppress_enone_sencourage_seed123.json
+=== [partial-shared @ cuda:1] router=none expert=none shared=encourage ===
+[config] model=partial-shared router=none expert=none shared=encourage device=cuda:1 seed=123 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_partial_shared_seed123.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=234, loss=0.3948
+  [epoch 0] batch 100, AU entries=234, loss=0.4190
+  [epoch 0] batch 150, AU entries=252, loss=0.2138
+  [epoch 0] batch 200, AU entries=252, loss=0.5301
+  [epoch 0] batch 250, AU entries=252, loss=0.6057
+  [epoch 0] batch 300, AU entries=252, loss=0.3665
+  [epoch 0] batch 350, AU entries=252, loss=0.0977
+  [epoch 0] batch 400, AU entries=252, loss=0.1882
+  [epoch 0] batch 450, AU entries=252, loss=0.4894
+  [epoch 0] batch 500, AU entries=252, loss=0.3950
+  [epoch 0] batch 550, AU entries=252, loss=0.5490
+  [epoch 0] batch 600, AU entries=252, loss=0.3580
+    scenario 0: 0.6586
+    scenario 1: 0.7118
+    scenario 2: 0.7934
+    scenario 3: 0.7116
+    scenario 4: 0.7115
+    scenario 5: 0.6863
+    scenario 6: 0.7034
+    scenario 8: 0.7428
+  mean per-scenario AUC: 0.7149
+  pooled test AUC: 0.7637
+  summary → cache/subtask_modulation_partial-shared_rnone_enone_sencourage_seed123.json
+=== [partial-shared @ cuda:1] router=encourage expert=none shared=suppress ===
+[config] model=partial-shared router=encourage expert=none shared=suppress device=cuda:1 seed=123 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_partial_shared_seed123.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=234, loss=0.3267
+  [epoch 0] batch 100, AU entries=234, loss=0.5463
+  [epoch 0] batch 150, AU entries=252, loss=0.1270
+  [epoch 0] batch 200, AU entries=252, loss=0.5943
+  [epoch 0] batch 250, AU entries=252, loss=0.7043
+  [epoch 0] batch 300, AU entries=252, loss=0.3873
+  [epoch 0] batch 350, AU entries=252, loss=0.1118
+  [epoch 0] batch 400, AU entries=252, loss=0.2281
+  [epoch 0] batch 450, AU entries=252, loss=0.4895
+  [epoch 0] batch 500, AU entries=252, loss=0.3991
+  [epoch 0] batch 550, AU entries=252, loss=0.6331
+  [epoch 0] batch 600, AU entries=252, loss=0.3391
+    scenario 0: 0.6480
+    scenario 1: 0.6895
+    scenario 2: 0.7664
+    scenario 3: 0.6787
+    scenario 4: 0.6954
+    scenario 5: 0.6644
+    scenario 6: 0.7022
+    scenario 8: 0.6441
+  mean per-scenario AUC: 0.6861
+  pooled test AUC: 0.7499
+  summary → cache/subtask_modulation_partial-shared_rencourage_enone_ssuppress_seed123.json
+WORKER DONE: partial-shared cuda:1 seed 123
+=== [partial-shared @ cuda:1] router=none expert=none shared=none ===
+[config] model=partial-shared router=none expert=none shared=none device=cuda:1 seed=456 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_partial_shared_seed456.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=252, loss=0.2919
+  [epoch 0] batch 100, AU entries=252, loss=0.3205
+  [epoch 0] batch 150, AU entries=252, loss=0.5324
+  [epoch 0] batch 200, AU entries=252, loss=0.1619
+  [epoch 0] batch 250, AU entries=252, loss=0.1812
+  [epoch 0] batch 300, AU entries=252, loss=0.2684
+  [epoch 0] batch 350, AU entries=252, loss=0.4115
+  [epoch 0] batch 400, AU entries=252, loss=0.5151
+  [epoch 0] batch 450, AU entries=252, loss=0.3476
+  [epoch 0] batch 500, AU entries=252, loss=0.1467
+  [epoch 0] batch 550, AU entries=252, loss=0.6998
+  [epoch 0] batch 600, AU entries=252, loss=1.0974
+    scenario 0: 0.6552
+    scenario 1: 0.7064
+    scenario 2: 0.7825
+    scenario 3: 0.7152
+    scenario 4: 0.6986
+    scenario 5: 0.6576
+    scenario 6: 0.7166
+    scenario 8: 0.7257
+  mean per-scenario AUC: 0.7072
+  pooled test AUC: 0.7599
+  summary → cache/subtask_modulation_partial-shared_rnone_enone_snone_seed456.json
+=== [partial-shared @ cuda:1] router=suppress expert=encourage shared=none ===
+[config] model=partial-shared router=suppress expert=encourage shared=none device=cuda:1 seed=456 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_partial_shared_seed456.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=252, loss=0.1896
+  [epoch 0] batch 100, AU entries=252, loss=0.3430
+  [epoch 0] batch 150, AU entries=252, loss=0.5809
+  [epoch 0] batch 200, AU entries=252, loss=0.1333
+  [epoch 0] batch 250, AU entries=252, loss=0.2597
+  [epoch 0] batch 300, AU entries=252, loss=0.2727
+  [epoch 0] batch 350, AU entries=252, loss=0.4343
+  [epoch 0] batch 400, AU entries=252, loss=0.4779
+  [epoch 0] batch 450, AU entries=252, loss=0.3593
+  [epoch 0] batch 500, AU entries=252, loss=0.1422
+  [epoch 0] batch 550, AU entries=252, loss=0.7256
+  [epoch 0] batch 600, AU entries=252, loss=1.1068
+    scenario 0: 0.6772
+    scenario 1: 0.7149
+    scenario 2: 0.7782
+    scenario 3: 0.7074
+    scenario 4: 0.7082
+    scenario 5: 0.6744
+    scenario 6: 0.7286
+    scenario 8: 0.7573
+  mean per-scenario AUC: 0.7183
+  pooled test AUC: 0.7666
+  summary → cache/subtask_modulation_partial-shared_rsuppress_eencourage_snone_seed456.json
+=== [partial-shared @ cuda:1] router=suppress expert=none shared=encourage ===
+[config] model=partial-shared router=suppress expert=none shared=encourage device=cuda:1 seed=456 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_partial_shared_seed456.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=252, loss=0.2772
+  [epoch 0] batch 100, AU entries=252, loss=0.3329
+  [epoch 0] batch 150, AU entries=252, loss=0.5455
+  [epoch 0] batch 200, AU entries=252, loss=0.0949
+  [epoch 0] batch 250, AU entries=252, loss=0.2189
+  [epoch 0] batch 300, AU entries=252, loss=0.3363
+  [epoch 0] batch 350, AU entries=252, loss=0.4865
+  [epoch 0] batch 400, AU entries=252, loss=0.4728
+  [epoch 0] batch 450, AU entries=252, loss=0.3167
+  [epoch 0] batch 500, AU entries=252, loss=0.1301
+  [epoch 0] batch 550, AU entries=252, loss=0.6835
+  [epoch 0] batch 600, AU entries=252, loss=0.8632
+=== SKIP (exists) router=none expert=none shared=none ===
+=== SKIP (exists) router=none expert=none shared=encourage ===
+=== [partial-shared @ cuda:1] router=none expert=none shared=suppress ===
+[config] model=partial-shared router=none expert=none shared=suppress device=cuda:1 seed=456 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_partial_shared_seed456.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=252, loss=0.2786
+  [epoch 0] batch 100, AU entries=252, loss=0.3053
+  [epoch 0] batch 150, AU entries=252, loss=0.4677
+  [epoch 0] batch 200, AU entries=252, loss=0.1927
+  [epoch 0] batch 250, AU entries=252, loss=0.2317
+  [epoch 0] batch 300, AU entries=252, loss=0.2502
+  [epoch 0] batch 350, AU entries=252, loss=0.6032
+  [epoch 0] batch 400, AU entries=252, loss=0.4208
+  [epoch 0] batch 450, AU entries=252, loss=0.3098
+  [epoch 0] batch 500, AU entries=252, loss=0.1384
+  [epoch 0] batch 550, AU entries=252, loss=0.7868
+  [epoch 0] batch 600, AU entries=252, loss=0.9279
+    scenario 0: 0.6522
+    scenario 1: 0.6949
+    scenario 2: 0.7749
+    scenario 3: 0.6683
+    scenario 4: 0.6898
+    scenario 5: 0.6277
+    scenario 6: 0.7087
+    scenario 8: 0.5554
+  mean per-scenario AUC: 0.6715
+  pooled test AUC: 0.7527
+  summary → cache/subtask_modulation_partial-shared_rnone_enone_ssuppress_seed456.json
+=== [partial-shared @ cuda:1] router=none expert=encourage shared=none ===
+[config] model=partial-shared router=none expert=encourage shared=none device=cuda:1 seed=456 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_partial_shared_seed456.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=252, loss=0.2244
+  [epoch 0] batch 100, AU entries=252, loss=0.3322
+  [epoch 0] batch 150, AU entries=252, loss=0.5567
+  [epoch 0] batch 200, AU entries=252, loss=0.0992
+  [epoch 0] batch 250, AU entries=252, loss=0.1904
+  [epoch 0] batch 300, AU entries=252, loss=0.2958
+  [epoch 0] batch 350, AU entries=252, loss=0.4249
+  [epoch 0] batch 400, AU entries=252, loss=0.4957
+  [epoch 0] batch 450, AU entries=252, loss=0.2853
+  [epoch 0] batch 500, AU entries=252, loss=0.1509
+  [epoch 0] batch 550, AU entries=252, loss=0.7640
+  [epoch 0] batch 600, AU entries=252, loss=1.1966
+    scenario 0: 0.6594
+    scenario 1: 0.7047
+    scenario 2: 0.7797
+    scenario 3: 0.7117
+    scenario 4: 0.6910
+    scenario 5: 0.6545
+    scenario 6: 0.7057
+    scenario 8: 0.6418
+  mean per-scenario AUC: 0.6936
+  pooled test AUC: 0.7590
+  summary → cache/subtask_modulation_partial-shared_rnone_eencourage_snone_seed456.json
+=== [partial-shared @ cuda:1] router=none expert=encourage shared=encourage ===
+[config] model=partial-shared router=none expert=encourage shared=encourage device=cuda:1 seed=456 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_partial_shared_seed456.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=252, loss=0.2017
+  [epoch 0] batch 100, AU entries=252, loss=0.2915
+  [epoch 0] batch 150, AU entries=252, loss=0.4884
+  [epoch 0] batch 200, AU entries=252, loss=0.1976
+  [epoch 0] batch 250, AU entries=252, loss=0.2459
+  [epoch 0] batch 300, AU entries=252, loss=0.2468
+  [epoch 0] batch 350, AU entries=252, loss=0.3852
+  [epoch 0] batch 400, AU entries=252, loss=0.4273
+  [epoch 0] batch 450, AU entries=252, loss=0.3360
+  [epoch 0] batch 500, AU entries=252, loss=0.1438
+  [epoch 0] batch 550, AU entries=252, loss=0.7347
+  [epoch 0] batch 600, AU entries=252, loss=0.8896
+    scenario 0: 0.6541
+    scenario 1: 0.7029
+    scenario 2: 0.7875
+    scenario 3: 0.6916
+    scenario 4: 0.6922
+    scenario 5: 0.6523
+    scenario 6: 0.7051
+    scenario 8: 0.6878
+  mean per-scenario AUC: 0.6967
+  pooled test AUC: 0.7583
+  summary → cache/subtask_modulation_partial-shared_rnone_eencourage_sencourage_seed456.json
+=== [partial-shared @ cuda:1] router=none expert=encourage shared=suppress ===
+[config] model=partial-shared router=none expert=encourage shared=suppress device=cuda:1 seed=456 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_partial_shared_seed456.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=252, loss=0.1359
+  [epoch 0] batch 100, AU entries=252, loss=0.3165
+  [epoch 0] batch 150, AU entries=252, loss=0.5245
+  [epoch 0] batch 200, AU entries=252, loss=0.0841
+  [epoch 0] batch 250, AU entries=252, loss=0.2199
+  [epoch 0] batch 300, AU entries=252, loss=0.3435
+  [epoch 0] batch 350, AU entries=252, loss=0.5814
+  [epoch 0] batch 400, AU entries=252, loss=0.4338
+  [epoch 0] batch 450, AU entries=252, loss=0.3187
+  [epoch 0] batch 500, AU entries=252, loss=0.1339
+  [epoch 0] batch 550, AU entries=252, loss=0.7232
+  [epoch 0] batch 600, AU entries=252, loss=0.9431
+    scenario 0: 0.6497
+    scenario 1: 0.7026
+    scenario 2: 0.7861
+    scenario 3: 0.7061
+    scenario 4: 0.6916
+    scenario 5: 0.6786
+    scenario 6: 0.7145
+    scenario 8: 0.7494
+  mean per-scenario AUC: 0.7098
+  pooled test AUC: 0.7578
+  summary → cache/subtask_modulation_partial-shared_rnone_eencourage_ssuppress_seed456.json
+=== [partial-shared @ cuda:1] router=none expert=suppress shared=none ===
+[config] model=partial-shared router=none expert=suppress shared=none device=cuda:1 seed=456 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_partial_shared_seed456.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=252, loss=0.2784
+  [epoch 0] batch 100, AU entries=252, loss=0.3662
+  [epoch 0] batch 150, AU entries=252, loss=0.4683
+  [epoch 0] batch 200, AU entries=252, loss=0.1643
+  [epoch 0] batch 250, AU entries=252, loss=0.2270
+  [epoch 0] batch 300, AU entries=252, loss=0.2615
+  [epoch 0] batch 350, AU entries=252, loss=0.4103
+  [epoch 0] batch 400, AU entries=252, loss=0.4654
+  [epoch 0] batch 450, AU entries=252, loss=0.3346
+  [epoch 0] batch 500, AU entries=252, loss=0.1253
+  [epoch 0] batch 550, AU entries=252, loss=0.7546
+  [epoch 0] batch 600, AU entries=252, loss=0.8787
+    scenario 0: 0.6526
+    scenario 1: 0.7093
+    scenario 2: 0.7794
+    scenario 3: 0.7098
+    scenario 4: 0.7045
+    scenario 5: 0.6495
+    scenario 6: 0.7213
+    scenario 8: 0.7019
+  mean per-scenario AUC: 0.7035
+  pooled test AUC: 0.7623
+  summary → cache/subtask_modulation_partial-shared_rnone_esuppress_snone_seed456.json
+=== [partial-shared @ cuda:1] router=none expert=suppress shared=encourage ===
+[config] model=partial-shared router=none expert=suppress shared=encourage device=cuda:1 seed=456 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_partial_shared_seed456.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=252, loss=0.2375
+  [epoch 0] batch 100, AU entries=252, loss=0.3125
+  [epoch 0] batch 150, AU entries=252, loss=0.5853
+  [epoch 0] batch 200, AU entries=252, loss=0.1625
+  [epoch 0] batch 250, AU entries=252, loss=0.2133
+  [epoch 0] batch 300, AU entries=252, loss=0.2790
+  [epoch 0] batch 350, AU entries=252, loss=0.4309
+  [epoch 0] batch 400, AU entries=252, loss=0.4644
+  [epoch 0] batch 450, AU entries=252, loss=0.2917
+  [epoch 0] batch 500, AU entries=252, loss=0.1243
+  [epoch 0] batch 550, AU entries=252, loss=0.7877
+  [epoch 0] batch 600, AU entries=252, loss=1.2403
+    scenario 0: 0.6675
+    scenario 1: 0.7110
+    scenario 2: 0.7841
+    scenario 3: 0.7004
+    scenario 4: 0.7015
+    scenario 5: 0.6696
+    scenario 6: 0.7116
+    scenario 8: 0.7416
+  mean per-scenario AUC: 0.7109
+  pooled test AUC: 0.7633
+  summary → cache/subtask_modulation_partial-shared_rnone_esuppress_sencourage_seed456.json
+=== [partial-shared @ cuda:1] router=none expert=suppress shared=suppress ===
+[config] model=partial-shared router=none expert=suppress shared=suppress device=cuda:1 seed=456 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_partial_shared_seed456.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=252, loss=0.2501
+  [epoch 0] batch 100, AU entries=252, loss=0.3130
+  [epoch 0] batch 150, AU entries=252, loss=0.5955
+  [epoch 0] batch 200, AU entries=252, loss=0.1383
+  [epoch 0] batch 250, AU entries=252, loss=0.2383
+  [epoch 0] batch 300, AU entries=252, loss=0.2923
+  [epoch 0] batch 350, AU entries=252, loss=0.4402
+  [epoch 0] batch 400, AU entries=252, loss=0.4771
+  [epoch 0] batch 450, AU entries=252, loss=0.2895
+  [epoch 0] batch 500, AU entries=252, loss=0.1392
+  [epoch 0] batch 550, AU entries=252, loss=0.7592
+  [epoch 0] batch 600, AU entries=252, loss=1.2756
+    scenario 0: 0.6525
+    scenario 1: 0.7033
+    scenario 2: 0.7765
+    scenario 3: 0.6763
+    scenario 4: 0.6905
+    scenario 5: 0.6627
+    scenario 6: 0.7135
+    scenario 8: 0.7431
+  mean per-scenario AUC: 0.7023
+  pooled test AUC: 0.7577
+  summary → cache/subtask_modulation_partial-shared_rnone_esuppress_ssuppress_seed456.json
+=== [partial-shared @ cuda:1] router=encourage expert=none shared=none ===
+[config] model=partial-shared router=encourage expert=none shared=none device=cuda:1 seed=456 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_partial_shared_seed456.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=252, loss=0.2410
+  [epoch 0] batch 100, AU entries=252, loss=0.3292
+  [epoch 0] batch 150, AU entries=252, loss=0.6123
+  [epoch 0] batch 200, AU entries=252, loss=0.1682
+  [epoch 0] batch 250, AU entries=252, loss=0.2172
+  [epoch 0] batch 300, AU entries=252, loss=0.2524
+  [epoch 0] batch 350, AU entries=252, loss=0.4033
+  [epoch 0] batch 400, AU entries=252, loss=0.5596
+  [epoch 0] batch 450, AU entries=252, loss=0.3129
+  [epoch 0] batch 500, AU entries=252, loss=0.1244
+  [epoch 0] batch 550, AU entries=252, loss=0.7916
+  [epoch 0] batch 600, AU entries=252, loss=1.6937
+    scenario 0: 0.6454
+    scenario 1: 0.7019
+    scenario 2: 0.7862
+    scenario 3: 0.6607
+    scenario 4: 0.6937
+    scenario 5: 0.6541
+    scenario 6: 0.7057
+    scenario 8: 0.7245
+  mean per-scenario AUC: 0.6965
+  pooled test AUC: 0.7572
+  summary → cache/subtask_modulation_partial-shared_rencourage_enone_snone_seed456.json
+=== [partial-shared @ cuda:1] router=encourage expert=none shared=encourage ===
+[config] model=partial-shared router=encourage expert=none shared=encourage device=cuda:1 seed=456 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_partial_shared_seed456.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=252, loss=0.1426
+  [epoch 0] batch 100, AU entries=252, loss=0.2900
+  [epoch 0] batch 150, AU entries=252, loss=0.5747
+  [epoch 0] batch 200, AU entries=252, loss=0.1270
+  [epoch 0] batch 250, AU entries=252, loss=0.2249
+  [epoch 0] batch 300, AU entries=252, loss=0.2740
+  [epoch 0] batch 350, AU entries=252, loss=0.5221
+  [epoch 0] batch 400, AU entries=252, loss=0.4529
+  [epoch 0] batch 450, AU entries=252, loss=0.2648
+  [epoch 0] batch 500, AU entries=252, loss=0.1716
+  [epoch 0] batch 550, AU entries=252, loss=0.7860
+  [epoch 0] batch 600, AU entries=252, loss=1.3227
+    scenario 0: 0.6552
+    scenario 1: 0.7083
+    scenario 2: 0.7712
+    scenario 3: 0.6900
+    scenario 4: 0.7013
+    scenario 5: 0.6418
+    scenario 6: 0.7135
+    scenario 8: 0.7422
+  mean per-scenario AUC: 0.7029
+  pooled test AUC: 0.7613
+  summary → cache/subtask_modulation_partial-shared_rencourage_enone_sencourage_seed456.json
+=== SKIP (exists) router=encourage expert=none shared=suppress ===
+=== [partial-shared @ cuda:1] router=encourage expert=encourage shared=none ===
+[config] model=partial-shared router=encourage expert=encourage shared=none device=cuda:1 seed=456 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_partial_shared_seed456.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=252, loss=0.2435
+  [epoch 0] batch 100, AU entries=252, loss=0.3041
+  [epoch 0] batch 150, AU entries=252, loss=0.7602
+  [epoch 0] batch 200, AU entries=252, loss=0.1836
+  [epoch 0] batch 250, AU entries=252, loss=0.2168
+  [epoch 0] batch 300, AU entries=252, loss=0.2868
+  [epoch 0] batch 350, AU entries=252, loss=0.3684
+  [epoch 0] batch 400, AU entries=252, loss=0.4471
+  [epoch 0] batch 450, AU entries=252, loss=0.3472
+  [epoch 0] batch 500, AU entries=252, loss=0.1478
+  [epoch 0] batch 550, AU entries=252, loss=0.6490
+  [epoch 0] batch 600, AU entries=252, loss=1.1544
+    scenario 0: 0.6185
+    scenario 1: 0.6866
+    scenario 2: 0.7779
+    scenario 3: 0.6944
+    scenario 4: 0.6850
+    scenario 5: 0.6248
+    scenario 6: 0.7018
+    scenario 8: 0.6933
+  mean per-scenario AUC: 0.6853
+  pooled test AUC: 0.7475
+  summary → cache/subtask_modulation_partial-shared_rencourage_eencourage_snone_seed456.json
+=== [partial-shared @ cuda:1] router=encourage expert=encourage shared=encourage ===
+[config] model=partial-shared router=encourage expert=encourage shared=encourage device=cuda:1 seed=456 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_partial_shared_seed456.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=252, loss=0.2215
+  [epoch 0] batch 100, AU entries=252, loss=0.4360
+  [epoch 0] batch 150, AU entries=252, loss=0.5968
+  [epoch 0] batch 200, AU entries=252, loss=0.1213
+  [epoch 0] batch 250, AU entries=252, loss=0.2514
+  [epoch 0] batch 300, AU entries=252, loss=0.3212
+  [epoch 0] batch 350, AU entries=252, loss=0.3787
+  [epoch 0] batch 400, AU entries=252, loss=0.4553
+  [epoch 0] batch 450, AU entries=252, loss=0.2645
+  [epoch 0] batch 500, AU entries=252, loss=0.0996
+  [epoch 0] batch 550, AU entries=252, loss=1.3354
+  [epoch 0] batch 600, AU entries=252, loss=0.9562
+    scenario 0: 0.6640
+    scenario 1: 0.7109
+    scenario 2: 0.7881
+    scenario 3: 0.7039
+    scenario 4: 0.7056
+    scenario 5: 0.6663
+    scenario 6: 0.7200
+    scenario 8: 0.7013
+  mean per-scenario AUC: 0.7075
+  pooled test AUC: 0.7638
+  summary → cache/subtask_modulation_partial-shared_rencourage_eencourage_sencourage_seed456.json
+=== [partial-shared @ cuda:1] router=encourage expert=encourage shared=suppress ===
+[config] model=partial-shared router=encourage expert=encourage shared=suppress device=cuda:1 seed=456 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_partial_shared_seed456.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=252, loss=0.3106
+  [epoch 0] batch 100, AU entries=252, loss=0.2284
+  [epoch 0] batch 150, AU entries=252, loss=0.4416
+  [epoch 0] batch 200, AU entries=252, loss=0.1262
+  [epoch 0] batch 250, AU entries=252, loss=0.2519
+  [epoch 0] batch 300, AU entries=252, loss=0.2567
+  [epoch 0] batch 350, AU entries=252, loss=0.3492
+  [epoch 0] batch 400, AU entries=252, loss=0.5213
+  [epoch 0] batch 450, AU entries=252, loss=0.3168
+  [epoch 0] batch 500, AU entries=252, loss=0.1456
+  [epoch 0] batch 550, AU entries=252, loss=1.0599
+  [epoch 0] batch 600, AU entries=252, loss=0.8214
+    scenario 0: 0.6419
+    scenario 1: 0.7009
+    scenario 2: 0.7571
+    scenario 3: 0.6942
+    scenario 4: 0.6953
+    scenario 5: 0.6753
+    scenario 6: 0.7070
+    scenario 8: 0.6918
+  mean per-scenario AUC: 0.6954
+  pooled test AUC: 0.7552
+  summary → cache/subtask_modulation_partial-shared_rencourage_eencourage_ssuppress_seed456.json
+=== [partial-shared @ cuda:1] router=encourage expert=suppress shared=none ===
+[config] model=partial-shared router=encourage expert=suppress shared=none device=cuda:1 seed=456 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_partial_shared_seed456.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=252, loss=0.1511
+  [epoch 0] batch 100, AU entries=252, loss=0.4290
+  [epoch 0] batch 150, AU entries=252, loss=0.4783
+  [epoch 0] batch 200, AU entries=252, loss=0.1294
+  [epoch 0] batch 250, AU entries=252, loss=0.1990
+  [epoch 0] batch 300, AU entries=252, loss=0.3252
+  [epoch 0] batch 350, AU entries=252, loss=0.3998
+  [epoch 0] batch 400, AU entries=252, loss=0.4380
+  [epoch 0] batch 450, AU entries=252, loss=0.2453
+  [epoch 0] batch 500, AU entries=252, loss=0.1386
+  [epoch 0] batch 550, AU entries=252, loss=1.0372
+  [epoch 0] batch 600, AU entries=252, loss=0.9046
+    scenario 0: 0.6416
+    scenario 1: 0.6961
+    scenario 2: 0.7813
+    scenario 3: 0.6665
+    scenario 4: 0.6892
+    scenario 5: 0.6384
+    scenario 6: 0.6972
+    scenario 8: 0.7290
+  mean per-scenario AUC: 0.6924
+  pooled test AUC: 0.7525
+  summary → cache/subtask_modulation_partial-shared_rencourage_esuppress_snone_seed456.json
+=== [partial-shared @ cuda:1] router=encourage expert=suppress shared=encourage ===
+[config] model=partial-shared router=encourage expert=suppress shared=encourage device=cuda:1 seed=456 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_partial_shared_seed456.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=252, loss=0.2929
+  [epoch 0] batch 100, AU entries=252, loss=0.3670
+  [epoch 0] batch 150, AU entries=252, loss=0.6187
+  [epoch 0] batch 200, AU entries=252, loss=0.1486
+  [epoch 0] batch 250, AU entries=252, loss=0.1172
+  [epoch 0] batch 300, AU entries=252, loss=0.2803
+  [epoch 0] batch 350, AU entries=252, loss=0.4762
+  [epoch 0] batch 400, AU entries=252, loss=0.4864
+  [epoch 0] batch 450, AU entries=252, loss=0.4443
+  [epoch 0] batch 500, AU entries=252, loss=0.1400
+  [epoch 0] batch 550, AU entries=252, loss=0.6840
+  [epoch 0] batch 600, AU entries=252, loss=0.7868
+    scenario 0: 0.6486
+    scenario 1: 0.7111
+    scenario 2: 0.7863
+    scenario 3: 0.6704
+    scenario 4: 0.7045
+    scenario 5: 0.6566
+    scenario 6: 0.7141
+    scenario 8: 0.6849
+  mean per-scenario AUC: 0.6971
+  pooled test AUC: 0.7635
+  summary → cache/subtask_modulation_partial-shared_rencourage_esuppress_sencourage_seed456.json
+=== [partial-shared @ cuda:1] router=encourage expert=suppress shared=suppress ===
+[config] model=partial-shared router=encourage expert=suppress shared=suppress device=cuda:1 seed=456 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_partial_shared_seed456.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=252, loss=0.1888
+  [epoch 0] batch 100, AU entries=252, loss=0.2991
+  [epoch 0] batch 150, AU entries=252, loss=0.5125
+  [epoch 0] batch 200, AU entries=252, loss=0.1564
+  [epoch 0] batch 250, AU entries=252, loss=0.2167
+  [epoch 0] batch 300, AU entries=252, loss=0.2605
+  [epoch 0] batch 350, AU entries=252, loss=0.5622
+  [epoch 0] batch 400, AU entries=252, loss=0.4807
+  [epoch 0] batch 450, AU entries=252, loss=0.3695
+  [epoch 0] batch 500, AU entries=252, loss=0.1746
+  [epoch 0] batch 550, AU entries=252, loss=0.6227
+  [epoch 0] batch 600, AU entries=252, loss=4.2547
+    scenario 0: 0.6382
+    scenario 1: 0.6880
+    scenario 2: 0.7709
+    scenario 3: 0.6834
+    scenario 4: 0.6770
+    scenario 5: 0.6266
+    scenario 6: 0.6936
+    scenario 8: 0.7023
+  mean per-scenario AUC: 0.6850
+  pooled test AUC: 0.7481
+  summary → cache/subtask_modulation_partial-shared_rencourage_esuppress_ssuppress_seed456.json
+=== [partial-shared @ cuda:1] router=suppress expert=none shared=none ===
+[config] model=partial-shared router=suppress expert=none shared=none device=cuda:1 seed=456 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_partial_shared_seed456.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=252, loss=0.1374
+  [epoch 0] batch 100, AU entries=252, loss=0.3471
+  [epoch 0] batch 150, AU entries=252, loss=0.5419
+  [epoch 0] batch 200, AU entries=252, loss=0.1798
+  [epoch 0] batch 250, AU entries=252, loss=0.1934
+  [epoch 0] batch 300, AU entries=252, loss=0.2564
+  [epoch 0] batch 350, AU entries=252, loss=0.4281
+  [epoch 0] batch 400, AU entries=252, loss=0.4288
+  [epoch 0] batch 450, AU entries=252, loss=0.2826
+  [epoch 0] batch 500, AU entries=252, loss=0.1332
+  [epoch 0] batch 550, AU entries=252, loss=0.8501
+  [epoch 0] batch 600, AU entries=252, loss=0.9946
+    scenario 0: 0.6751
+    scenario 1: 0.7116
+    scenario 2: 0.7878
+    scenario 3: 0.7119
+    scenario 4: 0.7079
+    scenario 5: 0.6697
+    scenario 6: 0.7237
+    scenario 8: 0.7596
+  mean per-scenario AUC: 0.7184
+  pooled test AUC: 0.7650
+  summary → cache/subtask_modulation_partial-shared_rsuppress_enone_snone_seed456.json
+=== SKIP (exists) router=suppress expert=none shared=encourage ===
+=== [partial-shared @ cuda:1] router=suppress expert=none shared=suppress ===
+[config] model=partial-shared router=suppress expert=none shared=suppress device=cuda:1 seed=456 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_partial_shared_seed456.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=252, loss=0.2158
+  [epoch 0] batch 100, AU entries=252, loss=0.2919
+  [epoch 0] batch 150, AU entries=252, loss=0.6958
+  [epoch 0] batch 200, AU entries=252, loss=0.1656
+  [epoch 0] batch 250, AU entries=252, loss=0.2319
+  [epoch 0] batch 300, AU entries=252, loss=0.2866
+  [epoch 0] batch 350, AU entries=252, loss=0.4282
+  [epoch 0] batch 400, AU entries=252, loss=0.4777
+  [epoch 0] batch 450, AU entries=252, loss=0.3265
+  [epoch 0] batch 500, AU entries=252, loss=0.1582
+  [epoch 0] batch 550, AU entries=252, loss=0.7113
+  [epoch 0] batch 600, AU entries=252, loss=1.0044
+    scenario 0: 0.6706
+    scenario 1: 0.7127
+    scenario 2: 0.7885
+    scenario 3: 0.6756
+    scenario 4: 0.7099
+    scenario 5: 0.6840
+    scenario 6: 0.7282
+    scenario 8: 0.7486
+  mean per-scenario AUC: 0.7148
+  pooled test AUC: 0.7657
+  summary → cache/subtask_modulation_partial-shared_rsuppress_enone_ssuppress_seed456.json
+=== SKIP (exists) router=suppress expert=encourage shared=none ===
+=== [partial-shared @ cuda:1] router=suppress expert=encourage shared=encourage ===
+[config] model=partial-shared router=suppress expert=encourage shared=encourage device=cuda:1 seed=456 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_partial_shared_seed456.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=252, loss=0.2167
+  [epoch 0] batch 100, AU entries=252, loss=0.2889
+  [epoch 0] batch 150, AU entries=252, loss=0.5484
+  [epoch 0] batch 200, AU entries=252, loss=0.1288
+  [epoch 0] batch 250, AU entries=252, loss=0.1797
+  [epoch 0] batch 300, AU entries=252, loss=0.2759
+  [epoch 0] batch 350, AU entries=252, loss=0.4587
+  [epoch 0] batch 400, AU entries=252, loss=0.4671
+  [epoch 0] batch 450, AU entries=252, loss=0.2932
+  [epoch 0] batch 500, AU entries=252, loss=0.1503
+  [epoch 0] batch 550, AU entries=252, loss=0.7748
+  [epoch 0] batch 600, AU entries=252, loss=0.9861
+    scenario 0: 0.6704
+    scenario 1: 0.7124
+    scenario 2: 0.7953
+    scenario 3: 0.7256
+    scenario 4: 0.7111
+    scenario 5: 0.6815
+    scenario 6: 0.7245
+    scenario 8: 0.7032
+  mean per-scenario AUC: 0.7155
+  pooled test AUC: 0.7661
+  summary → cache/subtask_modulation_partial-shared_rsuppress_eencourage_sencourage_seed456.json
+=== [partial-shared @ cuda:1] router=suppress expert=encourage shared=suppress ===
+[config] model=partial-shared router=suppress expert=encourage shared=suppress device=cuda:1 seed=456 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_partial_shared_seed456.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=252, loss=0.2493
+  [epoch 0] batch 100, AU entries=252, loss=0.2480
+  [epoch 0] batch 150, AU entries=252, loss=0.4929
+  [epoch 0] batch 200, AU entries=252, loss=0.1042
+  [epoch 0] batch 250, AU entries=252, loss=0.2424
+  [epoch 0] batch 300, AU entries=252, loss=0.2876
+  [epoch 0] batch 350, AU entries=252, loss=0.3925
+  [epoch 0] batch 400, AU entries=252, loss=0.4666
+  [epoch 0] batch 450, AU entries=252, loss=0.4161
+  [epoch 0] batch 500, AU entries=252, loss=0.1097
+  [epoch 0] batch 550, AU entries=252, loss=0.7651
+  [epoch 0] batch 600, AU entries=252, loss=1.7794
+    scenario 0: 0.6719
+    scenario 1: 0.7145
+    scenario 2: 0.7827
+    scenario 3: 0.7161
+    scenario 4: 0.7095
+    scenario 5: 0.6674
+    scenario 6: 0.7190
+    scenario 8: 0.7449
+  mean per-scenario AUC: 0.7157
+  pooled test AUC: 0.7660
+  summary → cache/subtask_modulation_partial-shared_rsuppress_eencourage_ssuppress_seed456.json
+=== [partial-shared @ cuda:1] router=suppress expert=suppress shared=none ===
+[config] model=partial-shared router=suppress expert=suppress shared=none device=cuda:1 seed=456 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_partial_shared_seed456.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=252, loss=0.2081
+  [epoch 0] batch 100, AU entries=252, loss=0.2901
+  [epoch 0] batch 150, AU entries=252, loss=0.4590
+  [epoch 0] batch 200, AU entries=252, loss=0.1608
+  [epoch 0] batch 250, AU entries=252, loss=0.2217
+  [epoch 0] batch 300, AU entries=252, loss=0.2403
+  [epoch 0] batch 350, AU entries=252, loss=0.4467
+  [epoch 0] batch 400, AU entries=252, loss=0.4449
+  [epoch 0] batch 450, AU entries=252, loss=0.3239
+  [epoch 0] batch 500, AU entries=252, loss=0.1478
+  [epoch 0] batch 550, AU entries=252, loss=0.9690
+  [epoch 0] batch 600, AU entries=252, loss=0.8265
+    scenario 0: 0.6696
+    scenario 1: 0.7117
+    scenario 2: 0.7901
+    scenario 3: 0.7195
+    scenario 4: 0.7033
+    scenario 5: 0.6463
+    scenario 6: 0.7197
+    scenario 8: 0.7596
+  mean per-scenario AUC: 0.7150
+  pooled test AUC: 0.7646
+  summary → cache/subtask_modulation_partial-shared_rsuppress_esuppress_snone_seed456.json
+=== [partial-shared @ cuda:1] router=suppress expert=suppress shared=encourage ===
+[config] model=partial-shared router=suppress expert=suppress shared=encourage device=cuda:1 seed=456 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_partial_shared_seed456.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=252, loss=0.1261
+  [epoch 0] batch 100, AU entries=252, loss=0.3076
+  [epoch 0] batch 150, AU entries=252, loss=0.5597
+  [epoch 0] batch 200, AU entries=252, loss=0.1482
+  [epoch 0] batch 250, AU entries=252, loss=0.2107
+  [epoch 0] batch 300, AU entries=252, loss=0.2915
+  [epoch 0] batch 350, AU entries=252, loss=0.5825
+  [epoch 0] batch 400, AU entries=252, loss=0.4561
+  [epoch 0] batch 450, AU entries=252, loss=0.2968
+  [epoch 0] batch 500, AU entries=252, loss=0.1566
+  [epoch 0] batch 550, AU entries=252, loss=0.9000
+  [epoch 0] batch 600, AU entries=252, loss=0.9227
+    scenario 0: 0.6609
+    scenario 1: 0.7134
+    scenario 2: 0.7928
+    scenario 3: 0.7087
+    scenario 4: 0.7014
+    scenario 5: 0.6573
+    scenario 6: 0.7174
+    scenario 8: 0.7012
+  mean per-scenario AUC: 0.7066
+  pooled test AUC: 0.7638
+  summary → cache/subtask_modulation_partial-shared_rsuppress_esuppress_sencourage_seed456.json
+=== [partial-shared @ cuda:1] router=suppress expert=suppress shared=suppress ===
+[config] model=partial-shared router=suppress expert=suppress shared=suppress device=cuda:1 seed=456 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_partial_shared_seed456.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=252, loss=0.2537
+  [epoch 0] batch 100, AU entries=252, loss=0.2928
+  [epoch 0] batch 150, AU entries=252, loss=0.5691
+  [epoch 0] batch 200, AU entries=252, loss=0.1491
+  [epoch 0] batch 250, AU entries=252, loss=0.2168
+  [epoch 0] batch 300, AU entries=252, loss=0.2659
+  [epoch 0] batch 350, AU entries=252, loss=0.5067
+  [epoch 0] batch 400, AU entries=252, loss=0.4510
+  [epoch 0] batch 450, AU entries=252, loss=0.3182
+  [epoch 0] batch 500, AU entries=252, loss=0.1318
+  [epoch 0] batch 550, AU entries=252, loss=0.7849
+  [epoch 0] batch 600, AU entries=252, loss=0.9035
+    scenario 0: 0.6731
+    scenario 1: 0.7119
+    scenario 2: 0.7787
+    scenario 3: 0.7127
+    scenario 4: 0.7039
+    scenario 5: 0.6855
+    scenario 6: 0.7211
+    scenario 8: 0.7485
+  mean per-scenario AUC: 0.7169
+  pooled test AUC: 0.7641
+  summary → cache/subtask_modulation_partial-shared_rsuppress_esuppress_ssuppress_seed456.json
+WORKER DONE: partial-shared cuda:1 seed 456
+=== [partial-shared @ cuda:1] router=suppress expert=none shared=none ===
+[config] model=partial-shared router=suppress expert=none shared=none device=cuda:1 seed=123 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_partial_shared_seed123.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=234, loss=0.4198
+  [epoch 0] batch 100, AU entries=234, loss=0.4541
+  [epoch 0] batch 150, AU entries=252, loss=0.1666
+  [epoch 0] batch 200, AU entries=252, loss=0.5603
+  [epoch 0] batch 250, AU entries=252, loss=0.9442
+  [epoch 0] batch 300, AU entries=252, loss=0.4466
+  [epoch 0] batch 350, AU entries=252, loss=0.1323
+  [epoch 0] batch 400, AU entries=252, loss=0.2532
+  [epoch 0] batch 450, AU entries=252, loss=0.4790
+  [epoch 0] batch 500, AU entries=252, loss=0.4041
+  [epoch 0] batch 550, AU entries=252, loss=0.5815
+  [epoch 0] batch 600, AU entries=252, loss=0.3110
+    scenario 0: 0.6668
+    scenario 1: 0.7118
+    scenario 2: 0.7904
+    scenario 3: 0.7439
+    scenario 4: 0.7102
+    scenario 5: 0.6729
+    scenario 6: 0.7136
+    scenario 8: 0.7786
+  mean per-scenario AUC: 0.7235
+  pooled test AUC: 0.7647
+  summary → cache/subtask_modulation_partial-shared_rsuppress_enone_snone_seed123.json
+=== SKIP (exists) router=suppress expert=none shared=encourage ===
+=== [partial-shared @ cuda:1] router=suppress expert=none shared=suppress ===
+[config] model=partial-shared router=suppress expert=none shared=suppress device=cuda:1 seed=123 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_partial_shared_seed123.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=234, loss=0.5172
+  [epoch 0] batch 100, AU entries=234, loss=0.4016
+  [epoch 0] batch 150, AU entries=252, loss=0.1627
+  [epoch 0] batch 200, AU entries=252, loss=0.5426
+  [epoch 0] batch 250, AU entries=252, loss=0.7536
+  [epoch 0] batch 300, AU entries=252, loss=0.3910
+  [epoch 0] batch 350, AU entries=252, loss=0.1111
+  [epoch 0] batch 400, AU entries=252, loss=0.2496
+  [epoch 0] batch 450, AU entries=252, loss=0.5799
+  [epoch 0] batch 500, AU entries=252, loss=0.3866
+  [epoch 0] batch 550, AU entries=252, loss=0.5830
+  [epoch 0] batch 600, AU entries=252, loss=0.3257
+    scenario 0: 0.6703
+    scenario 1: 0.7115
+    scenario 2: 0.7871
+    scenario 3: 0.7452
+    scenario 4: 0.7071
+    scenario 5: 0.6555
+    scenario 6: 0.7199
+    scenario 8: 0.7519
+  mean per-scenario AUC: 0.7186
+  pooled test AUC: 0.7643
+  summary → cache/subtask_modulation_partial-shared_rsuppress_enone_ssuppress_seed123.json
+=== SKIP (exists) router=suppress expert=encourage shared=none ===
+=== [partial-shared @ cuda:1] router=suppress expert=encourage shared=encourage ===
+[config] model=partial-shared router=suppress expert=encourage shared=encourage device=cuda:1 seed=123 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_partial_shared_seed123.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=234, loss=0.4895
+  [epoch 0] batch 100, AU entries=234, loss=0.3645
+  [epoch 0] batch 150, AU entries=252, loss=0.2310
+  [epoch 0] batch 200, AU entries=252, loss=0.6647
+  [epoch 0] batch 250, AU entries=252, loss=0.7401
+  [epoch 0] batch 300, AU entries=252, loss=0.3807
+  [epoch 0] batch 350, AU entries=252, loss=0.0933
+  [epoch 0] batch 400, AU entries=252, loss=0.2542
+  [epoch 0] batch 450, AU entries=252, loss=0.4227
+  [epoch 0] batch 500, AU entries=252, loss=0.3834
+  [epoch 0] batch 550, AU entries=252, loss=0.6380
+  [epoch 0] batch 600, AU entries=252, loss=0.2366
+    scenario 0: 0.6722
+    scenario 1: 0.7124
+    scenario 2: 0.7842
+    scenario 3: 0.7333
+    scenario 4: 0.7100
+    scenario 5: 0.6673
+    scenario 6: 0.7207
+    scenario 8: 0.7268
+  mean per-scenario AUC: 0.7159
+  pooled test AUC: 0.7646
+  summary → cache/subtask_modulation_partial-shared_rsuppress_eencourage_sencourage_seed123.json
+=== [partial-shared @ cuda:1] router=suppress expert=encourage shared=suppress ===
+[config] model=partial-shared router=suppress expert=encourage shared=suppress device=cuda:1 seed=123 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_partial_shared_seed123.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=234, loss=0.3719
+  [epoch 0] batch 100, AU entries=234, loss=0.4974
+  [epoch 0] batch 150, AU entries=252, loss=0.2278
+  [epoch 0] batch 200, AU entries=252, loss=0.5788
+  [epoch 0] batch 250, AU entries=252, loss=0.8365
+  [epoch 0] batch 300, AU entries=252, loss=0.4081
+  [epoch 0] batch 350, AU entries=252, loss=0.0838
+  [epoch 0] batch 400, AU entries=252, loss=0.2255
+  [epoch 0] batch 450, AU entries=252, loss=0.4903
+  [epoch 0] batch 500, AU entries=252, loss=0.4113
+  [epoch 0] batch 550, AU entries=252, loss=0.5954
+  [epoch 0] batch 600, AU entries=252, loss=0.3191
+    scenario 0: 0.6703
+    scenario 1: 0.7103
+    scenario 2: 0.7979
+    scenario 3: 0.7405
+    scenario 4: 0.7072
+    scenario 5: 0.6717
+    scenario 6: 0.7186
+    scenario 8: 0.7580
+  mean per-scenario AUC: 0.7218
+  pooled test AUC: 0.7640
+  summary → cache/subtask_modulation_partial-shared_rsuppress_eencourage_ssuppress_seed123.json
+=== [partial-shared @ cuda:1] router=suppress expert=suppress shared=none ===
+[config] model=partial-shared router=suppress expert=suppress shared=none device=cuda:1 seed=123 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_partial_shared_seed123.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=234, loss=0.4647
+  [epoch 0] batch 100, AU entries=234, loss=0.4608
+  [epoch 0] batch 150, AU entries=252, loss=0.1998
+  [epoch 0] batch 200, AU entries=252, loss=0.5850
+  [epoch 0] batch 250, AU entries=252, loss=0.8210
+  [epoch 0] batch 300, AU entries=252, loss=0.3726
+  [epoch 0] batch 350, AU entries=252, loss=0.1078
+  [epoch 0] batch 400, AU entries=252, loss=0.2514
+  [epoch 0] batch 450, AU entries=252, loss=0.4876
+  [epoch 0] batch 500, AU entries=252, loss=0.3967
+  [epoch 0] batch 550, AU entries=252, loss=0.6010
+  [epoch 0] batch 600, AU entries=252, loss=0.3508
+    scenario 0: 0.6719
+    scenario 1: 0.7103
+    scenario 2: 0.7799
+    scenario 3: 0.7020
+    scenario 4: 0.7081
+    scenario 5: 0.6689
+    scenario 6: 0.7257
+    scenario 8: 0.7506
+  mean per-scenario AUC: 0.7147
+  pooled test AUC: 0.7634
+  summary → cache/subtask_modulation_partial-shared_rsuppress_esuppress_snone_seed123.json
+=== [partial-shared @ cuda:1] router=suppress expert=suppress shared=encourage ===
+[config] model=partial-shared router=suppress expert=suppress shared=encourage device=cuda:1 seed=123 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_partial_shared_seed123.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=234, loss=0.4367
+  [epoch 0] batch 100, AU entries=234, loss=0.4226
+  [epoch 0] batch 150, AU entries=252, loss=0.2746
+  [epoch 0] batch 200, AU entries=252, loss=0.5626
+  [epoch 0] batch 250, AU entries=252, loss=0.7587
+  [epoch 0] batch 300, AU entries=252, loss=0.4336
+  [epoch 0] batch 350, AU entries=252, loss=0.1190
+  [epoch 0] batch 400, AU entries=252, loss=0.2374
+  [epoch 0] batch 450, AU entries=252, loss=0.5291
+  [epoch 0] batch 500, AU entries=252, loss=0.4282
+  [epoch 0] batch 550, AU entries=252, loss=0.6206
+  [epoch 0] batch 600, AU entries=252, loss=0.3551
+    scenario 0: 0.6714
+    scenario 1: 0.7136
+    scenario 2: 0.7963
+    scenario 3: 0.7322
+    scenario 4: 0.7105
+    scenario 5: 0.6095
+    scenario 6: 0.7177
+    scenario 8: 0.7592
+  mean per-scenario AUC: 0.7138
+  pooled test AUC: 0.7660
+  summary → cache/subtask_modulation_partial-shared_rsuppress_esuppress_sencourage_seed123.json
+=== [partial-shared @ cuda:1] router=suppress expert=suppress shared=suppress ===
+[config] model=partial-shared router=suppress expert=suppress shared=suppress device=cuda:1 seed=123 K=4 routing=data lr=0.001 alpha=0.5 epochs=1 batch=16384
+[load] cache/moe_partial_shared_seed123.pt  missing=0 unexpected=0
+  [epoch 0] batch 50, AU entries=234, loss=0.5298
+  [epoch 0] batch 100, AU entries=234, loss=0.4621
+  [epoch 0] batch 150, AU entries=252, loss=0.2191
+  [epoch 0] batch 200, AU entries=252, loss=0.5057
+  [epoch 0] batch 250, AU entries=252, loss=0.6420
+  [epoch 0] batch 300, AU entries=252, loss=0.3802
+  [epoch 0] batch 350, AU entries=252, loss=0.1038
+  [epoch 0] batch 400, AU entries=252, loss=0.2431
+  [epoch 0] batch 450, AU entries=252, loss=0.5317
+  [epoch 0] batch 500, AU entries=252, loss=0.3567
+  [epoch 0] batch 550, AU entries=252, loss=0.5846
+  [epoch 0] batch 600, AU entries=252, loss=0.3534
+    scenario 0: 0.6783
+    scenario 1: 0.7108
+    scenario 2: 0.7918
+    scenario 3: 0.7185
+    scenario 4: 0.7078
+    scenario 5: 0.6828
+    scenario 6: 0.7233
+    scenario 8: 0.7722
+  mean per-scenario AUC: 0.7232
+  pooled test AUC: 0.7644
+  summary → cache/subtask_modulation_partial-shared_rsuppress_esuppress_ssuppress_seed123.json
+WORKER DONE: partial-shared cuda:1 seed 123
