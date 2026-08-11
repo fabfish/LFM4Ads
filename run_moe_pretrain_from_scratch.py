@@ -59,25 +59,63 @@ def _parse_args(argv):
                     help="安全上限；实际由验证 AUC 早停（δ=0.001）控制")
     ap.add_argument("--shuffle", action="store_true", default=True,
                     help="默认开启数据洗牌，使 --seed 生效")
+    ap.add_argument("--freeze-router", action="store_true",
+                    help="把路由器冻结在零初值，门控恒为均匀（判别性对照："
+                         "检验路由机制本身是否为负担）")
     return ap.parse_args(argv)
 
 
 def model_tag(args):
-    return {
+    base = {
         "fully-routed": "moe_fully_routed",
         "partial-shared": "moe_partial_shared",
         "vanilla": "vanilla_from_scratch",
     }[args.model]
+    # 冻结路由器是独立变体，产物需与正常训练区分，避免覆盖。
+    return base + ("_frozenrouter" if getattr(args, "freeze_router", False)
+                   else "")
+
+
+def freeze_routers(model):
+    """把路由器参数冻结在零初值 → 门控恒为均匀（softmax(0)=1/K）。
+
+    判别性实验：若「强制均匀门控」的上游 AUC 不低于「抑制路由网络」的最优值，
+    则说明抑制路由的收益来自「减少按场景路由」而非「更好的分工」，
+    亦即在此数据尺度上路由机制本身是负担。
+
+    两类模型的路由器：V1 为 `layer.router`（DataRouter/ScenarioRouter），
+    V2 为 `layer.w_gate` / `layer.w_noise`；两者均为零初始化。
+    """
+    n = 0
+    for layer in model.cross_layers:
+        mods = []
+        if hasattr(layer, "router"):
+            mods.append(layer.router)
+        if hasattr(layer, "w_gate"):
+            mods.append(layer.w_gate)
+        if hasattr(layer, "w_noise"):
+            mods.append(layer.w_noise)
+        for mod in mods:
+            for p in mod.parameters():
+                torch.nn.init.zeros_(p)
+                p.requires_grad_(False)
+                n += p.numel()
+    print(f"[freeze-router] 冻结 {n} 个路由参数于零初值（门控恒均匀）")
+    return model
 
 
 def build_model(args):
     if args.model == "fully-routed":
-        return DCNv2MoE(dim=360, K=args.K, routing=args.routing).to(args.device)
-    if args.model == "partial-shared":
+        model = DCNv2MoE(dim=360, K=args.K, routing=args.routing).to(args.device)
+    elif args.model == "partial-shared":
         # top_k=K → 全软路由（共享专家常驻 + 路由专家加权，负载均衡损失恒为 0）
-        return DCNv2MoE_V2(dim=360, K=args.K, top_k=args.K,
-                           routing=args.routing).to(args.device)
-    return DCNv2().to(args.device)
+        model = DCNv2MoE_V2(dim=360, K=args.K, top_k=args.K,
+                            routing=args.routing).to(args.device)
+    else:
+        return DCNv2().to(args.device)
+    if getattr(args, "freeze_router", False):
+        freeze_routers(model)
+    return model
 
 
 def evaluate_all_scenarios(model, device):
@@ -205,6 +243,7 @@ def main():
             "routing": args.routing, "K": args.K, "lr": args.lr,
             "beta2": args.beta2, "shuffle": args.shuffle,
             "max_epochs": args.max_epochs,
+            "freeze_router": bool(getattr(args, "freeze_router", False)),
         },
         "test_auc_all": pooled,
         "mean_per_scenario_auc": mean_sc,

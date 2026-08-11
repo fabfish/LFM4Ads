@@ -104,7 +104,17 @@ def mean_gate_per_scenario(model, args):
 
 
 def metrics(gate_by_scenario, K):
-    """计算均匀度（归一化熵）与分工度（场景间平均 L1 距离）。"""
+    """计算三个指标。
+
+    - uniformity（均匀度）：各场景门控的归一化熵均值，越接近 1 越均匀。
+    - specialization（按场景分工度）：场景间门控向量的平均 L1 距离，
+      越大表示「不同场景用不同专家」越明显。
+    - imbalance（专家间不均衡度）：场景平均门控向量的 max/min 比，
+      越大表示「某些专家总体被偏好」越明显。
+
+    必须三者同看：按场景分工度下降 + 专家间不均衡度上升，代表分工方式
+    从「按场景切换」转为「固定偏好某专家」，而非分工消失。
+    """
     import math
     ent = []
     for g in gate_by_scenario.values():
@@ -117,9 +127,13 @@ def metrics(gate_by_scenario, K):
     for i in range(len(ss)):
         for j in range(i + 1, len(ss)):
             dists.append(sum(abs(a - b) for a, b in zip(ss[i], ss[j])))
+    avg = [sum(x[i] for x in ss) / len(ss) for i in range(K)] if ss else []
+    imbalance = (max(avg) / max(min(avg), 1e-30)) if avg else None
     return {
         "uniformity": sum(ent) / len(ent) if ent else None,
         "specialization": sum(dists) / len(dists) if dists else None,
+        "imbalance": imbalance,
+        "mean_gate": avg,
     }
 
 
@@ -150,7 +164,8 @@ def main():
         report[label] = {"metrics": m,
                          "gate_by_scenario": {str(k): v for k, v in gbs.items()}}
         print(f"[{label}] 均匀度={m['uniformity']:.4f} "
-              f"分工度={m['specialization']:.4f}")
+              f"按场景分工度={m['specialization']:.4f} "
+              f"专家间不均衡度={m['imbalance']:.2f}")
         for s, g in gbs.items():
             print(f"    scenario {s}: " + " ".join(f"{x:.3f}" for x in g))
         del model
@@ -162,15 +177,27 @@ def main():
     print(f"  summary → {out}")
     if "pretrain(未调制)" in report and len(report) > 1:
         base = report["pretrain(未调制)"]["metrics"]
-        print("\n=== 相对未调制的变化（判定解释 A / B）===")
+        print("\n=== 相对未调制的变化 ===")
         for label, r in report.items():
             if label == "pretrain(未调制)":
                 continue
             du = r["metrics"]["uniformity"] - base["uniformity"]
             dsp = r["metrics"]["specialization"] - base["specialization"]
-            hint = ("支持解释B(路由被冻结/趋均匀)" if du > 0.005 and dsp < 0
-                    else "支持解释A(分工未被削弱)")
-            print(f"  {label}: Δ均匀度={du:+.4f} Δ分工度={dsp:+.4f}  → {hint}")
+            dib = r["metrics"]["imbalance"] - base["imbalance"]
+            # 三种情形（不是二分）：
+            #   冻结      —— 趋近均匀且两种分化都减弱
+            #   分工方式改变 —— 按场景分工减弱但专家间偏好增强
+            #   分工保持   —— 均无明显变化
+            if du > 0.005 and dsp < 0 and dib <= 0:
+                verdict = "路由趋于均匀/冻结（等效关闭路由）"
+            elif dsp < -0.01 and dib > 0.2:
+                verdict = "分工方式改变：按场景切换 → 固定偏好某专家"
+            elif abs(du) < 0.005 and abs(dsp) < 0.01:
+                verdict = "分工基本保持（路由未被冻结）"
+            else:
+                verdict = "需人工判读"
+            print(f"  {label}: Δ均匀度={du:+.4f} Δ按场景分工度={dsp:+.4f} "
+                  f"Δ专家间不均衡度={dib:+.2f}\n      → {verdict}")
 
 
 if __name__ == "__main__":

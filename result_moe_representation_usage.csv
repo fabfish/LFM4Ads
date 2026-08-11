@@ -1,0 +1,161 @@
+tag,model,backbone,router_mode,expert_mode,shared_mode,seed,scenario,method,auc
+fully-routed_rsuppress_eencourage_snone_seed42,fully-routed,modulated,suppress,encourage,none,42,1,SUM,0.7341
+fully-routed_rsuppress_eencourage_snone_seed42,fully-routed,modulated,suppress,encourage,none,42,1,gate CR_1,0.7348
+partial-shared_rsuppress_enone_sencourage_seed42,partial-shared,modulated,suppress,none,encourage,42,1,SUM,0.7334
+fully-routed_rsuppress_eencourage_snone_seed42,fully-routed,modulated,suppress,encourage,none,42,1,gate CR_3,0.7355
+partial-shared_rsuppress_enone_sencourage_seed42,partial-shared,modulated,suppress,none,encourage,42,1,gate CR_1,0.7341
+fully-routed_rsuppress_eencourage_snone_seed42,fully-routed,modulated,suppress,encourage,none,42,1,concat CR_1,0.7345
+partial-shared_rsuppress_enone_sencourage_seed42,partial-shared,modulated,suppress,none,encourage,42,1,gate CR_3,0.7349
+partial-shared_rsuppress_enone_sencourage_seed42,partial-shared,modulated,suppress,none,encourage,42,1,concat CR_1,0.7344
+fully-routed_rsuppress_eencourage_snone_seed42,fully-routed,modulated,suppress,encourage,none,42,1,concat CR_3,0.7348
+partial-shared_rsuppress_enone_sencourage_seed42,partial-shared,modulated,suppress,none,encourage,42,1,concat CR_3,0.7344
+fully-routed_rsuppress_eencourage_snone_seed42,fully-routed,modulated,suppress,encourage,none,42,0,SUM,0.7125
+partial-shared_rsuppress_enone_sencourage_seed42,partial-shared,modulated,suppress,none,encourage,42,0,SUM,0.7178
+fully-routed_rsuppress_eencourage_snone_seed42,fully-routed,modulated,suppress,encourage,none,42,0,gate CR_1,0.7145
+fully-routed_rsuppress_eencourage_snone_seed42,fully-routed,modulated,suppress,encourage,none,42,0,gate CR_3,0.7114
+partial-shared_rsuppress_enone_sencourage_seed42,partial-shared,modulated,suppress,none,encourage,42,0,gate CR_1,0.7137
+fully-routed_rsuppress_eencourage_snone_seed42,fully-routed,modulated,suppress,encourage,none,42,0,concat CR_1,0.7123
+partial-shared_rsuppress_enone_sencourage_seed42,partial-shared,modulated,suppress,none,encourage,42,0,gate CR_3,0.7141
+fully-routed_rsuppress_eencourage_snone_seed42,fully-routed,modulated,suppress,encourage,none,42,0,concat CR_3,0.7142
+partial-shared_rsuppress_enone_sencourage_seed42,partial-shared,modulated,suppress,none,encourage,42,0,concat CR_1,0.7121
+fully-routed_rsuppress_eencourage_snone_seed42,fully-routed,modulated,suppress,encourage,none,42,4,SUM,0.7238
+partial-shared_rsuppress_enone_sencourage_seed42,partial-shared,modulated,suppress,none,encourage,42,0,concat CR_3,0.7167
+fully-routed_rsuppress_eencourage_snone_seed42,fully-routed,modulated,suppress,encourage,none,42,4,gate CR_1,0.7165
+partial-shared_rsuppress_enone_sencourage_seed42,partial-shared,modulated,suppress,none,encourage,42,4,SUM,0.7061
+fully-routed_rsuppress_eencourage_snone_seed42,fully-routed,modulated,suppress,encourage,none,42,4,gate CR_3,0.7228
+fully-routed_rsuppress_eencourage_snone_seed42,fully-routed,modulated,suppress,encourage,none,42,4,concat CR_1,0.7111
+partial-shared_rsuppress_enone_sencourage_seed42,partial-shared,modulated,suppress,none,encourage,42,4,gate CR_1,0.7210
+partial-shared_rsuppress_enone_sencourage_seed42,partial-shared,modulated,suppress,none,encourage,42,4,gate CR_3,0.7231
+fully-routed_rsuppress_eencourage_snone_seed42,fully-routed,modulated,suppress,encourage,none,42,4,concat CR_3,0.7148
+fully-routed_rsuppress_eencourage_snone_seed42,fully-routed,modulated,suppress,encourage,none,42,2,SUM,0.7965
+partial-shared_rsuppress_enone_sencourage_seed42,partial-shared,modulated,suppress,none,encourage,42,4,concat CR_1,0.7079
+fully-routed_rsuppress_eencourage_snone_seed42,fully-routed,modulated,suppress,encourage,none,42,2,gate CR_1,0.7888
+partial-shared_rsuppress_enone_sencourage_seed42,partial-shared,modulated,suppress,none,encourage,42,4,concat CR_3,0.7235
+fully-routed_rsuppress_eencourage_snone_seed42,fully-routed,modulated,suppress,encourage,none,42,2,gate CR_3,0.7955
+partial-shared_rsuppress_enone_sencourage_seed42,partial-shared,modulated,suppress,none,encourage,42,2,SUM,0.7989
+fully-routed_rsuppress_eencourage_snone_seed42,fully-routed,modulated,suppress,encourage,none,42,2,concat CR_1,0.8013
+partial-shared_rsuppress_enone_sencourage_seed42,partial-shared,modulated,suppress,none,encourage,42,2,gate CR_1,0.7976
+fully-routed_rsuppress_eencourage_snone_seed42,fully-routed,modulated,suppress,encourage,none,42,2,concat CR_3,0.7944
+partial-shared_rsuppress_enone_sencourage_seed42,partial-shared,modulated,suppress,none,encourage,42,2,gate CR_3,0.8008
+fully-routed_rsuppress_eencourage_snone_seed42,fully-routed,modulated,suppress,encourage,none,42,6,SUM,0.7177
+partial-shared_rsuppress_enone_sencourage_seed42,partial-shared,modulated,suppress,none,encourage,42,2,concat CR_1,0.7961
+fully-routed_rsuppress_eencourage_snone_seed42,fully-routed,modulated,suppress,encourage,none,42,6,gate CR_1,0.7188
+partial-shared_rsuppress_enone_sencourage_seed42,partial-shared,modulated,suppress,none,encourage,42,2,concat CR_3,0.7976
+fully-routed_rsuppress_eencourage_snone_seed42,fully-routed,modulated,suppress,encourage,none,42,6,gate CR_3,0.7269
+partial-shared_rsuppress_enone_sencourage_seed42,partial-shared,modulated,suppress,none,encourage,42,6,SUM,0.7152
+fully-routed_rsuppress_eencourage_snone_seed42,fully-routed,modulated,suppress,encourage,none,42,6,concat CR_1,0.7239
+partial-shared_rsuppress_enone_sencourage_seed42,partial-shared,modulated,suppress,none,encourage,42,6,gate CR_1,0.7311
+partial-shared_rsuppress_enone_sencourage_seed42,partial-shared,modulated,suppress,none,encourage,42,6,gate CR_3,0.7271
+fully-routed_rsuppress_eencourage_snone_seed42,fully-routed,modulated,suppress,encourage,none,42,6,concat CR_3,0.7213
+partial-shared_rsuppress_enone_sencourage_seed42,partial-shared,modulated,suppress,none,encourage,42,6,concat CR_1,0.7267
+fully-routed_rsuppress_eencourage_snone_seed42,fully-routed,modulated,suppress,encourage,none,42,3,SUM,0.7173
+partial-shared_rsuppress_enone_sencourage_seed42,partial-shared,modulated,suppress,none,encourage,42,6,concat CR_3,0.7244
+fully-routed_rsuppress_eencourage_snone_seed42,fully-routed,modulated,suppress,encourage,none,42,3,gate CR_1,0.7361
+partial-shared_rsuppress_enone_sencourage_seed42,partial-shared,modulated,suppress,none,encourage,42,3,SUM,0.6799
+fully-routed_rsuppress_eencourage_snone_seed42,fully-routed,modulated,suppress,encourage,none,42,3,gate CR_3,0.7307
+partial-shared_rsuppress_enone_sencourage_seed42,partial-shared,modulated,suppress,none,encourage,42,3,gate CR_1,0.7547
+fully-routed_rsuppress_eencourage_snone_seed42,fully-routed,modulated,suppress,encourage,none,42,3,concat CR_1,0.7307
+fully-routed_rsuppress_eencourage_snone_seed42,fully-routed,modulated,suppress,encourage,none,42,3,concat CR_3,0.7088
+partial-shared_rsuppress_enone_sencourage_seed42,partial-shared,modulated,suppress,none,encourage,42,3,gate CR_3,0.7501
+partial-shared_rsuppress_enone_sencourage_seed42,partial-shared,modulated,suppress,none,encourage,42,3,concat CR_1,0.7294
+fully-routed_rsuppress_eencourage_snone_seed42,fully-routed,modulated,suppress,encourage,none,42,8,SUM,0.7687
+partial-shared_rsuppress_enone_sencourage_seed42,partial-shared,modulated,suppress,none,encourage,42,3,concat CR_3,0.7178
+fully-routed_rsuppress_eencourage_snone_seed42,fully-routed,modulated,suppress,encourage,none,42,8,gate CR_1,0.7632
+partial-shared_rsuppress_enone_sencourage_seed42,partial-shared,modulated,suppress,none,encourage,42,8,SUM,0.7121
+fully-routed_rsuppress_eencourage_snone_seed42,fully-routed,modulated,suppress,encourage,none,42,8,gate CR_3,0.7804
+fully-routed_rsuppress_eencourage_snone_seed42,fully-routed,modulated,suppress,encourage,none,42,8,concat CR_1,0.7565
+partial-shared_rsuppress_enone_sencourage_seed42,partial-shared,modulated,suppress,none,encourage,42,8,gate CR_1,0.7776
+fully-routed_rsuppress_eencourage_snone_seed42,fully-routed,modulated,suppress,encourage,none,42,8,concat CR_3,0.7680
+fully-routed_rsuppress_eencourage_snone_seed42,fully-routed,modulated,suppress,encourage,none,42,5,SUM,0.6764
+partial-shared_rsuppress_enone_sencourage_seed42,partial-shared,modulated,suppress,none,encourage,42,8,gate CR_3,0.7740
+fully-routed_rsuppress_eencourage_snone_seed42,fully-routed,modulated,suppress,encourage,none,42,5,gate CR_1,0.6617
+fully-routed_rsuppress_eencourage_snone_seed42,fully-routed,modulated,suppress,encourage,none,42,5,gate CR_3,0.6545
+fully-routed_rsuppress_eencourage_snone_seed42,fully-routed,modulated,suppress,encourage,none,42,5,concat CR_1,0.6772
+partial-shared_rsuppress_enone_sencourage_seed42,partial-shared,modulated,suppress,none,encourage,42,8,concat CR_1,0.7587
+fully-routed_rsuppress_eencourage_snone_seed42,fully-routed,modulated,suppress,encourage,none,42,5,concat CR_3,0.6793
+partial-shared_rsuppress_enone_sencourage_seed42,partial-shared,modulated,suppress,none,encourage,42,8,concat CR_3,0.7543
+partial-shared_rsuppress_enone_sencourage_seed42,partial-shared,modulated,suppress,none,encourage,42,5,SUM,0.6716
+partial-shared_rsuppress_enone_sencourage_seed42,partial-shared,modulated,suppress,none,encourage,42,5,gate CR_1,0.6852
+partial-shared_rsuppress_enone_sencourage_seed42,partial-shared,modulated,suppress,none,encourage,42,5,gate CR_3,0.6918
+partial-shared_rsuppress_enone_sencourage_seed42,partial-shared,modulated,suppress,none,encourage,42,5,concat CR_1,0.6435
+partial-shared_rsuppress_enone_sencourage_seed42,partial-shared,modulated,suppress,none,encourage,42,5,concat CR_3,0.6546
+fully-routed_pretrain_seed42,fully-routed,pretrain,none,none,none,42,1,SUM,0.7344
+fully-routed_pretrain_seed42,fully-routed,pretrain,none,none,none,42,1,gate CR_1,0.7346
+partial-shared_pretrain_seed42,partial-shared,pretrain,none,none,none,42,1,SUM,0.7335
+fully-routed_pretrain_seed42,fully-routed,pretrain,none,none,none,42,1,gate CR_3,0.7351
+partial-shared_pretrain_seed42,partial-shared,pretrain,none,none,none,42,1,gate CR_1,0.7340
+fully-routed_pretrain_seed42,fully-routed,pretrain,none,none,none,42,1,concat CR_1,0.7349
+partial-shared_pretrain_seed42,partial-shared,pretrain,none,none,none,42,1,gate CR_3,0.7347
+fully-routed_pretrain_seed42,fully-routed,pretrain,none,none,none,42,1,concat CR_3,0.7348
+partial-shared_pretrain_seed42,partial-shared,pretrain,none,none,none,42,1,concat CR_1,0.7340
+fully-routed_pretrain_seed42,fully-routed,pretrain,none,none,none,42,0,SUM,0.7115
+fully-routed_pretrain_seed42,fully-routed,pretrain,none,none,none,42,0,gate CR_1,0.7138
+partial-shared_pretrain_seed42,partial-shared,pretrain,none,none,none,42,1,concat CR_3,0.7356
+fully-routed_pretrain_seed42,fully-routed,pretrain,none,none,none,42,0,gate CR_3,0.7138
+fully-routed_pretrain_seed42,fully-routed,pretrain,none,none,none,42,0,concat CR_1,0.7125
+partial-shared_pretrain_seed42,partial-shared,pretrain,none,none,none,42,0,SUM,0.7178
+fully-routed_pretrain_seed42,fully-routed,pretrain,none,none,none,42,0,concat CR_3,0.7135
+partial-shared_pretrain_seed42,partial-shared,pretrain,none,none,none,42,0,gate CR_1,0.7122
+fully-routed_pretrain_seed42,fully-routed,pretrain,none,none,none,42,4,SUM,0.7234
+partial-shared_pretrain_seed42,partial-shared,pretrain,none,none,none,42,0,gate CR_3,0.7125
+fully-routed_pretrain_seed42,fully-routed,pretrain,none,none,none,42,4,gate CR_1,0.7163
+fully-routed_pretrain_seed42,fully-routed,pretrain,none,none,none,42,4,gate CR_3,0.7240
+partial-shared_pretrain_seed42,partial-shared,pretrain,none,none,none,42,0,concat CR_1,0.7136
+fully-routed_pretrain_seed42,fully-routed,pretrain,none,none,none,42,4,concat CR_1,0.7074
+fully-routed_pretrain_seed42,fully-routed,pretrain,none,none,none,42,4,concat CR_3,0.7142
+partial-shared_pretrain_seed42,partial-shared,pretrain,none,none,none,42,0,concat CR_3,0.7170
+fully-routed_pretrain_seed42,fully-routed,pretrain,none,none,none,42,2,SUM,0.7969
+partial-shared_pretrain_seed42,partial-shared,pretrain,none,none,none,42,4,SUM,0.7137
+fully-routed_pretrain_seed42,fully-routed,pretrain,none,none,none,42,2,gate CR_1,0.7905
+partial-shared_pretrain_seed42,partial-shared,pretrain,none,none,none,42,4,gate CR_1,0.7167
+fully-routed_pretrain_seed42,fully-routed,pretrain,none,none,none,42,2,gate CR_3,0.7940
+partial-shared_pretrain_seed42,partial-shared,pretrain,none,none,none,42,4,gate CR_3,0.7123
+fully-routed_pretrain_seed42,fully-routed,pretrain,none,none,none,42,2,concat CR_1,0.8008
+fully-routed_pretrain_seed42,fully-routed,pretrain,none,none,none,42,2,concat CR_3,0.7941
+partial-shared_pretrain_seed42,partial-shared,pretrain,none,none,none,42,4,concat CR_1,0.7156
+fully-routed_pretrain_seed42,fully-routed,pretrain,none,none,none,42,6,SUM,0.7166
+partial-shared_pretrain_seed42,partial-shared,pretrain,none,none,none,42,4,concat CR_3,0.7113
+partial-shared_pretrain_seed42,partial-shared,pretrain,none,none,none,42,2,SUM,0.7923
+fully-routed_pretrain_seed42,fully-routed,pretrain,none,none,none,42,6,gate CR_1,0.7156
+partial-shared_pretrain_seed42,partial-shared,pretrain,none,none,none,42,2,gate CR_1,0.7978
+fully-routed_pretrain_seed42,fully-routed,pretrain,none,none,none,42,6,gate CR_3,0.7228
+partial-shared_pretrain_seed42,partial-shared,pretrain,none,none,none,42,2,gate CR_3,0.8007
+fully-routed_pretrain_seed42,fully-routed,pretrain,none,none,none,42,6,concat CR_1,0.7147
+partial-shared_pretrain_seed42,partial-shared,pretrain,none,none,none,42,2,concat CR_1,0.7970
+fully-routed_pretrain_seed42,fully-routed,pretrain,none,none,none,42,6,concat CR_3,0.7183
+partial-shared_pretrain_seed42,partial-shared,pretrain,none,none,none,42,2,concat CR_3,0.7971
+fully-routed_pretrain_seed42,fully-routed,pretrain,none,none,none,42,3,SUM,0.6437
+partial-shared_pretrain_seed42,partial-shared,pretrain,none,none,none,42,6,SUM,0.7130
+partial-shared_pretrain_seed42,partial-shared,pretrain,none,none,none,42,6,gate CR_1,0.7256
+fully-routed_pretrain_seed42,fully-routed,pretrain,none,none,none,42,3,gate CR_1,0.7224
+partial-shared_pretrain_seed42,partial-shared,pretrain,none,none,none,42,6,gate CR_3,0.7260
+partial-shared_pretrain_seed42,partial-shared,pretrain,none,none,none,42,6,concat CR_1,0.7237
+fully-routed_pretrain_seed42,fully-routed,pretrain,none,none,none,42,3,gate CR_3,0.7111
+partial-shared_pretrain_seed42,partial-shared,pretrain,none,none,none,42,6,concat CR_3,0.7242
+partial-shared_pretrain_seed42,partial-shared,pretrain,none,none,none,42,3,SUM,0.6803
+fully-routed_pretrain_seed42,fully-routed,pretrain,none,none,none,42,3,concat CR_1,0.7406
+fully-routed_pretrain_seed42,fully-routed,pretrain,none,none,none,42,3,concat CR_3,0.7122
+partial-shared_pretrain_seed42,partial-shared,pretrain,none,none,none,42,3,gate CR_1,0.7459
+fully-routed_pretrain_seed42,fully-routed,pretrain,none,none,none,42,8,SUM,0.7740
+partial-shared_pretrain_seed42,partial-shared,pretrain,none,none,none,42,3,gate CR_3,0.7394
+fully-routed_pretrain_seed42,fully-routed,pretrain,none,none,none,42,8,gate CR_1,0.5359
+partial-shared_pretrain_seed42,partial-shared,pretrain,none,none,none,42,3,concat CR_1,0.7148
+partial-shared_pretrain_seed42,partial-shared,pretrain,none,none,none,42,3,concat CR_3,0.7429
+fully-routed_pretrain_seed42,fully-routed,pretrain,none,none,none,42,8,gate CR_3,0.8028
+partial-shared_pretrain_seed42,partial-shared,pretrain,none,none,none,42,8,SUM,0.7740
+fully-routed_pretrain_seed42,fully-routed,pretrain,none,none,none,42,8,concat CR_1,0.7520
+fully-routed_pretrain_seed42,fully-routed,pretrain,none,none,none,42,8,concat CR_3,0.7246
+partial-shared_pretrain_seed42,partial-shared,pretrain,none,none,none,42,8,gate CR_1,0.7838
+fully-routed_pretrain_seed42,fully-routed,pretrain,none,none,none,42,5,SUM,0.6551
+fully-routed_pretrain_seed42,fully-routed,pretrain,none,none,none,42,5,gate CR_1,0.6841
+fully-routed_pretrain_seed42,fully-routed,pretrain,none,none,none,42,5,gate CR_3,0.6852
+fully-routed_pretrain_seed42,fully-routed,pretrain,none,none,none,42,5,concat CR_1,0.6689
+partial-shared_pretrain_seed42,partial-shared,pretrain,none,none,none,42,8,gate CR_3,0.7748
+fully-routed_pretrain_seed42,fully-routed,pretrain,none,none,none,42,5,concat CR_3,0.6693
+partial-shared_pretrain_seed42,partial-shared,pretrain,none,none,none,42,8,concat CR_1,0.7963
+partial-shared_pretrain_seed42,partial-shared,pretrain,none,none,none,42,8,concat CR_3,0.7609
+partial-shared_pretrain_seed42,partial-shared,pretrain,none,none,none,42,5,SUM,0.6831
+partial-shared_pretrain_seed42,partial-shared,pretrain,none,none,none,42,5,gate CR_1,0.6592
+partial-shared_pretrain_seed42,partial-shared,pretrain,none,none,none,42,5,gate CR_3,0.6720
+partial-shared_pretrain_seed42,partial-shared,pretrain,none,none,none,42,5,concat CR_1,0.6399
+partial-shared_pretrain_seed42,partial-shared,pretrain,none,none,none,42,5,concat CR_3,0.6733
