@@ -253,47 +253,56 @@ class GradientTracker:
 # ============================================================
 
 class AdaTaskOptimizer:
-    """子任务自适应学习率调制器（泛化版）。
+    """子任务自适应学习率调制器（交叉多维版）。
 
-    在按场景切分的子批量上，用梯度平方累计（AU）驱动逐目标的梯度缩放，
-    用于观察「路由网络 / 专家」被「促进 / 抑制」时对上游任务的影响。
+    在按场景切分的子批量上，用梯度平方累计（AU）驱动「逐目标」的梯度缩放，
+    用于观察「路由网络 / 路由专家 / 共享专家」被「促进 / 抑制」时对上游任务的影响。
 
-    旋钮：
-      - target='expert'：调制专家梯度。部分路由加共享专家模型（DCNv2MoE_V2）
-                          仅调制路由专家，共享专家保持不动，以保留「共享=均衡」语义。
-      - target='router'：调制路由网络（w_gate / w_noise）梯度。
-      - direction=0：不调制（等同正常训练基线，仅做 AU 跟踪）。
-      - direction=+1：促进（factor = (au / mean_au)^alpha）。
-      - direction=-1：抑制（factor = (mean_au / au)^alpha）。
+    三个调制目标是**相乘的独立维度**，每个可独立设为：
+      - 'none'      不调制（仅做 AU 跟踪，等同正常训练该目标）
+      - 'encourage' 促进（factor = (au / mean_au)^alpha）
+      - 'suppress'  抑制（factor = (mean_au / au)^alpha）
 
-    AU 跟踪通过反向钩子完成，梯度调制每步 O(K)（专家）或 O(1)（路由）。
+    参考均值（mean_au）取法：
+      - 路由网络：该层路由器跨全部场景的 AU 均值。
+      - 路由专家：同层同场景下 K 个路由专家 AU 的均值。
+      - 共享专家：同层同场景下 K 个路由专家 AU 的均值（即「共享专家相对专家平均」的对比）。
 
-    向后兼容：旧接口 mode=encourage/suppress/none 仍可用
-    （encourage→target=expert,direction=+1；suppress→expert,-1；none→expert,0）。
+    AU 跟踪通过反向钩子完成；三类目标的钩子同时注册，调制在每步同时施加。
+
+    向后兼容：旧接口 mode=encourage/suppress/none（仅作用于专家）与
+    target=.../direction=... 仍可用，会被映射到对应的 *_mode。
     """
 
     TARGET_SCENARIOS = [0, 1, 2, 3, 4, 5, 6, 8]
 
-    def __init__(self, model, lr=1e-3, target="expert", direction=0,
-                 alpha=0.5, beta=0.99, weight_decay=0.01, mode=None):
-        # 向后兼容：旧脚本用 mode=encourage/suppress/none
+    def __init__(self, model, lr=1e-3,
+                 router_mode="none", expert_mode="none", shared_mode="none",
+                 alpha=0.5, beta=0.99, weight_decay=0.01,
+                 # 向后兼容旧接口
+                 target="expert", direction=0, mode=None):
+        # ---- 解析调制模式（优先新接口，旧接口兼容）----
         if mode is not None:
-            if mode == "encourage":
-                target, direction = "expert", 1
-            elif mode == "suppress":
-                target, direction = "expert", -1
-            elif mode == "none":
-                target, direction = "expert", 0
+            # 旧接口：仅调制专家
+            expert_mode = mode
+            router_mode = "none"
+            shared_mode = "none"
+        else:
+            if target == "router" and direction != 0:
+                router_mode = "encourage" if direction > 0 else "suppress"
+            elif target == "expert" and direction != 0:
+                expert_mode = "encourage" if direction > 0 else "suppress"
         self.model = model
-        self.target = target
-        self.direction = direction
+        self.router_mode = router_mode
+        self.expert_mode = expert_mode
+        self.shared_mode = shared_mode
         self.alpha = alpha
         self.beta = beta
         self.optimizer = torch.optim.AdamW(
             [p for p in model.parameters() if p.requires_grad],
             lr=lr, weight_decay=weight_decay)
-        # AU 跟踪：专家目标键 (layer_idx, expert_idx, scenario)；
-        #          路由目标键 (layer_idx, 'r', scenario)
+        # AU 跟踪：路由专家 (层, 专家序号, 场景)；路由网络 (层, 'r', 场景)；
+        #          共享专家 (层, 's', 场景)
         self.AU: dict = {}
         self._hooks = []
         self._current_scenario: int | None = None
@@ -307,85 +316,8 @@ class AdaTaskOptimizer:
                 return
             k = (key[0], key[1], int(self._current_scenario))
             gsq = grad.detach().norm().item() ** 2
-            prev = self.AU.get(k, 0.0)
-            self.AU[k] = self.beta * prev + (1 - self.beta) * gsq
+            self.AU[k] = self.beta * self.AU.get(k, 0.0) + (1 - self.beta) * gsq
         return hook
-
-    def register_hooks(self):
-        """按调制目标注册反向钩子。"""
-        for li, layer in enumerate(self.model.cross_layers):
-            if self.target == "expert":
-                # 两类模型：layer.experts 均为「路由专家」（V2 的共享专家独立存储，不在此列）
-                for ei, expert in enumerate(layer.experts):
-                    for param in expert.parameters():
-                        self._hooks.append(
-                            param.register_hook(self._make_hook((li, ei))))
-            elif self.target == "router":
-                # V1 路由器为 layer.router（ScenarioRouter/DataRouter）；
-                # V2 路由器为 layer.w_gate / layer.w_noise。两者兼容。
-                for param in self._router_params(layer):
-                    self._hooks.append(
-                        param.register_hook(self._make_hook((li, "r"))))
-
-    def remove_hooks(self):
-        for h in self._hooks:
-            h.remove()
-        self._hooks.clear()
-
-    def _compute_factors(self) -> dict:
-        """计算当前场景下的调制因子。direction=0 返回空字典（不缩放）。"""
-        s = self._current_scenario
-        if s is None or self.direction == 0:
-            return {}
-
-        factors = {}
-        if self.target == "expert":
-            for li, layer in enumerate(self.model.cross_layers):
-                aus = [self.AU.get((li, ei, s), 0.0)
-                       for ei in range(self.model.K)]
-                mean_au = sum(aus) / len(aus) + 1e-30
-                for ei in range(self.model.K):
-                    au = aus[ei] + 1e-30
-                    if self.direction > 0:          # 促进
-                        f = (au / mean_au) ** self.alpha
-                    else:                            # 抑制
-                        f = (mean_au / au) ** self.alpha
-                    factors[(li, ei)] = float(f)
-        elif self.target == "router":
-            for li, layer in enumerate(self.model.cross_layers):
-                aus = [self.AU.get((li, "r", sc), 0.0)
-                       for sc in self.TARGET_SCENARIOS]
-                mean_au = sum(aus) / len(aus) + 1e-30
-                au = self.AU.get((li, "r", s), 0.0) + 1e-30
-                if self.direction > 0:
-                    f = (au / mean_au) ** self.alpha
-                else:
-                    f = (mean_au / au) ** self.alpha
-                factors[(li, "r")] = float(f)
-        return factors
-
-    def modulate_and_zero_grad(self):
-        """应用梯度调制 + optimizer.step() + zero_grad。
-
-        direction=0 时 factors 为空，等价于正常训练基线（仅做 AU 跟踪）。
-        """
-        factors = self._compute_factors()
-        if factors:
-            if self.target == "expert":
-                for li, layer in enumerate(self.model.cross_layers):
-                    for ei, expert in enumerate(layer.experts):
-                        f = factors.get((li, ei), 1.0)
-                        for param in expert.parameters():
-                            if param.grad is not None:
-                                param.grad.mul_(f)
-            elif self.target == "router":
-                for li, layer in enumerate(self.model.cross_layers):
-                    f = factors.get((li, "r"), 1.0)
-                    for param in self._router_params(layer):
-                        if param.grad is not None:
-                            param.grad.mul_(f)
-        self.optimizer.step()
-        self.optimizer.zero_grad()
 
     @staticmethod
     def _router_params(layer):
@@ -396,6 +328,110 @@ class AdaTaskOptimizer:
             return list(layer.router.parameters())
         return []
 
+    @staticmethod
+    def _shared_params(layer):
+        """返回该交叉层的共享专家参数（仅 V2 有；V1 返回空）。"""
+        if hasattr(layer, "shared"):
+            return list(layer.shared.parameters())
+        return []
+
+    def register_hooks(self):
+        """同时注册 路由专家 / 路由网络 / 共享专家 三类钩子。"""
+        for li, layer in enumerate(self.model.cross_layers):
+            for ei, expert in enumerate(layer.experts):
+                for param in expert.parameters():
+                    self._hooks.append(
+                        param.register_hook(self._make_hook((li, ei))))
+            for param in self._router_params(layer):
+                self._hooks.append(
+                    param.register_hook(self._make_hook((li, "r"))))
+            for param in self._shared_params(layer):
+                self._hooks.append(
+                    param.register_hook(self._make_hook((li, "s"))))
+
+    def remove_hooks(self):
+        for h in self._hooks:
+            h.remove()
+        self._hooks.clear()
+
+    def _expert_factors(self, s):
+        factors = {}
+        for li, layer in enumerate(self.model.cross_layers):
+            aus = [self.AU.get((li, ei, s), 0.0) for ei in range(self.model.K)]
+            mean_au = sum(aus) / len(aus) + 1e-30
+            for ei in range(self.model.K):
+                au = aus[ei] + 1e-30
+                if self.expert_mode == "encourage":
+                    f = (au / mean_au) ** self.alpha
+                elif self.expert_mode == "suppress":
+                    f = (mean_au / au) ** self.alpha
+                else:
+                    f = 1.0
+                factors[(li, ei)] = float(f)
+        return factors
+
+    def _router_factors(self, s):
+        factors = {}
+        for li, layer in enumerate(self.model.cross_layers):
+            aus = [self.AU.get((li, "r", sc), 0.0) for sc in self.TARGET_SCENARIOS]
+            mean_au = sum(aus) / len(aus) + 1e-30
+            au = self.AU.get((li, "r", s), 0.0) + 1e-30
+            if self.router_mode == "encourage":
+                f = (au / mean_au) ** self.alpha
+            elif self.router_mode == "suppress":
+                f = (mean_au / au) ** self.alpha
+            else:
+                f = 1.0
+            factors[(li, "r")] = float(f)
+        return factors
+
+    def _shared_factors(self, s):
+        factors = {}
+        for li, layer in enumerate(self.model.cross_layers):
+            if not self._shared_params(layer):
+                continue
+            routed = [self.AU.get((li, ei, s), 0.0) for ei in range(self.model.K)]
+            mean_routed = sum(routed) / len(routed) + 1e-30
+            au = self.AU.get((li, "s", s), 0.0) + 1e-30
+            if self.shared_mode == "encourage":
+                f = (au / mean_routed) ** self.alpha
+            elif self.shared_mode == "suppress":
+                f = (mean_routed / au) ** self.alpha
+            else:
+                f = 1.0
+            factors[(li, "s")] = float(f)
+        return factors
+
+    def modulate_and_zero_grad(self):
+        """同时施加三个目标的梯度调制 + optimizer.step() + zero_grad。
+
+        某目标 mode='none' 时该目标因子恒为 1，等价不调制。
+        """
+        s = self._current_scenario
+        if s is None:
+            self.optimizer.step()
+            self.optimizer.zero_grad()
+            return
+        ef = self._expert_factors(s)
+        rf = self._router_factors(s)
+        sf = self._shared_factors(s)
+        for li, layer in enumerate(self.model.cross_layers):
+            for ei, expert in enumerate(layer.experts):
+                f = ef.get((li, ei), 1.0)
+                for param in expert.parameters():
+                    if param.grad is not None:
+                        param.grad.mul_(f)
+            f = rf.get((li, "r"), 1.0)
+            for param in self._router_params(layer):
+                if param.grad is not None:
+                    param.grad.mul_(f)
+            f = sf.get((li, "s"), 1.0)
+            for param in self._shared_params(layer):
+                if param.grad is not None:
+                    param.grad.mul_(f)
+        self.optimizer.step()
+        self.optimizer.zero_grad()
+
     def step(self):
         self.optimizer.step()
 
@@ -403,7 +439,7 @@ class AdaTaskOptimizer:
         self.optimizer.zero_grad()
 
     def dominance_matrix(self, layer_idx: int = 0) -> dict:
-        """专家主导性矩阵（仅专家目标有意义；路由目标无专家键则全 0）。"""
+        """专家主导性矩阵（路由专家目标）。"""
         ratios = {}
         for ei in range(self.model.K):
             au_per_scenario = {s: self.AU.get((layer_idx, ei, s), 0.0)
@@ -414,7 +450,8 @@ class AdaTaskOptimizer:
         return ratios
 
     def summary(self) -> str:
-        lines = [f"[target={self.target} direction={self.direction}]"]
+        lines = [f"[router={self.router_mode} expert={self.expert_mode} "
+                 f"shared={self.shared_mode}]"]
         for li in range(3):
             ratios = self.dominance_matrix(li)
             lines.append(f"--- Cross Layer {li} Expert Dominance ---")

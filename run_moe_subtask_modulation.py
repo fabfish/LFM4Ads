@@ -1,22 +1,24 @@
-"""子任务 路由网络/专家 促进-抑制 调制实验（核心 10 配置广扫）。
+"""子任务 路由网络/路由专家/共享专家 多维交叉促进-抑制 调制实验。
 
 加载对应的「从零预训练 backbone」，在按场景切分的子批量上做梯度平方累计
-（AU）驱动的逐目标（路由网络 / 专家）梯度调制，观察促进 / 抑制对上游
-点击率预估任务的影响。
+（AU）驱动的逐目标（路由网络 / 路由专家 / 共享专家）梯度调制，观察
+促进 / 抑制对上游点击率预估任务的影响。
 
-统一旋钮：
-  --target  router | expert       调制目标（路由网络 / 专家）
-  --direction 0 | 1 | -1          不调制(=基线) / 促进 / 抑制
+三个调制目标是**相乘的独立维度**，各自可取 none / encourage / suppress：
+  - 全路由混合专家（DCNv2MoE，无共享专家）：
+        router(3) × expert(3) = 9 配置
+  - 部分路由加共享专家（DCNv2MoE_V2，含共享专家）：
+        router(3) × expert(3) × shared(3) = 27 配置
 
-核心 10 种配置 = 2 模型 ×（2 调制目标 × {促进, 抑制}）+ 2 基线（direction=0）。
-
-产物：
-  result_moe_subtask_modulation.csv   每行一个配置 × 8 场景 AUC + mean
-  cache/subtask_modulation_{model}_{target}_{direction}_seed{seed}.json
+产物的命名以三目标模式标识，便于做交叉分析。
 
 用法：
-  python run_moe_subtask_modulation.py --model fully-routed --target expert --direction 1 --seed 42 --device cuda:0
-  python run_moe_subtask_modulation.py --model partial-shared --target router --direction -1 --seed 42 --device cuda:1
+  python run_moe_subtask_modulation.py --model fully-routed \
+      --router-mode suppress --expert-mode none --shared-mode none \
+      --seed 42 --device cuda:0
+  python run_moe_subtask_modulation.py --model partial-shared \
+      --router-mode suppress --expert-mode encourage --shared-mode suppress \
+      --seed 42 --device cuda:1
 """
 
 import argparse
@@ -38,13 +40,17 @@ RESULT_DIR = "."
 
 
 def _parse_args(argv):
-    ap = argparse.ArgumentParser(description="子任务 路由网络/专家 促进-抑制 调制")
+    ap = argparse.ArgumentParser(
+        description="子任务 路由网络/路由专家/共享专家 交叉促进-抑制 调制")
     ap.add_argument("--model", required=True,
                     choices=["fully-routed", "partial-shared"],
                     help="fully-routed=DCNv2MoE; partial-shared=DCNv2MoE_V2")
-    ap.add_argument("--target", required=True, choices=["router", "expert"])
-    ap.add_argument("--direction", required=True, type=int, choices=[0, 1, -1],
-                    help="0=不调制(基线) / 1=促进 / -1=抑制")
+    ap.add_argument("--router-mode", default="none",
+                    choices=["none", "encourage", "suppress"])
+    ap.add_argument("--expert-mode", default="none",
+                    choices=["none", "encourage", "suppress"])
+    ap.add_argument("--shared-mode", default="none",
+                    choices=["none", "encourage", "suppress"])
     ap.add_argument("--device", default="cuda:0")
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--K", type=int, default=4)
@@ -105,9 +111,15 @@ def main():
     torch.manual_seed(args.seed)
     cls, ckpt, tag = model_spec(args)
 
-    print(f"[config] model={args.model} target={args.target} "
-          f"direction={args.direction} device={args.device} seed={args.seed} "
-          f"K={args.K} routing={args.routing} lr={args.lr} alpha={args.alpha} "
+    # 全路由模型无共享专家：强制 shared-mode=none 并提示
+    if args.model == "fully-routed" and args.shared_mode != "none":
+        print("[warn] fully-routed 无共享专家，忽略 --shared-mode，置为 none")
+        args.shared_mode = "none"
+
+    print(f"[config] model={args.model} router={args.router_mode} "
+          f"expert={args.expert_mode} shared={args.shared_mode} "
+          f"device={args.device} seed={args.seed} K={args.K} "
+          f"routing={args.routing} lr={args.lr} alpha={args.alpha} "
           f"epochs={args.epochs} batch={args.batch_size}")
 
     model = cls(dim=360, K=args.K, routing=args.routing).to(args.device)
@@ -117,9 +129,11 @@ def main():
     missing, unexpected = model.load_state_dict(sd, strict=False)
     print(f"[load] {ckpt}  missing={len(missing)} unexpected={len(unexpected)}")
 
-    opt = AdaTaskOptimizer(model, lr=args.lr, target=args.target,
-                           direction=args.direction, alpha=args.alpha,
-                           beta=args.beta, weight_decay=0.01)
+    opt = AdaTaskOptimizer(
+        model, lr=args.lr,
+        router_mode=args.router_mode, expert_mode=args.expert_mode,
+        shared_mode=args.shared_mode, alpha=args.alpha, beta=args.beta,
+        weight_decay=0.01)
     opt.register_hooks()
 
     train_set, valid_set = Split("all")[:2]
@@ -170,21 +184,26 @@ def main():
     with open(csv_path, "a", newline="") as f:
         w = csv.writer(f)
         if os.path.getsize(csv_path) == 0:
-            w.writerow(["model", "target", "direction", "seed",
-                        "mean_per_scenario", "test_auc_all"] +
+            w.writerow(["model", "router_mode", "expert_mode", "shared_mode",
+                        "seed", "mean_per_scenario", "test_auc_all"] +
                        [f"s{s}_auc" for s in SCENARIOS])
-        w.writerow([args.model, args.target, args.direction, args.seed,
-                    f"{mean_sc:.4f}", f"{pooled:.4f}"] +
+        w.writerow([args.model, args.router_mode, args.expert_mode,
+                    args.shared_mode, args.seed, f"{mean_sc:.4f}",
+                    f"{pooled:.4f}"] +
                    [f"{per[s]:.4f}" for s in SCENARIOS])
 
     # 写 JSON
-    json_path = (f"{CACHE_DIR}/subtask_modulation_{args.model}_{args.target}_"
-                 f"{args.direction}_seed{args.seed}.json")
+    json_path = (f"{CACHE_DIR}/subtask_modulation_{args.model}_"
+                 f"r{args.router_mode}_e{args.expert_mode}_"
+                 f"s{args.shared_mode}_seed{args.seed}.json")
     summary = {
         "config": {
-            "model": args.model, "target": args.target,
-            "direction": args.direction, "seed": args.seed, "K": args.K,
-            "routing": args.routing, "lr": args.lr, "alpha": args.alpha,
+            "model": args.model,
+            "router_mode": args.router_mode,
+            "expert_mode": args.expert_mode,
+            "shared_mode": args.shared_mode,
+            "seed": args.seed, "K": args.K, "routing": args.routing,
+            "lr": args.lr, "alpha": args.alpha,
             "epochs": args.epochs, "batch_size": args.batch_size,
         },
         "test_auc_all": pooled,
