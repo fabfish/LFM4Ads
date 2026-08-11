@@ -1,0 +1,2 @@
+model,seed,routing,K,test_auc_all,mean_per_scenario,s0_auc,s1_auc,s2_auc,s3_auc,s4_auc,s5_auc,s6_auc,s8_auc
+fully-routed,42,data,4,0.7802,0.7353,0.7139,0.7332,0.7960,0.7166,0.7220,0.6837,0.7278,0.7897
