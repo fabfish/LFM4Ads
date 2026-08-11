@@ -253,11 +253,17 @@ def main():
         return run_one(sys.argv[2])
     if sys.argv[1] == "run-all":
         stage = "gate"
-        for a in sys.argv[2:]:
-            if a == "--stage":
-                continue
-            if a in ("gate", "moe"):
-                stage = a
+        rest = sys.argv[2:]
+        # 支持两种写法：--stage stageb 与 --stage=stageb
+        if "--stage" in rest:
+            i = rest.index("--stage")
+            if i + 1 < len(rest):
+                stage = rest[i + 1]
+        else:
+            for a in rest:
+                if a.startswith("--stage="):
+                    stage = a.split("=", 1)[1]
+                    break
         return run_all(stage)
     print(f"[ERROR] unknown subcommand {sys.argv[1]!r}")
     return 2
