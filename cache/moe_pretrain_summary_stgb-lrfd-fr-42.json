@@ -1,0 +1,65 @@
+{
+  "config": {
+    "model": "lowrank-full-dim",
+    "device": "cuda:0",
+    "seed": 42,
+    "routing": "data",
+    "K": 4,
+    "lr": 0.001,
+    "beta2": 0.999,
+    "shuffle": true,
+    "max_epochs": 300,
+    "freeze_router": false,
+    "router": "frozen",
+    "router_semantics": "frozen: router weights zeroed (uniform, zero-noise)",
+    "rank": 45,
+    "vanilla_per_scenario": false,
+    "scenario_loss_weighting": "sample",
+    "run_code": "stgb-lrfd-fr-42"
+  },
+  "test_auc_all": 0.7801483538856795,
+  "mean_per_scenario_auc": 0.7365477727532199,
+  "per_scenario_auc": {
+    "0": 0.7108576238000011,
+    "1": 0.7334228908653537,
+    "2": 0.8042171441150363,
+    "3": 0.7548333190504756,
+    "4": 0.7195875191004224,
+    "5": 0.6987535242617599,
+    "6": 0.7372421511699191,
+    "8": 0.7334680096627912
+  },
+  "gate_structure": {
+    "layer0": {
+      "mean_gate": [
+        0.25,
+        0.25,
+        0.25,
+        0.25
+      ],
+      "entropy": 1.3863,
+      "max_entropy": 1.3863
+    },
+    "layer1": {
+      "mean_gate": [
+        0.25,
+        0.25,
+        0.25,
+        0.25
+      ],
+      "entropy": 1.3863,
+      "max_entropy": 1.3863
+    },
+    "layer2": {
+      "mean_gate": [
+        0.25,
+        0.25,
+        0.25,
+        0.25
+      ],
+      "entropy": 1.3863,
+      "max_entropy": 1.3863
+    }
+  },
+  "checkpoint": "cache/stgb-lrfd-fr-42.pt"
+}
