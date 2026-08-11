@@ -1,0 +1,27 @@
+{
+  "config": {
+    "model": "partial-shared",
+    "device": "cuda:1",
+    "seed": 42,
+    "routing": "data",
+    "K": 4,
+    "lr": 0.001,
+    "beta2": 0.999,
+    "shuffle": true,
+    "max_epochs": 300,
+    "freeze_router": true
+  },
+  "test_auc_all": 0.7649795926063732,
+  "mean_per_scenario_auc": 0.7158162149866812,
+  "per_scenario_auc": {
+    "0": 0.6833050007063664,
+    "1": 0.7102949607423877,
+    "2": 0.7953538487901365,
+    "3": 0.7478404319136173,
+    "4": 0.7077467310386041,
+    "5": 0.6182760795370233,
+    "6": 0.72178971521086,
+    "8": 0.7419229519544549
+  },
+  "checkpoint": "cache/moe_partial_shared_frozenrouter_seed42.pt"
+}

@@ -72,8 +72,13 @@ def model_tag(args):
         "vanilla": "vanilla_from_scratch",
     }[args.model]
     # 冻结路由器是独立变体，产物需与正常训练区分，避免覆盖。
-    return base + ("_frozenrouter" if getattr(args, "freeze_router", False)
-                   else "")
+    if getattr(args, "freeze_router", False):
+        base += "_frozenrouter"
+    # K=4 为默认口径，不加后缀以兼容既有产物名；非默认 K 追加 _K{K}，
+    # 否则专家数扫描会覆盖 K=4 的结果。vanilla 无专家概念，不加。
+    if args.model != "vanilla" and args.K != 4:
+        base += f"_K{args.K}"
+    return base
 
 
 def freeze_routers(model):

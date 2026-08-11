@@ -1,0 +1,27 @@
+{
+  "config": {
+    "model": "fully-routed",
+    "device": "cuda:0",
+    "seed": 456,
+    "routing": "data",
+    "K": 4,
+    "lr": 0.001,
+    "beta2": 0.999,
+    "shuffle": true,
+    "max_epochs": 300,
+    "freeze_router": true
+  },
+  "test_auc_all": 0.7719705989793851,
+  "mean_per_scenario_auc": 0.7220288982546897,
+  "per_scenario_auc": {
+    "0": 0.6878235935578347,
+    "1": 0.7216854298136387,
+    "2": 0.7961318129190404,
+    "3": 0.7210557888422315,
+    "4": 0.7191679566876334,
+    "5": 0.6554459118563585,
+    "6": 0.7171191186254905,
+    "8": 0.7578015737352903
+  },
+  "checkpoint": "cache/moe_fully_routed_frozenrouter_seed456.pt"
+}
