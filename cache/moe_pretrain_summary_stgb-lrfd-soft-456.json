@@ -1,0 +1,65 @@
+{
+  "config": {
+    "model": "lowrank-full-dim",
+    "device": "cuda:0",
+    "seed": 456,
+    "routing": "data",
+    "K": 4,
+    "lr": 0.001,
+    "beta2": 0.999,
+    "shuffle": true,
+    "max_epochs": 300,
+    "freeze_router": false,
+    "router": "soft",
+    "router_semantics": "soft: learnable DataRouter (data routing)",
+    "rank": 45,
+    "vanilla_per_scenario": false,
+    "scenario_loss_weighting": "sample",
+    "run_code": "stgb-lrfd-soft-456"
+  },
+  "test_auc_all": 0.7801680372279419,
+  "mean_per_scenario_auc": 0.7330211688046266,
+  "per_scenario_auc": {
+    "0": 0.7105405019692141,
+    "1": 0.7327487006736955,
+    "2": 0.7989666788629092,
+    "3": 0.7415245522324106,
+    "4": 0.7248074475938558,
+    "5": 0.6995548300934857,
+    "6": 0.7233497350601512,
+    "8": 0.7326769039512905
+  },
+  "gate_structure": {
+    "layer0": {
+      "mean_gate": [
+        0.1394,
+        0.3002,
+        0.3013,
+        0.259
+      ],
+      "entropy": 1.251,
+      "max_entropy": 1.3863
+    },
+    "layer1": {
+      "mean_gate": [
+        0.1956,
+        0.2824,
+        0.2997,
+        0.2222
+      ],
+      "entropy": 1.1534,
+      "max_entropy": 1.3863
+    },
+    "layer2": {
+      "mean_gate": [
+        0.182,
+        0.4116,
+        0.246,
+        0.1604
+      ],
+      "entropy": 1.0676,
+      "max_entropy": 1.3863
+    }
+  },
+  "checkpoint": "cache/stgb-lrfd-soft-456.pt"
+}
