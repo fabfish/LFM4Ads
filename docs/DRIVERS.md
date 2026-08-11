@@ -100,8 +100,10 @@
 - **重要约束**：关卡显示 MoE 在 KuaiRand-1K 同容量下对稠密**无 AUC 增益**，因此 Stage B/F 的
   MoE 可竞争性论证必须用 same-active / same-total / same-latency dense 公平比较，
   并关注训练效率 / 路由结构 / 持续学习能力，而非仅凭 pooled AUC。
-- **状态**：进入条件已满足；**审计状态：`auth=in-progress`**（实现前置完成、门控 PASS，九次训练铺开中）。
-  驱动文档：`docs/20260811-2310-StageB-MoE-九次训练驱动.md`（含实现决策与 run-code 映射）。
+- **状态**：进入条件已满足；**审计状态：`auth=done`**（九次训练全部 succeeded，结论已定稿）。
+  驱动文档：`docs/20260811-2310-StageB-MoE-九次训练驱动.md`；结论：`docs/20260812-0103-StageB-MoE-九次训练结论.md`。
+- **Stage B 结论（同 FLOPs 公平比较）**：低秩全维专家 MoE（frozen / soft）与 same-FLOPs dense **匹配**（逐 seed 配对差 ≤0.0011、符号 `[-,-,+]` 不统一 ⇒ 未稳定匹配），训练 wall-clock 无差异，soft routing 学到非均匀门控但无 AUC/效率收益。
+  ⇒ **触发 §十四 失败关闭条件：禁止 sparse scaling 叙事**。MoE 在 KuaiRand-1K 同容量/同 FLOPs 下无竞争力，与 Stage A 一致。后续转 Stage C（路由比较 / 持续学习）。
 
 ---
 

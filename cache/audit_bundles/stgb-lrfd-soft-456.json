@@ -1,0 +1,63 @@
+{
+  "run_code": "stgb-lrfd-soft-456",
+  "config": {
+    "model": "lowrank-full-dim",
+    "seed": 456,
+    "routing": "data",
+    "K": 4,
+    "batch_size": 10000,
+    "lr": 0.001,
+    "beta2": 0.999,
+    "shuffle": true,
+    "device": "cuda:0",
+    "scenario_loss_weighting": "sample",
+    "freeze_router": false,
+    "router_semantics": "soft: learnable DataRouter (data routing)"
+  },
+  "runlog": {
+    "head": [
+      "[config] model=lowrank-full-dim device=cuda:0 seed=456 K=4 routing=data lr=0.001 beta2=0.999 shuffle=True scenario_loss_weighting=sample run_code=stgb-lrfd-soft-456 max_epochs=300",
+      "Epoch 1:   0%|          | 0/929 [00:00<?, ?it/s]",
+      "Epoch 1:   0%|          | 1/929 [00:03<47:44,  3.09s/it]",
+      "Epoch 1:   0%|          | 2/929 [00:03<20:44,  1.34s/it]",
+      "Epoch 1:   0%|          | 3/929 [00:03<12:01,  1.28it/s]"
+    ],
+    "tail": [
+      "    scenario 8: 0.7327",
+      "  mean per-scenario AUC: 0.7330",
+      "  pooled test AUC: 0.7802",
+      "  gate structure: {'layer0': {'mean_gate': [0.1394, 0.3002, 0.3013, 0.259], 'entropy': 1.251, 'max_entropy': 1.3863}, 'layer1': {'mean_gate': [0.1956, 0.2824, 0.2997, 0.2222], 'entropy': 1.1534, 'max_entropy': 1.3863}, 'layer2': {'mean_gate': [0.182, 0.4116, 0.246, 0.1604], 'entropy': 1.0676, 'max_entropy': 1.3863}}",
+      "  summary → cache/moe_pretrain_summary_stgb-lrfd-soft-456.json"
+    ],
+    "missing": false
+  },
+  "summary": {
+    "test_auc_all": 0.7801680372279419,
+    "mean_per_scenario_auc": 0.7330211688046266,
+    "per_scenario_auc": {
+      "0": 0.7105405019692141,
+      "1": 0.7327487006736955,
+      "2": 0.7989666788629092,
+      "3": 0.7415245522324106,
+      "4": 0.7248074475938558,
+      "5": 0.6995548300934857,
+      "6": 0.7233497350601512,
+      "8": 0.7326769039512905
+    }
+  },
+  "swg_invariants": {
+    "equ_swg_status": "pass",
+    "equ_swg_errors": []
+  },
+  "provenance": {
+    "config_hash": "b6eeaa7860a4210e876c61dd8debf552d0066f15eb3d84bbdf181b3c19cf5386",
+    "source_hashes": {
+      "train.py": "6f69a567089180a861dffc9badc71fd596158be21b6efd84c3a19fd190427c8e",
+      "run_moe_pretrain_from_scratch.py": "01ca6dbf08ad1c997a0bf53be8263e75c2be256046a10d387ab5e5b1e389ed32",
+      "swg_config.py": "0ae7944ce09206a474ebc68d3acbb07b2c58f8d3a2032dcb36bc4bf9d94cec6d",
+      "swg_config_stageb.py": "b04afa4496e3501b775783c41eee908d912e95821c7f86dbbfb4c6ecbb634154"
+    },
+    "git_commit": "bfa82fbc02f231c5d75a1ba4720aace65d792b0b"
+  },
+  "remaining_checks": []
+}

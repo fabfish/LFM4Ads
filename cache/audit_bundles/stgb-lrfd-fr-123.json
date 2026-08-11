@@ -1,0 +1,63 @@
+{
+  "run_code": "stgb-lrfd-fr-123",
+  "config": {
+    "model": "lowrank-full-dim",
+    "seed": 123,
+    "routing": "data",
+    "K": 4,
+    "batch_size": 10000,
+    "lr": 0.001,
+    "beta2": 0.999,
+    "shuffle": true,
+    "device": "cuda:0",
+    "scenario_loss_weighting": "sample",
+    "freeze_router": false,
+    "router_semantics": "frozen: router weights zeroed (uniform, zero-noise, vanilla-equiv)"
+  },
+  "runlog": {
+    "head": [
+      "[config] model=lowrank-full-dim device=cuda:0 seed=123 K=4 routing=data lr=0.001 beta2=0.999 shuffle=True scenario_loss_weighting=sample run_code=stgb-lrfd-fr-123 max_epochs=300",
+      "[freeze-router] 冻结 4332 个路由参数于零初值（门控恒均匀、零噪声）",
+      "Epoch 1:   0%|          | 0/929 [00:00<?, ?it/s]",
+      "Epoch 1:   0%|          | 1/929 [00:02<45:33,  2.95s/it]",
+      "Epoch 1:   0%|          | 2/929 [00:03<20:07,  1.30s/it]"
+    ],
+    "tail": [
+      "    scenario 8: 0.7635",
+      "  mean per-scenario AUC: 0.7338",
+      "  pooled test AUC: 0.7810",
+      "  gate structure: {'layer0': {'mean_gate': [0.25, 0.25, 0.25, 0.25], 'entropy': 1.3863, 'max_entropy': 1.3863}, 'layer1': {'mean_gate': [0.25, 0.25, 0.25, 0.25], 'entropy': 1.3863, 'max_entropy': 1.3863}, 'layer2': {'mean_gate': [0.25, 0.25, 0.25, 0.25], 'entropy': 1.3863, 'max_entropy': 1.3863}}",
+      "  summary → cache/moe_pretrain_summary_stgb-lrfd-fr-123.json"
+    ],
+    "missing": false
+  },
+  "summary": {
+    "test_auc_all": 0.7810304653594771,
+    "mean_per_scenario_auc": 0.7338253199219524,
+    "per_scenario_auc": {
+      "0": 0.7097926318902451,
+      "1": 0.7347029970041118,
+      "2": 0.8019149811455325,
+      "3": 0.7201731082354957,
+      "4": 0.722411336844536,
+      "5": 0.6877262947024781,
+      "6": 0.7303865000726664,
+      "8": 0.7634947094805543
+    }
+  },
+  "swg_invariants": {
+    "equ_swg_status": "pass",
+    "equ_swg_errors": []
+  },
+  "provenance": {
+    "config_hash": "814bae835216de1d1ffa9b0d620cf7abc1078285a52447df105e19cee8f91570",
+    "source_hashes": {
+      "train.py": "6f69a567089180a861dffc9badc71fd596158be21b6efd84c3a19fd190427c8e",
+      "run_moe_pretrain_from_scratch.py": "01ca6dbf08ad1c997a0bf53be8263e75c2be256046a10d387ab5e5b1e389ed32",
+      "swg_config.py": "0ae7944ce09206a474ebc68d3acbb07b2c58f8d3a2032dcb36bc4bf9d94cec6d",
+      "swg_config_stageb.py": "b04afa4496e3501b775783c41eee908d912e95821c7f86dbbfb4c6ecbb634154"
+    },
+    "git_commit": "c4806bdeb9278f24c7bcb0d6fd0fa435b77e3f32"
+  },
+  "remaining_checks": []
+}

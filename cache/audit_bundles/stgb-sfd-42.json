@@ -1,0 +1,63 @@
+{
+  "run_code": "stgb-sfd-42",
+  "config": {
+    "model": "same-flops-dense",
+    "seed": 42,
+    "routing": "data",
+    "K": 4,
+    "batch_size": 10000,
+    "lr": 0.001,
+    "beta2": 0.999,
+    "shuffle": true,
+    "device": "cuda:0",
+    "scenario_loss_weighting": "sample",
+    "freeze_router": false,
+    "router_semantics": "none: dense, no router"
+  },
+  "runlog": {
+    "head": [
+      "[config] model=same-flops-dense device=cuda:0 seed=42 K=4 routing=data lr=0.001 beta2=0.999 shuffle=True scenario_loss_weighting=sample run_code=stgb-sfd-42 max_epochs=300",
+      "Epoch 1:   0%|          | 0/929 [00:00<?, ?it/s]",
+      "Epoch 1:   0%|          | 1/929 [00:03<54:53,  3.55s/it]",
+      "Epoch 1:   0%|          | 3/929 [00:03<15:03,  1.03it/s]",
+      "Epoch 1:   1%|          | 5/929 [00:03<07:49,  1.97it/s]"
+    ],
+    "tail": [
+      "    scenario 6: 0.7359",
+      "    scenario 8: 0.7265",
+      "  mean per-scenario AUC: 0.7327",
+      "  pooled test AUC: 0.7807",
+      "  summary → cache/moe_pretrain_summary_stgb-sfd-42.json"
+    ],
+    "missing": false
+  },
+  "summary": {
+    "test_auc_all": 0.7807177059842151,
+    "mean_per_scenario_auc": 0.7327347052561656,
+    "per_scenario_auc": {
+      "0": 0.7148291687102489,
+      "1": 0.7336202311523682,
+      "2": 0.8039019453921976,
+      "3": 0.7549661496272174,
+      "4": 0.7204527237339733,
+      "5": 0.6717001780679626,
+      "6": 0.7359179182290181,
+      "8": 0.7264893271363386
+    }
+  },
+  "swg_invariants": {
+    "equ_swg_status": "pass",
+    "equ_swg_errors": []
+  },
+  "provenance": {
+    "config_hash": "5871c2406d1823de55ae162f84bcaff21fe0011f3a5449c1a8c5215a5906602e",
+    "source_hashes": {
+      "train.py": "6f69a567089180a861dffc9badc71fd596158be21b6efd84c3a19fd190427c8e",
+      "run_moe_pretrain_from_scratch.py": "01ca6dbf08ad1c997a0bf53be8263e75c2be256046a10d387ab5e5b1e389ed32",
+      "swg_config.py": "0ae7944ce09206a474ebc68d3acbb07b2c58f8d3a2032dcb36bc4bf9d94cec6d",
+      "swg_config_stageb.py": "b04afa4496e3501b775783c41eee908d912e95821c7f86dbbfb4c6ecbb634154"
+    },
+    "git_commit": "3f9108ac5ec812430165d140cc9ebdc073c63bce"
+  },
+  "remaining_checks": []
+}
