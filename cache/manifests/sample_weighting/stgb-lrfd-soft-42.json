@@ -1,0 +1,64 @@
+{
+  "run_code": "stgb-lrfd-soft-42",
+  "status": "succeeded",
+  "git_commit": "68358b107a1bd3d6de372c9a7233a5d2397e6407",
+  "git_status": "M \"docs/20260811-2010-\\346\\214\\211\\345\\234\\272\\346\\231\\257\\350\\256\\255\\347\\273\\203\\344\\273\\243\\344\\273\\267\\346\\266\\210\\351\\231\\244\\344\\270\\216\\346\\267\\267\\345\\220\\210\\344\\270\\223\\345\\256\\266\\345\\217\\257\\347\\253\\236\\344\\272\\211\\346\\200\\247\\351\\252\\214\\350\\257\\201.md\"\n M \"docs/20260811-2050-MoE-AdaTask-\\346\\214\\201\\347\\273\\255\\345\\255\\246\\344\\271\\240\\351\\227\\256\\351\\242\\230\\345\\256\\232\\344\\271\\211\\344\\270\\216\\347\\240\\224\\347\\251\\266\\346\\226\\271\\346\\241\\210.md\"\n M train.py\n?? cache/manifests/sample_weighting/equ_swg_status.json\n?? cache/manifests/sample_weighting/stgb-lrfd-fr-456.json\n?? cache/manifests/sample_weighting/swg-dens-sp-123.json\n?? cache/manifests/sample_weighting/swg-dens-sp-42.json\n?? cache/manifests/sample_weighting/swg-dens-sp-456.json\n?? cache/manifests/sample_weighting/swg-frout-sp-123.json\n?? cache/manifests/sample_weighting/swg-frout-sp-42.json\n?? cache/manifests/sample_weighting/swg-frout-sp-456.json\n?? cache/manifests/sample_weighting/swg-nrout-sp-123.json\n?? cache/manifests/sample_weighting/swg-nrout-sp-42.json\n?? cache/manifests/sample_weighting/swg-nrout-sp-456.json\n?? cache/manifests/sample_weighting/swg-pshr-sp-123.json\n?? cache/manifests/sample_weighting/swg-pshr-sp-42.json\n?? cache/manifests/sample_weighting/swg-pshr-sp-456.json\n?? cache/moe_pretrain_summary_stgb-lrfd-fr-456.json\n?? cache/moe_pretrain_summary_swg-dens-sp-123.json\n?? cache/moe_pretrain_summary_swg-dens-sp-42.json\n?? cache/moe_pretrain_summary_swg-dens-sp-456.json\n?? cache/moe_pretrain_summary_swg-frout-sp-123.json\n?? cache/moe_pretrain_summary_swg-frout-sp-42.json\n?? cache/moe_pretrain_summary_swg-frout-sp-456.json\n?? cache/moe_pretrain_summary_swg-nrout-sp-123.json\n?? cache/moe_pretrain_summary_swg-nrout-sp-42.json\n?? cache/moe_pretrain_summary_swg-nrout-sp-456.json\n?? cache/moe_pretrain_summary_swg-pshr-sp-123.json\n?? cache/moe_pretrain_summary_swg-pshr-sp-42.json\n?? cache/moe_pretrain_summary_swg-pshr-sp-456.json\n?? \"docs/20260811-2242-\\346\\214\\211\\345\\234\\272\\346\\231\\257\\350\\256\\255\\347\\273\\203\\344\\273\\243\\344\\273\\267\\346\\266\\210\\351\\231\\244\\347\\273\\223\\350\\256\\272.md\"\n?? \"docs/20260811-2300-\\346\\214\\211\\345\\234\\272\\346\\231\\257\\350\\256\\255\\347\\273\\203\\344\\273\\243\\344\\273\\267\\346\\266\\210\\351\\231\\244-HY3\\345\\256\\241\\350\\256\\241.md\"\n?? logs/sample_weighting_stgb-lrfd-fr-456.log\n?? logs/sample_weighting_swg-dens-sp-123.log\n?? logs/sample_weighting_swg-dens-sp-42.log\n?? logs/sample_weighting_swg-dens-sp-456.log\n?? logs/sample_weighting_swg-frout-sp-123.log\n?? logs/sample_weighting_swg-frout-sp-42.log\n?? logs/sample_weighting_swg-frout-sp-456.log\n?? logs/sample_weighting_swg-nrout-sp-123.log\n?? logs/sample_weighting_swg-nrout-sp-42.log\n?? logs/sample_weighting_swg-nrout-sp-456.log\n?? logs/sample_weighting_swg-pshr-sp-123.log\n?? logs/sample_weighting_swg-pshr-sp-42.log\n?? logs/sample_weighting_swg-pshr-sp-456.log\n?? logs/stageb_queue.log\n?? result_stgb-lrfd-fr-456.csv\n?? result_swg-dens-sp-123.csv\n?? result_swg-dens-sp-42.csv\n?? result_swg-dens-sp-456.csv\n?? result_swg-frout-sp-123.csv\n?? result_swg-frout-sp-42.csv\n?? result_swg-frout-sp-456.csv\n?? result_swg-nrout-sp-123.csv\n?? result_swg-nrout-sp-42.csv\n?? result_swg-nrout-sp-456.csv\n?? result_swg-pshr-sp-123.csv\n?? result_swg-pshr-sp-42.csv\n?? result_swg-pshr-sp-456.csv\n?? scripts/run_sample_weighting_gate.sh\n?? scripts/summarize_sample_weighting_gate.py\n?? scripts/swg_config.py\n?? scripts/verify_router_invariants.py\n?? scripts/verify_scenario_loss_weighting.py",
+  "command": "python run_moe_pretrain_from_scratch.py --model lowrank-full-dim --scenario-loss-weighting sample --seed 42 --run-code stgb-lrfd-soft-42 --device cuda:0 --lr 0.001 --beta2 0.999 --K 4 --routing data --rank 45 --batch-size 10000 --max-epochs 300 --shuffle --router soft",
+  "config": {
+    "model": "lowrank-full-dim",
+    "vanilla_per_scenario": false,
+    "freeze_router": false,
+    "router": "soft",
+    "router_semantics": "soft: learnable DataRouter (data routing)",
+    "scenario_loss_weighting": "sample",
+    "device": "cuda:0",
+    "seed": 42,
+    "batch_size": 10000,
+    "lr": 0.001,
+    "beta2": 0.999,
+    "shuffle": true,
+    "K": 4,
+    "routing": "data",
+    "rank": 45
+  },
+  "timing": {
+    "start": "2026-08-12T00:34:43.524507",
+    "end": "2026-08-12T00:39:58.235549",
+    "exit_code": 0
+  },
+  "paths": {
+    "checkpoint": "/apdcephfs/private_xavieryu/projects/LFM4Ads/cache/stgb-lrfd-soft-42.pt",
+    "summary": "/apdcephfs/private_xavieryu/projects/LFM4Ads/cache/moe_pretrain_summary_stgb-lrfd-soft-42.json",
+    "log": "/apdcephfs/private_xavieryu/projects/LFM4Ads/logs/sample_weighting_stgb-lrfd-soft-42.log",
+    "csv": "/apdcephfs/private_xavieryu/projects/LFM4Ads/result_stgb-lrfd-soft-42.csv"
+  },
+  "results": {
+    "pooled_auc": 0.780291915079321,
+    "mean_per_scenario_auc": 0.7384485091735358,
+    "per_scenario_auc": {
+      "0": 0.7116262915372908,
+      "1": 0.7336031782947274,
+      "2": 0.8019729114777,
+      "3": 0.7451324020910104,
+      "4": 0.7211119817121765,
+      "5": 0.7008847751891972,
+      "6": 0.7368252674583144,
+      "8": 0.7564312656278696
+    },
+    "anomaly": null
+  },
+  "checks": {
+    "equal_vs_sample_invariant": "see equ-swg marker"
+  },
+  "provenance": {
+    "config_hash": "5415dfd0cfec6e3a2f1f6d33b554bb623cb463add3102bac7f2a3fe79166a412",
+    "source_hashes": {
+      "train.py": "6f69a567089180a861dffc9badc71fd596158be21b6efd84c3a19fd190427c8e",
+      "run_moe_pretrain_from_scratch.py": "01ca6dbf08ad1c997a0bf53be8263e75c2be256046a10d387ab5e5b1e389ed32",
+      "swg_config.py": "0ae7944ce09206a474ebc68d3acbb07b2c58f8d3a2032dcb36bc4bf9d94cec6d",
+      "swg_config_stageb.py": "b04afa4496e3501b775783c41eee908d912e95821c7f86dbbfb4c6ecbb634154"
+    }
+  },
+  "retries": 0,
+  "notes": ""
+}
