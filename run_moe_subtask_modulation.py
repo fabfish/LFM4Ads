@@ -185,17 +185,20 @@ def main():
         w = csv.writer(f)
         if os.path.getsize(csv_path) == 0:
             w.writerow(["model", "router_mode", "expert_mode", "shared_mode",
-                        "seed", "mean_per_scenario", "test_auc_all"] +
+                        "seed", "alpha", "mean_per_scenario", "test_auc_all"] +
                        [f"s{s}_auc" for s in SCENARIOS])
         w.writerow([args.model, args.router_mode, args.expert_mode,
-                    args.shared_mode, args.seed, f"{mean_sc:.4f}",
+                    args.shared_mode, args.seed, args.alpha, f"{mean_sc:.4f}",
                     f"{pooled:.4f}"] +
                    [f"{per[s]:.4f}" for s in SCENARIOS])
 
     # 写 JSON
+    # alpha=0.5 为默认口径，文件名不带 alpha 后缀以保持既有产物命名兼容；
+    # 非默认 alpha 追加 _a{alpha} 后缀，避免敏感性扫描覆盖默认口径结果。
+    alpha_sfx = "" if abs(args.alpha - 0.5) < 1e-9 else f"_a{args.alpha:g}"
     json_path = (f"{CACHE_DIR}/subtask_modulation_{args.model}_"
                  f"r{args.router_mode}_e{args.expert_mode}_"
-                 f"s{args.shared_mode}_seed{args.seed}.json")
+                 f"s{args.shared_mode}_seed{args.seed}{alpha_sfx}.json")
     summary = {
         "config": {
             "model": args.model,
