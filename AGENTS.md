@@ -53,6 +53,6 @@ LFM4Ads 是 DCNv2 架构（360 维，5 层 Cross Network + 1 层 DNN head），�
 
 - 优先小范围精确编辑，避免大文件重写。
 - 改动后针对性检查，先 smoke（跑几步验证前向/反向不崩）再挂完整训练。
-- 不主动提交 git（除非用户明确要求）。
+- **自动 git commit 并 push**：每次完成一个逻辑单元（代码改动 / 实验 run / 文档更新）后，自动 `git add` 相关文件并提交（`git commit`），随后 `git push` 到 origin/main。无需每次等待用户授权。注意：push 前确认改动范围合理、lint 无错；不要 commit 大体积产物（如 `*.pt` 权重、cache 中间 json 例外按 .gitignore 处理）。
 - `.codebuddy/` 为项目数据目录，勿删。
 - `docs/` 下的文档和页面属于仓库资产，应纳入版本管理。

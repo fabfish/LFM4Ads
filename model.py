@@ -62,15 +62,21 @@ class ScenarioRouter(nn.Module):
 
 
 class DataRouter(nn.Module):
-    """Data-driven router: Linear(dim, K) — selects experts from input features."""
-    def __init__(self, dim=360, K=4):
+    """Data-driven router: Linear(dim, K) — selects experts from input features.
+
+    uniform init(weight=0, bias=0) → softmax 恒为 1/K。
+    gate_scaling 用于统一「恒等初始化」语义：gate_scaling=K 时，uniform init
+    输出全 1，与 ScenarioRouter(softmax*K) 一致。默认 1.0 —— 不影响既有训练。
+    """
+    def __init__(self, dim=360, K=4, gate_scaling=1.0):
         super().__init__()
         self.linear = nn.Linear(dim, K)
+        self.gate_scaling = gate_scaling
         nn.init.zeros_(self.linear.weight)
         nn.init.zeros_(self.linear.bias)
 
     def forward(self, x):
-        return self.linear(x).softmax(-1)  # [B, K]
+        return self.linear(x).softmax(-1) * self.gate_scaling  # [B, K]
 
 
 class CrossExpertLayer(nn.Module):
@@ -773,6 +779,7 @@ class CrossExpertLayerV2(nn.Module):
         self.dim, self.K, self.routing = dim, K, routing
         self.top_k = top_k if top_k is not None else K  # K=soft routing default
         self.noise_scale = noise_scale
+        self._router_noise_enabled = True  # 冻结路由器时由 freeze_routers 置 False
         self.lb_alpha = lb_alpha
 
         # Zero-parameter split: shared takes 1/(K+1), each routed takes 1/(K+1)
@@ -844,8 +851,9 @@ class CrossExpertLayerV2(nn.Module):
             clean_logits = self.w_gate(x_or_tab)
             noise_logits = self.w_noise(x_or_tab)
 
-        # Noisy gating during training (exploration)
-        if training and self.noise_scale > 0:
+        # Noisy gating during training (exploration).
+        # _router_noise_enabled 由 freeze_routers 关闭，保证冻结即零噪声 + 恒均匀门控。
+        if training and self.noise_scale > 0 and self._router_noise_enabled:
             noise_std = F.softplus(noise_logits) + 1e-2
             noise = torch.randn_like(clean_logits) * noise_std * self.noise_scale
             logits = clean_logits + noise
@@ -1041,3 +1049,118 @@ class DCNv2MoE_V2(nn.Module):
             lines.append(f'  {name:20s}: {count:>10,}  ({pct:5.1f}%)')
         lines.append(f'  {"TOTAL":20s}: {total:>10,}')
         return '\n'.join(lines)
+
+
+# ============================================================
+#  Stage B: 低秩全维专家 MoE（与 dense 同 FLOPs 当 r = dim/(2K)）
+# ============================================================
+
+class LowRankExpert(nn.Module):
+    """低秩全维专家：Linear(dim, r) → Linear(r, dim)，输出全维 dim。
+
+    等价于对 Cross 变换做秩 r 分解；多个专家的门控加权组合重构全维输出。
+    参数量 2*dim*r（不含偏置），K 个专家总参数 2*K*dim*r；当 r = dim/(2K) 时
+    与 dense Linear(dim,dim)（dim²）同量级，构成 same-FLOPs 对照。
+    """
+
+    def __init__(self, dim=360, r=45):
+        super().__init__()
+        self.dim, self.r = dim, r
+        self.down = nn.Linear(dim, r)
+        self.up = nn.Linear(r, dim)
+
+    def forward(self, x):
+        return self.up(self.down(x))  # [B, dim]
+
+
+class CrossExpertLayerLR(nn.Module):
+    """低秩全维 MoE 交叉层：K 个 LowRankExpert + 可学习/可冻结 DataRouter。
+
+    routing 固定为 'data'（DataRouter 由输入特征决定门控，与 V1 一致）。
+    冻结时由外部 freeze_routers 把 router.linear 清零 → softmax 恒 1/K（uniform）。
+    输出口径与 V1 一致：weighted * x0 + x。
+    """
+
+    def __init__(self, dim=360, K=4, r=45, routing="data"):
+        super().__init__()
+        assert routing == "data", "low-rank full-dim MoE only supports data routing"
+        self.dim, self.K, self.r, self.routing = dim, K, r, routing
+        self.experts = nn.ModuleList([LowRankExpert(dim, r) for _ in range(K)])
+        self.router = DataRouter(dim, K)  # init 0 → softmax 恒 1/K（uniform）
+
+    def forward(self, x, x0, tab=None):
+        gate = self.router(x)  # [B, K]
+        weighted = sum(gate[:, i:i + 1] * self.experts[i](x) for i in range(self.K))
+        return weighted * x0 + x, gate
+
+
+class DCNv2MoE_LowRank(nn.Module):
+    """低秩全维专家 MoE（Stage B 主体）。
+
+    3 层 CrossExpertLayerLR + 2 层 DNN(Linear dim,dim) + head(Linear dim,15)。
+    与 DCNv2（5×Linear dim,dim）构成 same-FLOPs / same-total / same-latency 对照：
+    每 MoE 交叉层 FLOPs ≈ 2*K*dim*r，取 r = dim/(2K) → 2*K*dim*(dim/2K) = dim²，
+    即与 dense 交叉层相等；DNN 与 head 二者一致。
+    """
+
+    def __init__(self, dim=360, K=4, r=45, routing="data"):
+        super().__init__()
+        self.dim, self.K, self.r, self.routing = dim, K, r, routing
+        self.sparse = Sparse()
+        self.cross_layers = nn.ModuleList(
+            [CrossExpertLayerLR(dim, K, r, routing=routing) for _ in range(3)]
+        )
+        self.dnn = nn.ModuleList([nn.Linear(dim, dim) for _ in range(2)])
+        self.head = nn.Linear(dim, 15)
+
+    def set_top_k(self, top_k):
+        # 低秩全维专家每专家输出全维，top-k 路由不适用；保留接口以保持
+        # evaluate_all_scenarios 的统一调用（gate 统计量仍照常计算）。
+        pass
+
+    def embed(self, batch):
+        return self.sparse(batch)
+
+    def forward(self, batch):
+        x0 = self.embed(batch)
+        x = x0
+        gates = []
+        CRs = [x0.detach()]
+        for layer in self.cross_layers:
+            x, gate = layer(x, x0)
+            gates.append(gate)
+            CRs.append(x.detach())
+        for layer in self.dnn:
+            x = layer(x.relu())
+            CRs.append(x.detach())
+        batch["logit"] = self.head(x)[range(len(x)), batch["tab"]]
+        batch["_gate"] = gates
+        self.last_gates = gates  # 供 collect_gate_stats 汇聚门控结构
+        if hasattr(self, "CRs"):
+            for uid, c in zip(batch["user_id"], torch.stack(CRs, 1)):
+                self.CRs[uid] *= 0.99
+                self.CRs[uid] += c
+
+    @staticmethod
+    def param_summary(model) -> str:
+        groups = {
+            "Sparse": ["sparse"],
+            "LowRank Experts": ["cross_layers.0.experts", "cross_layers.1.experts",
+                                "cross_layers.2.experts"],
+            "Routers": ["cross_layers.0.router", "cross_layers.1.router",
+                        "cross_layers.2.router"],
+            "DNN": ["dnn"],
+            "Head": ["head"],
+        }
+        lines = ["Parameter Summary (LowRank):"]
+        total = 0
+        for name, prefixes in groups.items():
+            count = 0
+            for n, p in model.named_parameters():
+                if any(n.startswith(px) for px in prefixes):
+                    count += p.numel()
+            total += count
+            pct = count / total * 100 if total > 0 else 0
+            lines.append(f"  {name:20s}: {count:>10,}  ({pct:5.1f}%)")
+        lines.append(f'  {"TOTAL":20s}: {total:>10,}')
+        return "\n".join(lines)
