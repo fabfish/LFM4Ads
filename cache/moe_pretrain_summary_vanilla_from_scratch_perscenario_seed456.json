@@ -1,0 +1,28 @@
+{
+  "config": {
+    "model": "vanilla",
+    "device": "cuda:0",
+    "seed": 456,
+    "routing": "data",
+    "K": 4,
+    "lr": 0.001,
+    "beta2": 0.999,
+    "shuffle": true,
+    "max_epochs": 300,
+    "freeze_router": false,
+    "vanilla_per_scenario": true
+  },
+  "test_auc_all": 0.7685672096383611,
+  "mean_per_scenario_auc": 0.7234700437945805,
+  "per_scenario_auc": {
+    "0": 0.6869636390486775,
+    "1": 0.7181382822571637,
+    "2": 0.7913003686201994,
+    "3": 0.7194553946353587,
+    "4": 0.7084979526204022,
+    "5": 0.6657182074491764,
+    "6": 0.7233494099312405,
+    "8": 0.7743370957944256
+  },
+  "checkpoint": "cache/vanilla_from_scratch_perscenario_seed456.pt"
+}

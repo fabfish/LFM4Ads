@@ -1,0 +1,2 @@
+model,seed,routing,K,test_auc_all,mean_per_scenario,s0_auc,s1_auc,s2_auc,s3_auc,s4_auc,s5_auc,s6_auc,s8_auc
+partial-shared,42,data,8,0.7686,0.7131,0.6850,0.7171,0.7905,0.6949,0.7087,0.6314,0.7266,0.7506

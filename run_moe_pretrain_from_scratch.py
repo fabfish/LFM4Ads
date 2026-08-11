@@ -62,6 +62,9 @@ def _parse_args(argv):
     ap.add_argument("--freeze-router", action="store_true",
                     help="把路由器冻结在零初值，门控恒为均匀（判别性对照："
                          "检验路由机制本身是否为负担）")
+    ap.add_argument("--vanilla-per-scenario", action="store_true",
+                    help="仅对 --model vanilla 生效：改用与混合专家相同的"
+                         "按场景子批量训练过程，消除训练过程混淆")
     return ap.parse_args(argv)
 
 
@@ -74,6 +77,9 @@ def model_tag(args):
     # 冻结路由器是独立变体，产物需与正常训练区分，避免覆盖。
     if getattr(args, "freeze_router", False):
         base += "_frozenrouter"
+    # 按场景训练的稠密基准是独立变体，同样需区分。
+    if args.model == "vanilla" and getattr(args, "vanilla_per_scenario", False):
+        base += "_perscenario"
     # K=4 为默认口径，不加后缀以兼容既有产物名；非默认 K 追加 _K{K}，
     # 否则专家数扫描会覆盖 K=4 的结果。vanilla 无专家概念，不加。
     if args.model != "vanilla" and args.K != 4:
@@ -211,6 +217,15 @@ def main():
     elif args.model == "partial-shared":
         history = train_partial_shared_from_scratch(args, model)
         test_auc = float(evaluate(model, Split("all")[2]))
+    elif args.vanilla_per_scenario:
+        # 公平对照：用与混合专家完全相同的「按场景切子批量、梯度累加后单次 step」
+        # 过程训练稠密基准。该过程等价于「每场景等权」目标，
+        # 而 train() 是「每样本等权」；pooled AUC 为样本加权，
+        # 故两种过程对 pooled 指标并不等价——此前的模型间对比混淆了这一差异。
+        # train_moe 不依赖任何混合专家专属属性（无 K / cross_layers / 门控依赖），
+        # 因此可直接用于稠密模型。
+        test_auc = train_moe(model, "all", lr=args.lr, beta2=args.beta2,
+                             shuffle=args.shuffle)
     else:  # vanilla
         test_auc = train(model, "all", shuffle=args.shuffle)
 
@@ -249,6 +264,8 @@ def main():
             "beta2": args.beta2, "shuffle": args.shuffle,
             "max_epochs": args.max_epochs,
             "freeze_router": bool(getattr(args, "freeze_router", False)),
+            "vanilla_per_scenario": bool(
+                getattr(args, "vanilla_per_scenario", False)),
         },
         "test_auc_all": pooled,
         "mean_per_scenario_auc": mean_sc,
