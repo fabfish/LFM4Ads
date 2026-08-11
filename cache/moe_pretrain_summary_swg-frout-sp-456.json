@@ -1,0 +1,30 @@
+{
+  "config": {
+    "model": "fully-routed",
+    "device": "cuda:0",
+    "seed": 456,
+    "routing": "data",
+    "K": 4,
+    "lr": 0.001,
+    "beta2": 0.999,
+    "shuffle": true,
+    "max_epochs": 300,
+    "freeze_router": true,
+    "vanilla_per_scenario": false,
+    "scenario_loss_weighting": "sample",
+    "run_code": "swg-frout-sp-456"
+  },
+  "test_auc_all": 0.7807596764215048,
+  "mean_per_scenario_auc": 0.729160956089045,
+  "per_scenario_auc": {
+    "0": 0.7120150284883462,
+    "1": 0.7339608034857459,
+    "2": 0.7986226352153358,
+    "3": 0.7247321964178592,
+    "4": 0.7250009025169916,
+    "5": 0.6960491170796854,
+    "6": 0.7392749426793452,
+    "8": 0.7036320228290506
+  },
+  "checkpoint": "cache/swg-frout-sp-456.pt"
+}

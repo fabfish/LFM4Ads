@@ -1,0 +1,59 @@
+{
+  "run_code": "swg-nrout-sp-42",
+  "status": "succeeded",
+  "git_commit": "3fbcb63074ed74a1d9d1b99eacc14a17d2ac55d5",
+  "git_status": "M \"docs/20260811-2010-\\346\\214\\211\\345\\234\\272\\346\\231\\257\\350\\256\\255\\347\\273\\203\\344\\273\\243\\344\\273\\267\\346\\266\\210\\351\\231\\244\\344\\270\\216\\346\\267\\267\\345\\220\\210\\344\\270\\223\\345\\256\\266\\345\\217\\257\\347\\253\\236\\344\\272\\211\\346\\200\\247\\351\\252\\214\\350\\257\\201.md\"\n M \"docs/20260811-2050-MoE-AdaTask-\\346\\214\\201\\347\\273\\255\\345\\255\\246\\344\\271\\240\\351\\227\\256\\351\\242\\230\\345\\256\\232\\344\\271\\211\\344\\270\\216\\347\\240\\224\\347\\251\\266\\346\\226\\271\\346\\241\\210.md\"\n M run_moe_pretrain_from_scratch.py\n M train.py\n?? cache/manifests/\n?? cache/moe_pretrain_summary_swg-dens-sp-123.json\n?? cache/moe_pretrain_summary_swg-dens-sp-42.json\n?? cache/moe_pretrain_summary_swg-dens-sp-456.json\n?? cache/moe_pretrain_summary_swg-frout-sp-123.json\n?? cache/moe_pretrain_summary_swg-frout-sp-42.json\n?? cache/moe_pretrain_summary_swg-frout-sp-456.json\n?? logs/sample_weighting_swg-dens-sp-123.log\n?? logs/sample_weighting_swg-dens-sp-42.log\n?? logs/sample_weighting_swg-dens-sp-456.log\n?? logs/sample_weighting_swg-frout-sp-123.log\n?? logs/sample_weighting_swg-frout-sp-42.log\n?? logs/sample_weighting_swg-frout-sp-456.log\n?? result_swg-dens-sp-123.csv\n?? result_swg-dens-sp-42.csv\n?? result_swg-dens-sp-456.csv\n?? result_swg-frout-sp-123.csv\n?? result_swg-frout-sp-42.csv\n?? result_swg-frout-sp-456.csv\n?? scripts/run_sample_weighting_gate.py\n?? scripts/run_sample_weighting_gate.sh\n?? scripts/summarize_sample_weighting_gate.py\n?? scripts/swg_config.py\n?? scripts/verify_scenario_loss_weighting.py",
+  "command": "python run_moe_pretrain_from_scratch.py --model fully-routed --scenario-loss-weighting sample --seed 42 --run-code swg-nrout-sp-42 --device cuda:0 --lr 0.001 --beta2 0.999 --K 4 --routing data --batch-size 10000 --max-epochs 300 --shuffle",
+  "config": {
+    "model": "fully-routed",
+    "vanilla_per_scenario": false,
+    "freeze_router": false,
+    "scenario_loss_weighting": "sample",
+    "device": "cuda:0",
+    "seed": 42,
+    "batch_size": 10000,
+    "lr": 0.001,
+    "beta2": 0.999,
+    "shuffle": true,
+    "K": 4,
+    "routing": "data"
+  },
+  "timing": {
+    "start": "2026-08-11T22:13:38.449436",
+    "end": "2026-08-11T22:19:27.006191",
+    "exit_code": 0
+  },
+  "paths": {
+    "checkpoint": "/root/Documents/LFM4Ads/cache/swg-nrout-sp-42.pt",
+    "summary": "/root/Documents/LFM4Ads/cache/moe_pretrain_summary_swg-nrout-sp-42.json",
+    "log": "/root/Documents/LFM4Ads/logs/sample_weighting_swg-nrout-sp-42.log",
+    "csv": "/root/Documents/LFM4Ads/result_swg-nrout-sp-42.csv"
+  },
+  "results": {
+    "pooled_auc": 0.7802390327739046,
+    "mean_per_scenario_auc": 0.7353432084030895,
+    "per_scenario_auc": {
+      "0": 0.7138680537207887,
+      "1": 0.733220337010387,
+      "2": 0.7959843112311379,
+      "3": 0.7165866826634673,
+      "4": 0.7219773127279342,
+      "5": 0.6836826680516397,
+      "6": 0.7277685963084624,
+      "8": 0.7896577055108989
+    },
+    "anomaly": null
+  },
+  "checks": {
+    "equal_vs_sample_invariant": "see equ-swg marker"
+  },
+  "provenance": {
+    "config_hash": "d79167e83d575321bb90b7a1f7ce2a0225551b359b23629ca3abb9a92481d9f0",
+    "source_hashes": {
+      "train.py": "6f69a567089180a861dffc9badc71fd596158be21b6efd84c3a19fd190427c8e",
+      "run_moe_pretrain_from_scratch.py": "3cf5dede008e74f6619cc571d776b4e58b86f1e119ffe289476fedf9b68a16f0"
+    }
+  },
+  "retries": 0,
+  "notes": ""
+}

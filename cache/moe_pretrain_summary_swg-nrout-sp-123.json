@@ -1,0 +1,30 @@
+{
+  "config": {
+    "model": "fully-routed",
+    "device": "cuda:0",
+    "seed": 123,
+    "routing": "data",
+    "K": 4,
+    "lr": 0.001,
+    "beta2": 0.999,
+    "shuffle": true,
+    "max_epochs": 300,
+    "freeze_router": false,
+    "vanilla_per_scenario": false,
+    "scenario_loss_weighting": "sample",
+    "run_code": "swg-nrout-sp-123"
+  },
+  "test_auc_all": 0.7804157739403924,
+  "mean_per_scenario_auc": 0.7272256441956259,
+  "per_scenario_auc": {
+    "0": 0.7084670708242122,
+    "1": 0.733614286493784,
+    "2": 0.801635449256622,
+    "3": 0.7110506470134544,
+    "4": 0.7189257376760938,
+    "5": 0.6931963199287728,
+    "6": 0.7341597408647289,
+    "8": 0.7167559015073389
+  },
+  "checkpoint": "cache/swg-nrout-sp-123.pt"
+}

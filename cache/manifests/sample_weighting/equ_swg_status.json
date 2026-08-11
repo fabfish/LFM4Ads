@@ -1,0 +1,7 @@
+{
+  "status": "pass",
+  "loss_abs_err": 0.0,
+  "grad_abs_tol": 1e-06,
+  "grad_rel_tol": 1e-05,
+  "errors": []
+}

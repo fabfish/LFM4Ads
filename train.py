@@ -86,8 +86,30 @@ def train(model, scenario, shuffle=False):
 #  MoE training with gradient tracking
 # ============================================================
 
+def scenario_loss(criterion, logit, label, mask, tab_batch, loss_weighting):
+    """Per-scenario BCE with optional sample-proportion weighting.
+
+    - ``equal``: return the in-scenario mean (historical ``train_moe`` behaviour).
+    - ``sample``: scale the in-scenario mean by ``|B_s| / |B|`` so that summing
+      across scenarios equals the full-batch mean loss (see driver doc §二/§六).
+      Only the *base* BCE is scaled; any specialization regularizer added later
+      in ``train_moe`` is NOT scaled by this factor.
+
+    Weight formula uses ``mask.sum()`` (nonzero count of a boolean mask), never
+    ``len(sub)`` (dict field count) nor ``numel(mask)`` (always == numel(tab_batch)).
+    """
+    base = criterion(logit, label)
+    if loss_weighting == "sample":
+        w = mask.sum().to(base.dtype) / tab_batch.numel()
+        return base * w
+    if loss_weighting == "equal":
+        return base
+    raise ValueError(f"unknown loss_weighting={loss_weighting!r} "
+                     f"(expected 'equal' or 'sample')")
+
+
 def train_moe(model, scenario, tracker=None, spec_loss=None, lr=1e-3,
-              beta2=0.999, shuffle=False):
+              beta2=0.999, shuffle=False, loss_weighting="equal"):
     """Train DCNv2MoE with per-scenario forward+backward for clean AU tracking.
 
     Each batch is split by scenario; each sub-batch gets its own forward+backward.
@@ -98,9 +120,23 @@ def train_moe(model, scenario, tracker=None, spec_loss=None, lr=1e-3,
         scenario: "all" or a specific scenario id
         tracker: GradientTracker instance (optional, for AU accumulation)
         spec_loss: SpecializationLoss instance (optional, for encouraging specialization)
+        loss_weighting: "equal" (historical, per-scenario mean, no scaling) or
+            "sample" (scale each sub-batch BCE by its sample proportion so the
+            summed objective equals the full-batch objective). Default "equal"
+            preserves historical behaviour and all existing artifacts.
     Returns:
         test AUC (float)
     """
+    # Refuse undefined combinations: sample weighting changes the *base* objective
+    # only; the specialization regularizer's own weighting semantics are unset, so
+    # silently mixing the two would change regularization strength. (driver doc §六)
+    if loss_weighting == "sample" and spec_loss is not None and spec_loss.enabled:
+        raise ValueError(
+            "sample loss weighting with an enabled spec_loss is not defined: the "
+            "specialization regularizer's sample-weighting semantics are unset. "
+            "Refusing to run (see driver doc §六)."
+        )
+
     train_set, valid_set, test_set = Split(scenario)
     criterion = torch.nn.BCEWithLogitsLoss()
     optimizer = torch.optim.AdamW(_trainable(model), lr=lr,
@@ -137,7 +173,10 @@ def train_moe(model, scenario, tracker=None, spec_loss=None, lr=1e-3,
                     tracker.set_scenario(si)
 
                 model(sub)
-                loss = criterion(sub["logit"], sub["is_click"].float())
+                loss = scenario_loss(
+                    criterion, sub["logit"], sub["is_click"].float(),
+                    mask, tab_batch, loss_weighting,
+                )
 
                 # Phase 3: add specialization loss on THIS sub-batch's own
                 # gate+tab (fix D5: previously only the leaked last sub was used).

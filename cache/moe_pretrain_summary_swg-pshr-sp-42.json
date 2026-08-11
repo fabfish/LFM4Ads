@@ -1,0 +1,30 @@
+{
+  "config": {
+    "model": "partial-shared",
+    "device": "cuda:0",
+    "seed": 42,
+    "routing": "data",
+    "K": 4,
+    "lr": 0.001,
+    "beta2": 0.999,
+    "shuffle": true,
+    "max_epochs": 300,
+    "freeze_router": true,
+    "vanilla_per_scenario": false,
+    "scenario_loss_weighting": "sample",
+    "run_code": "swg-pshr-sp-42"
+  },
+  "test_auc_all": 0.780517266059017,
+  "mean_per_scenario_auc": 0.729803936467855,
+  "per_scenario_auc": {
+    "0": 0.7110879523223799,
+    "1": 0.7338310781121736,
+    "2": 0.8031798226457518,
+    "3": 0.7159782329248436,
+    "4": 0.7222455529962496,
+    "5": 0.6638169609734382,
+    "6": 0.7380905836182019,
+    "8": 0.7502013081498016
+  },
+  "checkpoint": "cache/swg-pshr-sp-42.pt"
+}
