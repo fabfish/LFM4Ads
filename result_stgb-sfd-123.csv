@@ -1,0 +1,2 @@
+model,seed,routing,K,test_auc_all,mean_per_scenario,s0_auc,s1_auc,s2_auc,s3_auc,s4_auc,s5_auc,s6_auc,s8_auc
+same-flops-dense,123,data,4,0.7814,0.7335,0.7143,0.7347,0.7984,0.7301,0.7224,0.7063,0.7295,0.7323

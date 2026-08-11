@@ -1,0 +1,34 @@
+{
+  "config": {
+    "model": "same-flops-dense",
+    "device": "cuda:0",
+    "seed": 123,
+    "routing": "data",
+    "K": 4,
+    "lr": 0.001,
+    "beta2": 0.999,
+    "shuffle": true,
+    "max_epochs": 300,
+    "freeze_router": false,
+    "router": "none",
+    "router_semantics": "none: dense, no router",
+    "rank": 45,
+    "vanilla_per_scenario": false,
+    "scenario_loss_weighting": "sample",
+    "run_code": "stgb-sfd-123"
+  },
+  "test_auc_all": 0.7813659722452125,
+  "mean_per_scenario_auc": 0.7334928326308269,
+  "per_scenario_auc": {
+    "0": 0.7142612259453887,
+    "1": 0.7346688797658416,
+    "2": 0.798433931691724,
+    "3": 0.7300582740594738,
+    "4": 0.7224306788458724,
+    "5": 0.7062861700549042,
+    "6": 0.7295150861440172,
+    "8": 0.7322884145393929
+  },
+  "gate_structure": null,
+  "checkpoint": "cache/stgb-sfd-123.pt"
+}
