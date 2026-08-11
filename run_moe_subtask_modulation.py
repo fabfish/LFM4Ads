@@ -61,6 +61,9 @@ def _parse_args(argv):
     ap.add_argument("--epochs", type=int, default=1,
                     help="在 (训练+验证) 数据上做多少轮按场景调制训练")
     ap.add_argument("--batch-size", type=int, default=16384)
+    ap.add_argument("--save-backbone", action="store_true",
+                    help="落盘调制后的 backbone 至 "
+                         "cache/subtask_backbone_*.pt，供表征用法阶段加载")
     return ap.parse_args(argv)
 
 
@@ -216,6 +219,15 @@ def main():
     with open(json_path, "w") as f:
         json.dump(summary, f, indent=2)
     print(f"  summary → {json_path}")
+
+    # 可选落盘调制后的 backbone，供表征用法（特征级/模块级/模型级）阶段加载。
+    # 默认不存，避免 36×3 网格产生上百个 320MB 权重文件；
+    # 仅对通过多种子验证的少数配置按需开启。
+    if args.save_backbone:
+        pt_path = json_path.replace(".json", ".pt").replace(
+            "subtask_modulation_", "subtask_backbone_")
+        torch.save(model.state_dict(), pt_path)
+        print(f"  backbone → {pt_path}")
 
 
 if __name__ == "__main__":

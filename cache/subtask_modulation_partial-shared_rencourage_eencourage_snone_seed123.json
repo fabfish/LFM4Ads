@@ -1,0 +1,27 @@
+{
+  "config": {
+    "model": "partial-shared",
+    "router_mode": "encourage",
+    "expert_mode": "encourage",
+    "shared_mode": "none",
+    "seed": 123,
+    "K": 4,
+    "routing": "data",
+    "lr": 0.001,
+    "alpha": 0.5,
+    "epochs": 1,
+    "batch_size": 16384
+  },
+  "test_auc_all": 0.7549151655100081,
+  "mean_per_scenario_auc": 0.7020895473518953,
+  "per_scenario_auc": {
+    "0": 0.645776012879021,
+    "1": 0.697931495386588,
+    "2": 0.7837906880086768,
+    "3": 0.6855043277058874,
+    "4": 0.6998161324487472,
+    "5": 0.6878227481822229,
+    "6": 0.700802395905744,
+    "8": 0.7152725782982751
+  }
+}
