@@ -8,7 +8,9 @@ __pycache__/
 *.pyc
 
 # MoE / AdaTask experiment runtime artifacts
+*.pt
 cache/*.pt
+cache/**/*.pt
 cache/*.log
 result_moe.csv
 result_moe_downstream.csv
