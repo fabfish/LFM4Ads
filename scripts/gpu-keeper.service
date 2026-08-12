@@ -1,0 +1,16 @@
+[Unit]
+Description=GPU0 占位守护（fake load keeper）
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/root/Documents/Lfm4ads
+ExecStart=/opt/conda/envs/torch-base/bin/python3 /root/Documents/Lfm4ads/scripts/gpu_keeper.py
+Restart=always
+RestartSec=5
+# 若需调参，在此用 Environment= 覆盖，例如：
+# Environment=GK_IDLE_THRESHOLD_S=300
+# Environment=GK_FAKE_DURATION_S=0
+
+[Install]
+WantedBy=default.target
