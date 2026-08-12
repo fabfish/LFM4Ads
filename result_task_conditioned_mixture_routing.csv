@@ -1,0 +1,16 @@
+run_name,routing_mode,seed,pooled_auc,macro_auc,mean_layer_entropy,mean_soft_task_expert_mutual_information_nats,mean_last_hard_argmax_route_churn
+task-conditioned-mixture-routing-frozen-uniform-routing-seed-42,frozen-uniform-routing,42,0.7794788997330024,0.7351853705469668,1.3862943611198875,0.0,0.0
+task-conditioned-mixture-routing-frozen-uniform-routing-seed-123,frozen-uniform-routing,123,0.78129809547218,0.7324441490292526,1.3862943611198875,0.0,0.0
+task-conditioned-mixture-routing-frozen-uniform-routing-seed-456,frozen-uniform-routing,456,0.7810182671950703,0.7421947268086578,1.3862943611198875,0.0,0.0
+task-conditioned-mixture-routing-data-only-routing-seed-42,data-only-routing,42,0.7799182666584142,0.7340178696597042,1.1356872283573944,0.0018348198338655856,0.17683919270833334
+task-conditioned-mixture-routing-data-only-routing-seed-123,data-only-routing,123,0.781934089171691,0.735040302309707,0.9927938487946594,0.0017087689928035686,0.13582356770833334
+task-conditioned-mixture-routing-data-only-routing-seed-456,data-only-routing,456,0.7803667603807816,0.738574799811096,1.0947594128346887,0.0014235283291112132,0.17301432291666666
+task-conditioned-mixture-routing-task-only-routing-seed-42,task-only-routing,42,0.7796230637242645,0.7336455063383736,1.3857225096114594,0.0004933246525816627,0.19222005208333334
+task-conditioned-mixture-routing-task-only-routing-seed-123,task-only-routing,123,0.7815568321676076,0.7356731667713347,1.3855453932045922,0.0005435776243186229,0.3055013020833333
+task-conditioned-mixture-routing-task-only-routing-seed-456,task-only-routing,456,0.7810390743986324,0.7446245605810443,1.3854509577676992,0.0007345186004663797,0.09822591145833333
+task-conditioned-mixture-routing-data-and-task-routing-seed-42,data-and-task-routing,42,0.7800980959156034,0.7326473621315592,1.1329447271084827,0.0018177509171302978,0.16764322916666666
+task-conditioned-mixture-routing-data-and-task-routing-seed-123,data-and-task-routing,123,0.7818569128584173,0.7335942433341974,1.0164703887923545,0.001926967795717791,0.13289388020833334
+task-conditioned-mixture-routing-data-and-task-routing-seed-456,data-and-task-routing,456,0.7809281041083461,0.7426397822417972,1.085037345947735,0.001601780097693118,0.1796875
+task-conditioned-mixture-routing-data-and-task-consistency-routing-seed-42,data-and-task-consistency-routing,42,0.7799520041202826,0.7323047588333833,1.134335887182303,0.0016279617985688834,0.173583984375
+task-conditioned-mixture-routing-data-and-task-consistency-routing-seed-123,data-and-task-consistency-routing,123,0.7815658997043851,0.733849148013802,0.99433171447318,0.001769793093808099,0.123046875
+task-conditioned-mixture-routing-data-and-task-consistency-routing-seed-456,data-and-task-consistency-routing,456,0.7808460143056172,0.7369359905232115,1.09060751146858,0.0014418485606147793,0.169189453125

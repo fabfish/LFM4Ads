@@ -1,0 +1,8 @@
+{
+  "status": "authorized",
+  "driver_path": "docs/20260812-1139-Task-Conditioned-Mixture-Routing-驱动.md",
+  "driver_sha256": "dc3d1cdc200a40b73584ffb42f3e9670657f657ca9bfdefe999b042e2f2c09f6",
+  "authorized_scope": "fifteen-trial-multi-device-seed-group-parallel",
+  "authorized_at": "2026-08-12",
+  "note": "User authorized multi-device seed-group parallel matrix on 2026-08-12; each seed's five routing modes share one device, distinct seed groups run in parallel."
+}

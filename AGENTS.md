@@ -17,7 +17,7 @@
 
 - 跨变体对比必须**控制变量**：除被测项外，seed / batch_size / lr 完全一致。
 - 默认口径：`device=cuda:0 / seed=42 / DCNv2 5层 360维 / embed_dim=10`。
-- 需要横向比较时，各变体必须串行运行（单卡独占），不能并行。
+- **并行规则（用户 2026-08-12 放宽）**：允许跨设备并行，但必须保证**同一配对 seed 的全部路由模式跑在同一张卡上**（同 seed 的 pooled-AUC 配对差不引入设备混杂因子）；不同 seed 组可分布到不同设备并发。矩阵 runner 通过 `seed_device_map` 固定分配，未满足该约束的并行一律禁止。
 - 精度指标：用 AUC（`torcheval.metrics.BinaryAUROC`），单次 trial 即写入 `result.csv`。
 - 论文口径基于 100 次 trial 取平均；探索阶段可用 3-5 seed 快速验证。
 - 跨 scenario 对比仅看**相对排序**（不同 scenario 的数据分布不同，绝对 AUC 不可跨 scenario 比较）。

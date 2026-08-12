@@ -1,0 +1,2 @@
+run_name,routing_mode,seed,pooled_auc,macro_auc_eight_report_scenarios,scenario_loss_weighting,batch_size,learning_rate,device,git_commit
+task-conditioned-mixture-routing-data-only-routing-seed-123,data-only-routing,123,0.781934089171691,0.735040302309707,sample,10000,0.001,cuda:1,180a49ac5c5285a331276990c9decaadf04834a1

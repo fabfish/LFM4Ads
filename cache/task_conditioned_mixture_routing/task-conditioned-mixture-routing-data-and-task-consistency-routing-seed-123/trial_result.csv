@@ -1,0 +1,2 @@
+run_name,routing_mode,seed,pooled_auc,macro_auc_eight_report_scenarios,scenario_loss_weighting,batch_size,learning_rate,device,git_commit
+task-conditioned-mixture-routing-data-and-task-consistency-routing-seed-123,data-and-task-consistency-routing,123,0.7815658997043851,0.733849148013802,sample,10000,0.001,cuda:1,180a49ac5c5285a331276990c9decaadf04834a1

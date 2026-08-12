@@ -1,0 +1,263 @@
+{
+  "config": {
+    "run_name": "task-conditioned-mixture-routing-data-and-task-routing-seed-42",
+    "routing_mode": "data-and-task-routing",
+    "router_semantics": "learnable gate from additive data logits and task-identifier logits",
+    "seed": 42,
+    "device": "cuda:0",
+    "batch_size": 10000,
+    "learning_rate": 0.001,
+    "adam_beta_two": 0.999,
+    "maximum_epochs": 300,
+    "num_workers": 8,
+    "expert_count": 4,
+    "expert_rank": 45,
+    "probe_size": 4096,
+    "scenario_loss_weighting": "sample",
+    "optimizer_steps_per_original_batch": 1,
+    "consistency_weight": 0.01,
+    "training_task_count": 15,
+    "training_task_sample_counts": {
+      "0": 1929564,
+      "1": 6091260,
+      "2": 324817,
+      "3": 31476,
+      "4": 704966,
+      "5": 12931,
+      "6": 141545,
+      "7": 3041,
+      "8": 14092,
+      "9": 1611,
+      "10": 822,
+      "11": 16014,
+      "12": 8483,
+      "13": 14,
+      "14": 371
+    },
+    "report_scenarios": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      8
+    ]
+  },
+  "results": {
+    "pooled_auc": 0.7800980959156034,
+    "macro_auc": 0.7326473621315592,
+    "per_scenario_auc": {
+      "0": 0.710403322478101,
+      "1": 0.7328591971565263,
+      "2": 0.7964005490846557,
+      "3": 0.7555146113634416,
+      "4": 0.7217374618361363,
+      "5": 0.6868878913785428,
+      "6": 0.7372365726422948,
+      "8": 0.720139291112775
+    },
+    "routing_diagnostics": {
+      "layers": [
+        {
+          "layer": 0,
+          "mean_gate": [
+            0.11930095346612272,
+            0.34850880879589585,
+            0.24369976434932017,
+            0.2884904733417014
+          ],
+          "mean_entropy": 1.2259788672205485,
+          "maximum_entropy": 1.3862943611198906,
+          "soft_task_expert_mutual_information_nats": 0.0009375986106440991,
+          "hard_argmax_route_churn": null,
+          "collapsed": false
+        },
+        {
+          "layer": 1,
+          "mean_gate": [
+            0.23044195302742085,
+            0.20360499863952897,
+            0.2794299269006718,
+            0.2865231213500707
+          ],
+          "mean_entropy": 1.1250832803987998,
+          "maximum_entropy": 1.3862943611198906,
+          "soft_task_expert_mutual_information_nats": 0.002083839436912903,
+          "hard_argmax_route_churn": null,
+          "collapsed": false
+        },
+        {
+          "layer": 2,
+          "mean_gate": [
+            0.26540404376446236,
+            0.13704259831878365,
+            0.2878949437589819,
+            0.3096584141539317
+          ],
+          "mean_entropy": 1.0477720337061,
+          "maximum_entropy": 1.3862943611198906,
+          "soft_task_expert_mutual_information_nats": 0.0024318147038338914,
+          "hard_argmax_route_churn": null,
+          "collapsed": false
+        }
+      ]
+    },
+    "fixed_validation_probe_hard_argmax_route_churn": {
+      "0": {
+        "mean_hard_argmax_route_churn": 0.15966796875,
+        "maximum_hard_argmax_route_churn": 0.15966796875,
+        "last_hard_argmax_route_churn": 0.15966796875,
+        "measured_epoch_transitions": 1
+      },
+      "1": {
+        "mean_hard_argmax_route_churn": 0.1572265625,
+        "maximum_hard_argmax_route_churn": 0.1572265625,
+        "last_hard_argmax_route_churn": 0.1572265625,
+        "measured_epoch_transitions": 1
+      },
+      "2": {
+        "mean_hard_argmax_route_churn": 0.18603515625,
+        "maximum_hard_argmax_route_churn": 0.18603515625,
+        "last_hard_argmax_route_churn": 0.18603515625,
+        "measured_epoch_transitions": 1
+      }
+    },
+    "training_history": [
+      {
+        "epoch": 1,
+        "valid_auc": 0.7791044712324573,
+        "base_loss_sum": 499.80722002844567,
+        "routing_auxiliary_loss_sum": 0.0,
+        "optimizer_steps": 929,
+        "routing_probe": {
+          "layers": [
+            {
+              "layer": 0,
+              "mean_gate": [
+                0.1024669871333117,
+                0.3593997623574978,
+                0.25857375149007567,
+                0.27955949832085025
+              ],
+              "mean_entropy": 1.208655917610861,
+              "maximum_entropy": 1.3862943611198906,
+              "soft_task_expert_mutual_information_nats": 0.002255238707626962,
+              "hard_argmax_route_churn": null,
+              "collapsed": false
+            },
+            {
+              "layer": 1,
+              "mean_gate": [
+                0.2419643223008734,
+                0.14968263866512643,
+                0.31737076091576455,
+                0.29098227713075175
+              ],
+              "mean_entropy": 1.1026238991362733,
+              "maximum_entropy": 1.3862943611198906,
+              "soft_task_expert_mutual_information_nats": 0.010047561951672095,
+              "hard_argmax_route_churn": null,
+              "collapsed": false
+            },
+            {
+              "layer": 2,
+              "mean_gate": [
+                0.28026282512860234,
+                0.1304799207606493,
+                0.30450427686091075,
+                0.2847529775323778
+              ],
+              "mean_entropy": 1.0314315307289217,
+              "maximum_entropy": 1.3862943611198906,
+              "soft_task_expert_mutual_information_nats": 0.0110693251298332,
+              "hard_argmax_route_churn": null,
+              "collapsed": false
+            }
+          ],
+          "epoch": 1,
+          "probe_samples": 4096
+        }
+      },
+      {
+        "epoch": 2,
+        "valid_auc": 0.7793361892210315,
+        "base_loss_sum": 492.26807083370426,
+        "routing_auxiliary_loss_sum": 0.0,
+        "optimizer_steps": 929,
+        "routing_probe": {
+          "layers": [
+            {
+              "layer": 0,
+              "mean_gate": [
+                0.12218296527089478,
+                0.38571608627216847,
+                0.22676969617032228,
+                0.2653312517818449
+              ],
+              "mean_entropy": 1.1749213015586037,
+              "maximum_entropy": 1.3862943611198906,
+              "soft_task_expert_mutual_information_nats": 0.0013271630827241259,
+              "hard_argmax_route_churn": 0.15966796875,
+              "collapsed": false
+            },
+            {
+              "layer": 1,
+              "mean_gate": [
+                0.21531704680324992,
+                0.14116298483389755,
+                0.3211255613305184,
+                0.3223944067217417
+              ],
+              "mean_entropy": 1.0210023738452065,
+              "maximum_entropy": 1.3862943611198906,
+              "soft_task_expert_mutual_information_nats": 0.015741767252795184,
+              "hard_argmax_route_churn": 0.1572265625,
+              "collapsed": false
+            },
+            {
+              "layer": 2,
+              "mean_gate": [
+                0.26385561966077375,
+                0.14777692756317862,
+                0.31246602752679564,
+                0.2759014255775014
+              ],
+              "mean_entropy": 0.9750027242922576,
+              "maximum_entropy": 1.3862943611198906,
+              "soft_task_expert_mutual_information_nats": 0.011140968901120759,
+              "hard_argmax_route_churn": 0.18603515625,
+              "collapsed": false
+            }
+          ],
+          "epoch": 2,
+          "probe_samples": 4096
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "git": {
+      "commit": "180a49ac5c5285a331276990c9decaadf04834a1",
+      "status": "M AGENTS.md\n M dataset.py\n M \"docs/20260811-2300-\\346\\214\\211\\345\\234\\272\\346\\231\\257\\350\\256\\255\\347\\273\\203\\344\\273\\243\\344\\273\\267\\346\\266\\210\\351\\231\\244-HY3\\345\\256\\241\\350\\256\\241.md\"\n M \"docs/20260811-2310-StageB-MoE-\\344\\271\\235\\346\\254\\241\\350\\256\\255\\347\\273\\203\\351\\251\\261\\345\\212\\250.md\"\n M \"docs/20260812-0103-StageB-MoE-\\344\\271\\235\\346\\254\\241\\350\\256\\255\\347\\273\\203\\347\\273\\223\\350\\256\\272.md\"\n M docs/DRIVERS.md\n M model.py\n M scripts/run_sample_weighting_gate.py\n M scripts/summarize_sample_weighting_gate.py\n M train.py\n?? .Trash-0/\n?? cache/audit/\n?? cache/manifests/task_conditioned_mixture_routing/\n?? cache/task_conditioned_mixture_routing/\n?? \"docs/20260812-1139-Task-Conditioned-Mixture-Routing-\\351\\251\\261\\345\\212\\250.md\"\n?? logs/gpu_keeper.log\n?? logs/gpu_keeper.pid\n?? logs/task-conditioned-mixture-routing-data-and-task-consistency-routing-seed-123.log\n?? logs/task-conditioned-mixture-routing-data-and-task-routing-seed-123.log\n?? logs/task-conditioned-mixture-routing-data-and-task-routing-seed-42.log\n?? logs/task-conditioned-mixture-routing-data-only-routing-seed-123.log\n?? logs/task-conditioned-mixture-routing-data-only-routing-seed-42.log\n?? logs/task-conditioned-mixture-routing-data-only-routing-seed-456.log\n?? logs/task-conditioned-mixture-routing-frozen-uniform-routing-seed-123.log\n?? logs/task-conditioned-mixture-routing-frozen-uniform-routing-seed-42.log\n?? logs/task-conditioned-mixture-routing-frozen-uniform-routing-seed-456.log\n?? logs/task-conditioned-mixture-routing-task-only-routing-seed-123.log\n?? logs/task-conditioned-mixture-routing-task-only-routing-seed-42.log\n?? logs/task-conditioned-mixture-routing-task-only-routing-seed-456.log\n?? logs/tcmr_matrix_stdout.log\n?? run_task_conditioned_mixture_routing.py\n?? scripts/audit_experiment_bundle.py\n?? scripts/run_task_conditioned_mixture_routing_matrix.py\n?? scripts/summarize_task_conditioned_mixture_routing.py\n?? scripts/task_conditioned_mixture_routing_authorization.json\n?? scripts/verify_task_conditioned_mixture_routing.py\n?? task_conditioned_mixture_routing_protocol.py"
+    },
+    "dataset_path": "/root/Documents/Lfm4ads/dataset.feather",
+    "dataset_sha256": "7f4be347e7a9017310f6600950f680185e01ead6805a08daa11d9a5b05abf614",
+    "source_sha256": {
+      "model.py": "76a5f846355331e5798594a8209366055630249e0ef0dd243a86e2ea2cf78087",
+      "train.py": "c813dc9b19762a78d79451cbc682282b5c0d27f9f92660f61823fcea72814b4e",
+      "task_conditioned_mixture_routing_protocol.py": "72a26f9510a2c28bcd626e150270f865ee339db6be46606ecdddb46b2cd05b2a",
+      "dataset.py": "1bd10afdcedb0306c318907a3abd0f587e1e71d9f5951406627f41d9a5bdee04",
+      "fields.py": "ad66ae4a0517c0f0a1d1862ebb0efc411786f8efa45b6d3c2725cee208fafb4e",
+      "run_task_conditioned_mixture_routing.py": "89f50554b93828cb92d33b8f0021c0099962a6676a3a97f1403b78c7abc4597f",
+      "scripts/task_conditioned_mixture_routing_authorization.json": "0ec2ce6adfddb8f1c7d87ec005049a4d707c89308105b28a93bb9c6689d7d5f6",
+      "docs/20260812-1139-Task-Conditioned-Mixture-Routing-驱动.md": "dc3d1cdc200a40b73584ffb42f3e9670657f657ca9bfdefe999b042e2f2c09f6"
+    },
+    "shared_initialization_sha256": "260ab9671552772d0da640c2637b96b6b09d4d3f7b91d6589afbc9ccc20f64bc"
+  },
+  "checkpoint": {
+    "path": "/root/Documents/Lfm4ads/cache/task_conditioned_mixture_routing/task-conditioned-mixture-routing-data-and-task-routing-seed-42/model_state.pt",
+    "sha256": "6dd3e58e0d76d12ffe373cc3b97facf876d55388771fd67a3d3be78409526017"
+  }
+}

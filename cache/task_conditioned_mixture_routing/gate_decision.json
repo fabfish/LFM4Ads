@@ -1,0 +1,67 @@
+{
+  "verdict": "INCONCLUSIVE",
+  "reason": "a primary same-seed comparison changes sign across seeds",
+  "primary_mode": "data-and-task-routing",
+  "primary_paired_pooled_auc_differences": {
+    "frozen-uniform-routing": [
+      0.0006191961826009784,
+      0.0005588173862373091,
+      -9.016308672415985e-05
+    ],
+    "data-only-routing": [
+      0.00017982925718917908,
+      -7.71763132737524e-05,
+      0.0005613437275645561
+    ]
+  },
+  "primary_paired_macro_auc_differences": {
+    "frozen-uniform-routing": [
+      -0.002538008415407522,
+      0.0011500943049448376,
+      0.0004450554331393297
+    ],
+    "data-only-routing": [
+      -0.0013705075281449375,
+      -0.0014460589755095343,
+      0.004064982430701192
+    ]
+  },
+  "directions": {
+    "frozen-uniform-routing": [
+      "positive",
+      "positive",
+      "negative"
+    ],
+    "data-only-routing": [
+      "positive",
+      "negative",
+      "positive"
+    ]
+  },
+  "practical_significance": {
+    "rule": "a stable improvement claim additionally requires the mean paired difference to exceed each anchor's three-seed range",
+    "comparisons": {
+      "frozen-uniform-routing": {
+        "anchor_seed_range_noise_floor": 0.0018191957391775482,
+        "mean_paired_difference": 0.0003626168273713759,
+        "exceeds_anchor_seed_range": false
+      },
+      "data-only-routing": {
+        "anchor_seed_range_noise_floor": 0.0020158225132768104,
+        "mean_paired_difference": 0.00022133222382666093,
+        "exceeds_anchor_seed_range": false
+      }
+    },
+    "stable_improvement_claim": "NOT_SUPPORTED"
+  },
+  "collapsed_runs": [],
+  "systematically_degraded_scenarios": {
+    "frozen-uniform-routing": [],
+    "data-only-routing": []
+  },
+  "secondary_modes_cannot_replace_primary_endpoint": [
+    "task-only-routing",
+    "data-and-task-consistency-routing"
+  ],
+  "status": "done"
+}

@@ -1,0 +1,9 @@
+{
+  "status": "done",
+  "aggregate_csv": "/root/Documents/Lfm4ads/result_task_conditioned_mixture_routing.csv",
+  "aggregate_csv_sha256": "a884890b179ac80397bd8cbc0efae25956c83f6dbd2c32f7e38d997675f0f0f4",
+  "gate_decision": "/root/Documents/Lfm4ads/cache/task_conditioned_mixture_routing/gate_decision.json",
+  "gate_decision_sha256": "8421c1f3ae4fcdd91a6096342d5d435f2d59716f675f62eee635f26d8a3fa5f5",
+  "matrix_state": "/root/Documents/Lfm4ads/cache/manifests/task_conditioned_mixture_routing/matrix_state.json",
+  "matrix_state_sha256": "bad182cf079a497bca2d78c8bc450070a7d2cb4e956d459f218cf2de69ec4160"
+}
