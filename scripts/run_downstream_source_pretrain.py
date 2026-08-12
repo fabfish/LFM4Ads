@@ -73,7 +73,8 @@ def evaluate_auc(model, dataset, device, batch_size: int = 10000) -> float:
     model.eval()
     metric = BinaryAUROC()
     with torch.no_grad():
-        for batch in DataLoader(dataset, batch_size=batch_size, shuffle=False):
+        for batch in DataLoader(dataset, batch_size=batch_size, shuffle=False,
+                               num_workers=32, pin_memory=True):
             x = {k: (v.to(device).int() if k != "is_click" else v.to(device))
                  for k, v in batch.items()}
             model(x)
@@ -98,7 +99,8 @@ def source_train(model, device, seed, lr, beta2, max_epochs) -> dict:
         model.train()
         total_loss, n = 0.0, 0
         for batch in DataLoader(train_set, batch_size=batch_size, shuffle=True,
-                                generator=generator, num_workers=4, pin_memory=True):
+                                generator=generator, num_workers=32,
+                                pin_memory=True, prefetch_factor=4):
             x = {k: (v.to(device).int() if k != "is_click" else v.to(device))
                  for k, v in batch.items()}
             model(x)

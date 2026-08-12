@@ -50,8 +50,9 @@ def trial_done(arm: str, target: int, seed: int) -> bool:
 
 
 def run(cmd: list[str]) -> None:
-    print("+", " ".join(cmd))
-    subprocess.run(cmd, check=True)
+    print("+", " ".join(cmd), flush=True)
+    # Launch unbuffered so child epoch/trial logs appear in the matrix log immediately.
+    subprocess.run([PY, "-u", *cmd[1:]], check=True)
 
 
 def ensure_source(model: str, seed: int) -> None:
