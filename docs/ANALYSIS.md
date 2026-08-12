@@ -67,6 +67,14 @@ G3 已确认：
 
 证据：[G1/G2 结论](archive/conclusions/20260812-1832-共享残差混合专家-G1G2不变量结论.md)、[G3 结论](archive/conclusions/20260812-1956-共享残差specialist-screen-INCONCLUSIVE结论.md)、[机器判定](../cache/shared_residual_continual/specialist_screen_gate_decision.json)。
 
+## 2.5 下游证据口径重审
+
+代码复核显示，旧 `main_moe.py` / `main_moe_v2.py` 没有完成其注释声称的三级下游：实际是 13 个 FeatureUsage 配置，加一个 `ModuleUsage(..., "Vanilla")`。后者不会加载任何预训练 sparse/cross 参数，因此只是随机初始化占位，不是 MoE Module transfer；`ModelUsage` 也未被调用。
+
+因此，旧“MoE 三级下游 112 对”必须降格为“104 个 FeatureUsage 对照 + 8 个随机初始化占位”，不能用于否定或支持真正的模块级/模型级迁移。现有 FeatureUsage 还使用 train+validation 聚合的用户静态 `CRs`，不等于目标域标签留出的逐样本迁移。
+
+合适的新问题不是继续扫描旧 CR 融合层，而是检验：目标场景完全留出、4096 总标注固定、下游可训练参数近似匹配时，预训练 MoE 专家能否通过 router-only 适配优于 dense adapter，并以双重差分确认增益来自适配而非仅来自冻结表示。该路线独立于已关闭的静态 pooled-AUC 与持续学习关卡，协议见[下游迁移驱动](archive/drivers/20260812-2303-MoE下游留出域参数高效迁移驱动.md)。在正式结果前状态为 `NOT_EVALUATED`，不能预设优势成立。
+
 ## 3. 已关闭或降格的主张
 
 | 主张 | 当前处理 | 原因 |

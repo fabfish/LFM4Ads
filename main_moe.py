@@ -5,7 +5,8 @@ Flow:
   2. Initialize DCNv2MoE from vanilla weights (split Cross layers)
   3. Train MoE with gradient tracking → detect expert specialization
   4. Compare per-scenario AUC: Vanilla vs MoE
-  5. Run downstream eval (FeatureUsage/ModuleUsage/ModelUsage)
+  5. Run historical FeatureUsage exploration plus a random-init ModuleUsage
+     placebo. This is not true MoE ModuleUsage/ModelUsage transfer evidence.
 """
 
 import argparse
@@ -229,7 +230,7 @@ print(f"  summary → {SUMMARY_JSON}")
 
 
 # ===========================================================
-#  Step 5: Downstream evaluation (Feature/Module/Model Usage)
+#  Step 5: Historical FeatureUsage exploration + random-init placebo
 # ===========================================================
 print()
 print("=" * 60)

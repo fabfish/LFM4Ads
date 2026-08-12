@@ -1,0 +1,130 @@
+{
+  "status": "pass",
+  "gate": "downstream-transfer-protocol-invariants",
+  "authorization_status": "not-started",
+  "formal_training_authorized": false,
+  "errors": [],
+  "trainable_parameter_counts": {
+    "dense-head": 361,
+    "dense-adapter-r2": 4681,
+    "moe-head": 361,
+    "moe-router": 4693
+  },
+  "total_parameter_counts": {
+    "dense-head": 84672966,
+    "dense-adapter-r2": 84677286,
+    "moe-head": 84681078,
+    "moe-router": 84681078
+  },
+  "primary_arm_parameter_difference": 12,
+  "zero_init_adapter_max_abs": 0.0,
+  "paired_binary_head_initialization": true,
+  "data": {
+    "dataset_sha256": "7f4be347e7a9017310f6600950f680185e01ead6805a08daa11d9a5b05abf614",
+    "source_scenarios": [
+      0,
+      1,
+      3,
+      4,
+      8
+    ],
+    "target_scenarios": [
+      2,
+      5,
+      6
+    ],
+    "source_counts": {
+      "train": 8771358,
+      "validation": 1168866,
+      "test": 1134962
+    },
+    "target_budget_splits": {
+      "2": {
+        "42": {
+          "fit_count": 3072,
+          "validation_count": 1024,
+          "fit_positive_count": 1196,
+          "validation_positive_count": 414,
+          "fit_sha256": "138fc7f4aba8b2cc11c1434d0b614fefdc00c1a70ebf5a1b6a0f9f718e6595dd",
+          "validation_sha256": "77ca8650580b185f744cda002ae1a2bfb0d680d5f94d91996d11f602dfb0480b"
+        },
+        "123": {
+          "fit_count": 3072,
+          "validation_count": 1024,
+          "fit_positive_count": 1261,
+          "validation_positive_count": 387,
+          "fit_sha256": "007cccf603faef41f79c0d271b9a2029a44477f715020bc32fe5e6929823dd0c",
+          "validation_sha256": "3b4aea0876470a96955db318eb3b4356119986a58f6fea36dc691c73347b4840"
+        },
+        "456": {
+          "fit_count": 3072,
+          "validation_count": 1024,
+          "fit_positive_count": 1204,
+          "validation_positive_count": 414,
+          "fit_sha256": "b7a96f97c26a90969b762dfe4d898de3d8c0e17b4c0ce0be33ab1c31833257d2",
+          "validation_sha256": "c5ad2edd40efebeced537fe8feb8e636c60045edfeffb28d1143ddfe8e3ac1d4"
+        }
+      },
+      "5": {
+        "42": {
+          "fit_count": 3072,
+          "validation_count": 1024,
+          "fit_positive_count": 666,
+          "validation_positive_count": 187,
+          "fit_sha256": "848fa71dd202f58e7259e988f670519798ac317ac538ae1628879e0faa3317bf",
+          "validation_sha256": "68fe25c1f398371c09ae359b24f326dd72a11c0afacfe95d84311d0269deac74"
+        },
+        "123": {
+          "fit_count": 3072,
+          "validation_count": 1024,
+          "fit_positive_count": 663,
+          "validation_positive_count": 211,
+          "fit_sha256": "db2ae1004f0c74810a556b8d968c4fc956197624937dd95b974344bd0bc66b2f",
+          "validation_sha256": "beba607ef72e6660e52afb870715e8f4f1925edb6700883366508d8176d7fa88"
+        },
+        "456": {
+          "fit_count": 3072,
+          "validation_count": 1024,
+          "fit_positive_count": 633,
+          "validation_positive_count": 224,
+          "fit_sha256": "df39fd8c42b1af70523a2b913ad5a9fbe54e0a5e05aeac4b164ebae92fd9d87f",
+          "validation_sha256": "2fdd98039bbe2095982119c7207cfe7a065e9296af040462343f4a0ae8a83647"
+        }
+      },
+      "6": {
+        "42": {
+          "fit_count": 3072,
+          "validation_count": 1024,
+          "fit_positive_count": 626,
+          "validation_positive_count": 174,
+          "fit_sha256": "41c3fe8225560cc495514e54b6c10a3183e822ebfdf9e3a67d1f4cc0684e48b7",
+          "validation_sha256": "4f7d5402e05cebfbbf5648929e8a75cbaa7f3a02b5151184510bd6f3aee23452"
+        },
+        "123": {
+          "fit_count": 3072,
+          "validation_count": 1024,
+          "fit_positive_count": 557,
+          "validation_positive_count": 195,
+          "fit_sha256": "dc0b76aaffc9a2622d1feb059bcdc6f2c1129f639b3e9150a60d6ce677e9ec8f",
+          "validation_sha256": "c45e4ba2801eee2a0dbf746240aa03f1bbfe1408ab2b967f2699ee2cf2ec34f1"
+        },
+        "456": {
+          "fit_count": 3072,
+          "validation_count": 1024,
+          "fit_positive_count": 619,
+          "validation_positive_count": 176,
+          "fit_sha256": "153a184d7036c64c9db35865f29577578c650410134bc83b4aeebdaad3cd8133",
+          "validation_sha256": "8ca4a1a9aec8ea2d009ce3a0b72720f09dc1359c793830488f454b34c75649bb"
+        }
+      }
+    }
+  },
+  "frozen_source_sha256": {
+    "model.py": "e47134d6ea6ae1b90a58128d4e3f8ef4d712da3f75247adc44ac8aaa6415f60c",
+    "dataset.py": "1bd10afdcedb0306c318907a3abd0f587e1e71d9f5951406627f41d9a5bdee04",
+    "fields.py": "ad66ae4a0517c0f0a1d1862ebb0efc411786f8efa45b6d3c2725cee208fafb4e",
+    "downstream_transfer_protocol.py": "c30cf293a6772e3c0287a93071dd0beacbdc4af611979e5e2a081c68ee00c155",
+    "scripts/verify_downstream_transfer_protocol.py": "dda797479ac1a889b013216d1c39ca0ac7eacf4acba3c6c7f8a4fbcc58a547af",
+    "docs/archive/drivers/20260812-2303-MoE下游留出域参数高效迁移驱动.md": "a281de3800ded56942c3af232f1a8e68288bc396958e6e4a2fb1961290d7d9be"
+  }
+}

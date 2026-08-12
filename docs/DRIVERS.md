@@ -18,6 +18,7 @@
 | 从零预训练与子任务调制 | `superseded` | 旧网格关闭 | 冻结均匀路由可平替旧调制；单 seed 与旧训练目标结果不作强结论 | 不重跑旧 36 配置网格 | [阶段结论](archive/conclusions/20260811-1450-子任务调制交叉网格阶段结论.md)；[旧分析](archive/analysis/20260810-2300-混合专家从零预训练与子任务调制.md) |
 | 按场景 sample weighting | `done` | **PASS** | 样本加权恢复 full-batch 目标；`R_gain≈0.999`、同 seed `R_resid≈0.992` | 已解锁并完成 Stage B | [驱动](archive/drivers/20260811-2010-按场景训练代价消除与混合专家可竞争性验证.md)；[结论](archive/conclusions/20260811-2242-按场景训练代价消除结论.md)；[审计](archive/analysis/20260811-2300-按场景训练代价消除-HY3审计.md) |
 | Stage B same-FLOPs MoE | `done` | **FAIL**（竞争性主张） | frozen/soft 相对 same-FLOPs dense 的同 seed 差均为 `[-,-,+]`；MoE wall-clock 更慢 | sparse scaling / same-latency 叙事关闭 | [驱动](archive/drivers/20260811-2310-StageB-MoE-九次训练驱动.md)；[结论](archive/conclusions/20260812-0103-StageB-MoE-九次训练结论.md) |
+| 下游留出域参数高效迁移 | `planned` | `NOT_EVALUATED` | 现有 MoE 下游仅有 FeatureUsage 探索，所谓 Module 行是不加载 backbone 的随机初始化占位；拟检验 4096 总标注下 router-only 对下游可训练参数近似匹配 dense adapter 的优势 | `auth=not-started`；仅允许实现与 G0 smoke | [新驱动](archive/drivers/20260812-2303-MoE下游留出域参数高效迁移驱动.md) |
 | TCMR 静态任务条件路由 | `done` | **INCONCLUSIVE** | 15/15 完成；DATR 对 FUR、DOR 的同 seed pooled-AUC 差均跨 seed 变号且未越过噪声地板 | AdaTask、持续学习、BWT、稀疏扩展仍 `blocked` | [驱动](archive/drivers/20260812-1139-Task-Conditioned-Mixture-Routing-驱动.md)；[结论](archive/conclusions/20260812-1703-TCMR-结论.md)；[机器判定](../cache/task_conditioned_mixture_routing/gate_decision.json) |
 | 共享残差 G1：函数保持 upcycling | `done` | **PASS** | 3 seed 的 logits/loss/AUC 与 dense 在预注册阈值内一致 | 仅与 G2 一起授权既定 G3 | [正式驱动](archive/drivers/20260812-1807-共享残差混合专家-函数保持与持续学习-驱动.md)；[G1/G2 结论](archive/conclusions/20260812-1832-共享残差混合专家-G1G2不变量结论.md)；[不变量](../cache/audit/shared_residual_continual/shared_residual_experiment_invariants.json) |
 | 共享残差 G2：LR/冻结语义 | `done` | **PASS** | pre-Adam 常数缩放 update ratio≈1；parameter-group 10× LR update ratio≈9.9982；冻结与更新隔离通过 | 仅授权既定 G3 | 同上 |
@@ -52,16 +53,24 @@
 - G3 判定：`cache/shared_residual_continual/specialist_screen_gate_decision.json`，`verdict=INCONCLUSIVE`、`winning_specialist_learning_rate=null`、`unlock_shared_path_necessity_gate=false`。
 - 结论边界：G1/G2 只证明实现语义；G3 没有支持 specialist-only 持续适配的稳定增益，不得外推完整持续学习或稀疏扩展。
 
+### 3.5 下游留出域参数高效迁移
+
+- 代码审计：旧 MoE downstream 实际为 13 个 FeatureUsage + 1 个随机初始化 Module placebo，无 true ModuleUsage/ModelUsage。
+- 新主张：source `[0,1,3,4,8]` 预训练、targets `[2,5,6]` 完全留出、每 target 4096 总标注（3072 fit + 1024 validation）；比较约 4.7k 下游可训练参数的 `moe-router` 与 `dense-adapter-r2`，不声称冻结 backbone 总容量匹配。
+- 协议不变量：`cache/audit/downstream_transfer/protocol_invariants.json` 为 `pass`；四 arm 可训练参数为 361/4681/361/4693，adapter zero-init 精确为 0，source/target 与 9 组 3072/1024 索引 hash 已冻结；`formal_training_authorized=false`。
+- 当前证据：尚无 trial、正式 manifest 或优势判定；状态必须保持 `NOT_EVALUATED`。
+- 启动边界：继续实现隔离 runner 与完整 G0；技术 G0/G0-final 未 PASS、authorization 未冻结时不得运行正式 GPU 矩阵。
+
 ## 4. 当前执行边界
 
-当前没有已授权 GPU 实验。以下项目全部 `blocked`：
+当前没有已授权 GPU 实验。持续学习与稀疏扩展旧路线继续 `blocked`：
 
 1. shared-path necessity、shared LR 与 blockwise LR 分配；
-2. router LR、完整 continual baseline matrix 与 alignment-aware 消融；
+2. continual router LR、完整 continual baseline matrix 与 alignment-aware 消融；
 3. 真实 top-k dispatch、sparse scale-out 与 same-latency 叙事；
 4. 将 TCMR 或 G3 的跨 seed 变号结果写成稳定收益。
 
-如需继续，只能按 [`NEXT.md`](NEXT.md) 另立“G3 证据增强关卡”，不得复用旧授权自动扩展矩阵。
+新下游路线为 `planned / auth=not-started`：只允许按[正式驱动](archive/drivers/20260812-2303-MoE下游留出域参数高效迁移驱动.md)实现 runner、审计器和 smoke。正式 source pretrain、G1/G2 必须等待 G0 与独立 authorization。
 
 ## 5. 统一测量口径
 

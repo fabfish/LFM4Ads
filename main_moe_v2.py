@@ -12,7 +12,8 @@ Flow:
   2. Initialize DCNv2MoE_V2 from vanilla weights (split Cross layers)
   3. Train MoE V2 with warmup + load balance loss
   4. Compare per-scenario AUC: Vanilla vs MoE V2 vs MoE V1
-  5. Run downstream eval (FeatureUsage/ModuleUsage/ModelUsage)
+  5. Run historical FeatureUsage exploration plus a random-init ModuleUsage
+     placebo. This is not true MoE ModuleUsage/ModelUsage transfer evidence.
 """
 
 import argparse
@@ -392,7 +393,7 @@ if ARGS.skip_downstream:
     print("Step 5: Downstream evaluation — SKIPPED (--skip-downstream)")
     print("=" * 60)
 else:
-    print("Step 5: Downstream evaluation (FeatureUsage/ModuleUsage)")
+    print("Step 5: Historical FeatureUsage + random-init placebo")
     print("=" * 60)
 
     # Aggregate CRs for MoE V2
