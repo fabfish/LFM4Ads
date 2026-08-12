@@ -70,13 +70,15 @@
 - **关卡实验**：稠密基准 + 按场景 + 样本加权 × 3 种子，
   与 0.7807（整批上界）/ 0.7666（等权下界）比较。仅通过才铺开
 - **状态**：✅ 已完成（PASS，2026-08-11）；**审计状态：`auth=done`**
-  （equ-swg PASS + 路由器不变量 PASS + 精确恢复率 R≈0.999）
+  （sample-weighting 数值不变量 PASS + 路由器不变量 PASS；增益恢复率
+  `R_gain≈0.999`，同 seed 配对残差恢复率 `R_resid≈0.992`，两者禁止混称）
 - **结论文档**：`docs/20260811-2242-按场景训练代价消除结论.md`
 - **关键结果**：
-  - `equ-swg` 数值等价校验 PASS（loss 误差 5.96e-08，梯度误差 ≤1e-6/1e-5）
-  - 稠密 sample 三种子精确均值 **0.780663**，与整批稠密精确值 **0.780677** 基本一致
-    （|Δfull|=1.4e-5）→ 恢复率 **R≈0.999** → 关卡 **PASS**
-    （此前用四位四舍五入整批值 0.7807 误算 R=0.997，属数值精度假象）
+  - `equ_swg_status.json` 当前机读状态为 PASS（`loss_abs_err=0.0`，梯度容差 ≤1e-6/1e-5）；
+    历史文档中的 5.96e-08 只作为早期运行记录，不冒充当前 marker 数值
+  - 稠密 sample 三种子精确均值 **0.780663205**，整批稠密三种子精确均值
+    **0.780676857**（|Δmean|=1.37e-5）；增益恢复率 **R_gain≈0.999**，
+    同 seed 配对残差恢复率 **R_resid≈0.992** → 关卡 **PASS**
   - 铺开 9 次 MoE（frout/nrout/pshr × 3 seed）全部落在 0.7803–0.7808，
     与 sample-dense / full-batch-dense 差距 ≤0.0004 ≪ 噪声地板 0.0036；
     但**逐 seed 配对差在三组均跨 seed 变号** → **降级为「未稳定匹配、存在 seed 级反转」**，不称「等价/匹配」
@@ -88,8 +90,8 @@
   - **含义**：混合专家在 KuaiRand-1K 同容量下对稠密无 AUC 增益；先前 +0.0047 全是未修复训练坑的残差
 - **结论边界 6 规则**：见 `docs/20260811-2242-…结论.md` §8 与 `docs/20260811-2300-…HY3审计.md`；
   启动后不得擅自改判更弱。
-- **向后兼容**：默认 `--scenario-loss-weighting equal` 保持历史行为；新实验一律用
-  `--run-code <有意义代号>`（见驱动文档 §三），产物按 run-code 命名防覆盖
+- **向后兼容**：默认 `--scenario-loss-weighting equal` 保持历史行为。历史简单 run-code 仅用于追溯；
+  新实验的参数、产物和文档必须使用已展开的明确英语缩写，并以完整描述性英文 run name 防覆盖。
 
 ## 六、MoE + AdaTask 持续学习研究总纲
 
@@ -97,13 +99,29 @@
 - **四参数块建议**：共享/专精路径分配门、常驻共享专家权重、领域条件专精路由器、被路由专精专家权重。
 - **关键修正**：AU 只衡量更新幅度，后续需联合跨任务梯度方向；真正分离 task-wise optimizer state，不能把 AdamW 前梯度缩放直接称为任务特殊学习率。
 - **进入条件**：第五节 sample-weighting 关卡已 **PASS**（2026-08-11），进入条件满足。
-- **重要约束**：关卡显示 MoE 在 KuaiRand-1K 同容量下对稠密**无 AUC 增益**，因此 Stage B/F 的
-  MoE 可竞争性论证必须用 same-active / same-total / same-latency dense 公平比较，
-  并关注训练效率 / 路由结构 / 持续学习能力，而非仅凭 pooled AUC。
+- **重要约束**：关卡显示 MoE 在 KuaiRand-1K 同容量下对稠密**无 AUC 增益**。
+  same-FLOPs 只能说明理论计算预算；same-latency 必须实测且 Stage B 已失败。
+  当前只允许继续检查任务条件路由结构，不得外推持续学习能力。
 - **状态**：进入条件已满足；**审计状态：`auth=done`**（九次训练全部 succeeded，结论已定稿）。
   驱动文档：`docs/20260811-2310-StageB-MoE-九次训练驱动.md`；结论：`docs/20260812-0103-StageB-MoE-九次训练结论.md`。
-- **Stage B 结论（同 FLOPs 公平比较）**：低秩全维专家 MoE（frozen / soft）与 same-FLOPs dense **匹配**（逐 seed 配对差 ≤0.0011、符号 `[-,-,+]` 不统一 ⇒ 未稳定匹配），训练 wall-clock 无差异，soft routing 学到非均匀门控但无 AUC/效率收益。
-  ⇒ **触发 §十四 失败关闭条件：禁止 sparse scaling 叙事**。MoE 在 KuaiRand-1K 同容量/同 FLOPs 下无竞争力，与 Stage A 一致。后续转 Stage C（路由比较 / 持续学习）。
+- **Stage B 结论（同 FLOPs 比较）**：低秩全维专家 MoE（frozen / soft）相对
+  same-FLOPs dense 的逐 seed 配对差均为 `[-,-,+]`，只能称**未稳定超过、存在 seed 级反转**，
+  不能称“匹配”。soft routing 学到非均匀门控，但未转化为 AUC 收益。
+  manifest 记录的 wall-clock 显示 MoE 明显慢于 dense，因此 **same-latency 不成立**，也无效率收益。
+  ⇒ **触发失败关闭条件：禁止 sparse scaling / same-latency 叙事**。后续只允许进入
+  Task-Conditioned Mixture Routing（TCMR，任务条件混合路由）的静态路由关卡；持续学习、AdaTask 更新机制和真实稀疏计算继续 blocked。
+
+## 七、Task-Conditioned Mixture Routing（TCMR）静态路由关卡
+
+- **驱动文档**：`docs/20260812-1139-Task-Conditioned-Mixture-Routing-驱动.md`
+- **状态**：`auth=not-started`；代码已准备，本轮禁止启动十五次长程训练。
+- **矩阵**：Frozen Uniform Routing（FUR）、Data-Only Routing（DOR）、Task-Only Routing（TOR）、
+  Data-and-Task Routing（DATR）、Data-and-Task Consistency Routing（DATCR）× seeds 42/123/456。
+- **主终点**：DATR 对 FUR、DATR 对 DOR 的同 seed pooled AUC 配对差；任一比较跨 seed 变号只能 INCONCLUSIVE。
+- **双层判定**：三 seed 同向且保护条件通过只解锁探索关卡；“稳定改进”仍需平均配对差超过
+  各自锚点三 seed 极差，汇总器必须同时报告两者。
+- **边界**：只验证静态任务条件路由；AdaTask 更新、持续学习、BWT 与 sparse scaling 继续 blocked。
+- **命名**：所有新 run / 日志 / manifest / summary 使用完整描述性英文名称，禁止简单 stage code。
 
 ---
 

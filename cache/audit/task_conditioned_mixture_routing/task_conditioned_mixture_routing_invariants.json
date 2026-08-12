@@ -1,0 +1,35 @@
+{
+  "status": "pass",
+  "experiment": "Task-Conditioned Mixture Routing (TCMR)",
+  "routing_modes": [
+    "frozen-uniform-routing",
+    "data-only-routing",
+    "task-only-routing",
+    "data-and-task-routing",
+    "data-and-task-consistency-routing"
+  ],
+  "provenance": {
+    "source_sha256": {
+      "model.py": "76a5f846355331e5798594a8209366055630249e0ef0dd243a86e2ea2cf78087",
+      "task_conditioned_mixture_routing_protocol.py": "72a26f9510a2c28bcd626e150270f865ee339db6be46606ecdddb46b2cd05b2a",
+      "scripts/verify_task_conditioned_mixture_routing.py": "16862dcbe42f4a86a538a4d02dc0c80efbd94dad802152cca07e84aabd32fcc6"
+    },
+    "driver_path": "docs/20260812-1139-Task-Conditioned-Mixture-Routing-\u9a71\u52a8.md",
+    "driver_sha256": "dc3d1cdc200a40b73584ffb42f3e9670657f657ca9bfdefe999b042e2f2c09f6"
+  },
+  "checks": {
+    "frozen_uniform_deterministic": "pass",
+    "data_and_task_pathway_isolation": "pass",
+    "symmetric_kl_gradient_flow": "pass",
+    "sample_weighted_single_optimizer_step": "pass",
+    "shared_expert_initialization": "pass"
+  },
+  "shared_expert_initialization_hashes": {
+    "frozen-uniform-routing": "ac8721f5eae267400254e9e1121f26af4f234e7883b2b473f3f5bd3142553229",
+    "data-only-routing": "ac8721f5eae267400254e9e1121f26af4f234e7883b2b473f3f5bd3142553229",
+    "task-only-routing": "ac8721f5eae267400254e9e1121f26af4f234e7883b2b473f3f5bd3142553229",
+    "data-and-task-routing": "ac8721f5eae267400254e9e1121f26af4f234e7883b2b473f3f5bd3142553229",
+    "data-and-task-consistency-routing": "ac8721f5eae267400254e9e1121f26af4f234e7883b2b473f3f5bd3142553229"
+  },
+  "errors": []
+}

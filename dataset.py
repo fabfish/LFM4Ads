@@ -1,6 +1,11 @@
+from pathlib import Path
+
 import pandas as pd
 
 import fields
+
+
+DATASET_PATH = Path(__file__).resolve().with_name("dataset.feather")
 
 
 class Dataset(pd.DataFrame):
@@ -9,7 +14,7 @@ class Dataset(pd.DataFrame):
 
 
 def Split(scenario):
-    df = pd.read_feather("dataset.feather")
+    df = pd.read_feather(DATASET_PATH)
     if scenario != "all":
         df = df.query(f"tab == {scenario}")
     return [

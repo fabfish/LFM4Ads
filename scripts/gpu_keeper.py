@@ -29,10 +29,11 @@ gpu_keeper.py — GPU0 占位守护（fake load keeper）
   GK_GPU_ID           物理 GPU 序号，默认 0
   GK_TRIGGER          idle（默认）| busy
                       idle = 空闲这么久后启动；busy = 被真实任务占用这么久后启动
-  GK_IDLE_THRESHOLD_S 空闲/占用判定时长（秒），默认 1200
-  GK_FAKE_DURATION_S  假程序运行时长（秒），默认 1200；0 = 跑到真任务出现
+  GK_IDLE_THRESHOLD_S 空闲判定时长（秒），默认 60（空 1 分钟才启动，避免抖动误判）
+  GK_FAKE_DURATION_S  假程序运行时长（秒），默认 1200（跑满 20 分钟）；0 = 跑到真任务出现
+  GK_REST_S           每轮假程序结束后的冷却间隔（秒），默认 1200（歇 20 分钟再下一轮）
   GK_POLL_S           轮询间隔（秒），默认 10
-  GK_TARGET_UTIL      目标 GPU 利用率（百分比，近似），默认 10
+  GK_TARGET_UTIL      目标 GPU 利用率（百分比，近似），默认 100
 """
 import os
 import sys
@@ -43,10 +44,18 @@ import subprocess
 
 GPU_ID = int(os.environ.get("GK_GPU_ID", "0"))
 TRIGGER = os.environ.get("GK_TRIGGER", "idle").lower()
-IDLE_THRESHOLD_S = int(os.environ.get("GK_IDLE_THRESHOLD_S", "1200"))
+IDLE_THRESHOLD_S = int(os.environ.get("GK_IDLE_THRESHOLD_S", "60"))
 FAKE_DURATION_S = int(os.environ.get("GK_FAKE_DURATION_S", "1200"))
+REST_S = int(os.environ.get("GK_REST_S", "1200"))  # 每次假程序结束后歇多久再下一轮（秒）
 POLL_S = int(os.environ.get("GK_POLL_S", "10"))
 TARGET_UTIL = float(os.environ.get("GK_TARGET_UTIL", "100"))
+
+# 运行期状态。注意：容器环境下 nvidia-smi 报告的 pid 与 Python 子进程 pid（宿主机命名空间）
+# 处于不同命名空间，二者对不上，因此不能用 _fake_proc.pid 去排除假程序自己。
+# 改为：启动假程序时“差分”抓取它在 nvidia-smi 中暴露的真实 GPU pid，检测“真任务”时排除之。
+_fake_proc = None
+_fake_gpu_pids = set()    # 假程序在 nvidia-smi 中暴露的（GPU 命名空间）pid 集合
+_fake_cleared_at = 0.0    # 上次停止假程序的时间戳（用于短暂宽限，避免残影误判为真任务）
 
 logging.basicConfig(
     level=logging.INFO,
@@ -96,39 +105,62 @@ def gpu_util():
     return -1
 
 
-def is_busy(exclude=()):
-    """GPU0 是否正被（除 exclude 之外的）进程占用。"""
-    pids = compute_pids(exclude=exclude)
-    if pids:
-        return True, pids
-    util = gpu_util()
-    if util > 5:
-        return True, set()
-    return False, set()
+def excluded_pids():
+    """当前应被当作“自己人”的 GPU pid 集合（即我们的假程序）。"""
+    if _fake_proc is not None:
+        return set(_fake_gpu_pids)
+    # 刚停止的短暂宽限期内，仍把上一批假程序 pid 视为自己人，避免残影误判为真任务
+    if _fake_gpu_pids and (time.time() - _fake_cleared_at) < 10:
+        return set(_fake_gpu_pids)
+    return set()
+
+
+def real_tasks():
+    """返回 (是否有真实任务, 真实任务 pid 集合)。真实任务 = 出现在 GPU 上、且不是我们假程序的进程。"""
+    pids = compute_pids()
+    reals = pids - excluded_pids()
+    return bool(reals), reals
+
+
+def capture_fake_pids(baseline):
+    """假程序启动后，差分抓取它在 nvidia-smi 中暴露的（GPU 命名空间）pid。"""
+    for _ in range(20):
+        newp = compute_pids() - baseline
+        if newp:
+            return newp
+        time.sleep(0.5)
+    return set()
 
 
 def launch_fake():
+    baseline = compute_pids()
     cmd = [
         sys.executable, os.path.abspath(__file__),
         "--fake", "--gpu", str(GPU_ID), "--target-util", str(TARGET_UTIL),
     ]
     p = subprocess.Popen(cmd)
-    log.info("已启动假计算程序 pid=%s（目标利用率 ~%.0f%%）", p.pid, TARGET_UTIL)
+    global _fake_gpu_pids
+    _fake_gpu_pids = capture_fake_pids(baseline)
+    log.info("已启动假计算程序（宿主 pid=%s，GPU pid=%s，目标利用率 ~%.0f%%）",
+             p.pid, ",".join(map(str, _fake_gpu_pids)) or "?", TARGET_UTIL)
     return p
 
 
 def stop_fake(p):
+    global _fake_cleared_at
     if p is None:
         return
+    # 先记录清理时间，再终止，保证宽限期内不会把残影当成真任务
+    _fake_cleared_at = time.time()
     if p.poll() is None:
-        log.info("正在终止假计算程序 pid=%s", p.pid)
+        log.info("正在终止假计算程序（宿主 pid=%s）", p.pid)
         try:
             p.send_signal(signal.SIGTERM)
             p.wait(timeout=15)
         except subprocess.TimeoutExpired:
             p.kill()
     else:
-        log.info("假计算程序 pid=%s 已自行退出", p.pid)
+        log.info("假计算程序（宿主 pid=%s）已自行退出", p.pid)
 
 
 def fake_worker(gpu_id, target_util):
@@ -168,31 +200,68 @@ def main_monitor():
     signal.signal(signal.SIGINT, _handle_term)
 
     log.info(
-        "监测启动: gpu=%s trigger=%s 阈值=%.0fs 假程序时长=%.0fs 目标利用率=%.0f%%",
-        GPU_ID, TRIGGER, IDLE_THRESHOLD_S, FAKE_DURATION_S, TARGET_UTIL,
+        "监测启动: gpu=%s trigger=%s 空闲阈值=%.0fs 假程序时长=%.0fs 冷却间隔=%.0fs 目标利用率=%.0f%%",
+        GPU_ID, TRIGGER, IDLE_THRESHOLD_S, FAKE_DURATION_S, REST_S, TARGET_UTIL,
     )
 
+    # 状态机：monitor（等待空闲阈值） -> fake（运行） -> rest（冷却） -> monitor ...
+    state = "monitor"
     idle_since = None
     fake_start = 0.0
+    rest_until = 0.0
 
     while True:
         now = time.time()
-        busy, real_pids = is_busy(exclude=(_fake_proc.pid,) if _fake_proc else ())
+        busy, real_pids = real_tasks()  # busy=有非本守护假程序的 GPU 进程
 
-        if _fake_proc is None:
-            # ---- 监测态 ----
+        if state == "fake":
+            elapsed = now - fake_start
+            if busy:
+                # 出现“其他”GPU 进程（真实任务）→ 立刻让位
+                log.info("检测到真实 GPU 任务（pids=%s），停止假程序并让位", sorted(real_pids))
+                stop_fake(_fake_proc)
+                _fake_proc = None
+                state = "monitor"
+                idle_since = None
+            elif FAKE_DURATION_S <= 0 or elapsed >= FAKE_DURATION_S:
+                # 跑满时长（或 0=持续模式仅被真任务打断）→ 进入冷却
+                if FAKE_DURATION_S > 0:
+                    log.info("假程序已运行 %.0fs，到期停止，进入冷却 %.0fs", elapsed, REST_S)
+                stop_fake(_fake_proc)
+                _fake_proc = None
+                state = "rest"
+                rest_until = now + REST_S
+            time.sleep(POLL_S)
+
+        elif state == "rest":
+            # 冷却期：真任务来了就让位（用完再恢复监测）；否则歇满 REST_S 后下一轮
+            if busy:
+                log.info("冷却期出现真实 GPU 任务（pids=%s），让位并恢复监测", sorted(real_pids))
+                state = "monitor"
+                idle_since = None
+            elif now >= rest_until:
+                # 冷却结束且 GPU 仍空闲 → 直接下一轮跑满（无需再等空闲阈值）
+                if not busy:
+                    _fake_proc = launch_fake()
+                    fake_start = now
+                    state = "fake"
+                else:
+                    state = "monitor"
+                    idle_since = None
+            time.sleep(POLL_S)
+
+        else:  # monitor
             if TRIGGER == "busy":
-                # busy 模式：被真实任务持续占用达到阈值后，再叠加假程序
-                if busy and real_pids:
+                if busy:
                     idle_since = idle_since or now
                     if now - idle_since >= IDLE_THRESHOLD_S:
                         _fake_proc = launch_fake()
                         fake_start = now
+                        state = "fake"
                         idle_since = None
                 else:
                     idle_since = None
             else:
-                # idle 模式（默认）：空闲达到阈值后启动假程序
                 if busy:
                     idle_since = None
                 else:
@@ -202,23 +271,8 @@ def main_monitor():
                     if idle_for >= IDLE_THRESHOLD_S:
                         _fake_proc = launch_fake()
                         fake_start = now
+                        state = "fake"
                         idle_since = None
-            time.sleep(POLL_S)
-        else:
-            # ---- 假程序运行态 ----
-            # 出现“其他”GPU 进程（真实任务）→ 立刻让位
-            real_now, _ = is_busy(exclude=(_fake_proc.pid,))
-            elapsed = now - fake_start
-            if real_now:
-                log.info("检测到真实 GPU 任务（pids=%s），停止假程序并让位", compute_pids(exclude=(_fake_proc.pid,)))
-                stop_fake(_fake_proc)
-                _fake_proc = None
-                idle_since = None
-            elif FAKE_DURATION_S > 0 and elapsed >= FAKE_DURATION_S:
-                log.info("假程序已运行 %.0fs，到期停止", elapsed)
-                stop_fake(_fake_proc)
-                _fake_proc = None
-                idle_since = None
             time.sleep(POLL_S)
 
 

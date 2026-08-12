@@ -1164,3 +1164,159 @@ class DCNv2MoE_LowRank(nn.Module):
             lines.append(f"  {name:20s}: {count:>10,}  ({pct:5.1f}%)")
         lines.append(f'  {"TOTAL":20s}: {total:>10,}')
         return "\n".join(lines)
+
+
+# ============================================================
+#  Task-Conditioned Mixture Routing (TCMR)
+# ============================================================
+
+TASK_CONDITIONED_ROUTING_MODES = (
+    "frozen-uniform-routing",
+    "data-only-routing",
+    "task-only-routing",
+    "data-and-task-routing",
+    "data-and-task-consistency-routing",
+)
+
+
+class TaskConditionedRouter(nn.Module):
+    """Router with explicit data and task pathways.
+
+    Every mode constructs both pathways so that model construction consumes the
+    same random-number sequence. The selected mode only changes which logits are
+    used and which router parameters receive gradients.
+    """
+
+    def __init__(self, dim=360, K=4, num_tasks=15,
+                 mode="data-and-task-routing"):
+        super().__init__()
+        if mode not in TASK_CONDITIONED_ROUTING_MODES:
+            raise ValueError(
+                f"unknown task-conditioned routing mode {mode!r}; "
+                f"expected one of {TASK_CONDITIONED_ROUTING_MODES}"
+            )
+        self.dim, self.K, self.num_tasks, self.mode = dim, K, num_tasks, mode
+        self.data_projection = nn.Linear(dim, K)
+        self.task_embedding = nn.Embedding(num_tasks, K)
+        nn.init.zeros_(self.data_projection.weight)
+        nn.init.zeros_(self.data_projection.bias)
+        nn.init.zeros_(self.task_embedding.weight)
+        self._configure_trainable_pathways()
+
+    def _configure_trainable_pathways(self):
+        data_trainable = self.mode in (
+            "data-only-routing",
+            "data-and-task-routing",
+            "data-and-task-consistency-routing",
+        )
+        task_trainable = self.mode in (
+            "task-only-routing",
+            "data-and-task-routing",
+            "data-and-task-consistency-routing",
+        )
+        self.data_projection.requires_grad_(data_trainable)
+        self.task_embedding.requires_grad_(task_trainable)
+
+    @staticmethod
+    def _symmetric_kl(first, second):
+        epsilon = torch.finfo(first.dtype).eps
+        first = first.clamp_min(epsilon)
+        second = second.clamp_min(epsilon)
+        first_to_second = (first * (first.log() - second.log())).sum(-1)
+        second_to_first = (second * (second.log() - first.log())).sum(-1)
+        return 0.5 * (first_to_second + second_to_first).mean()
+
+    def forward(self, x, task_ids):
+        data_logits = self.data_projection(x)
+        task_logits = self.task_embedding(task_ids)
+
+        if self.mode == "frozen-uniform-routing":
+            gate = torch.full_like(data_logits, 1.0 / self.K)
+        elif self.mode == "data-only-routing":
+            gate = data_logits.softmax(-1)
+        elif self.mode == "task-only-routing":
+            gate = task_logits.softmax(-1)
+        else:
+            gate = (data_logits + task_logits).softmax(-1)
+
+        auxiliary_loss = gate.new_zeros(())
+        if self.mode == "data-and-task-consistency-routing":
+            data_gate = data_logits.softmax(-1)
+            auxiliary_loss = self._symmetric_kl(data_gate, gate)
+        return gate, auxiliary_loss
+
+
+class TaskConditionedLowRankCrossExpertLayer(nn.Module):
+    """Low-rank full-dimensional expert layer with task-conditioned routing."""
+
+    def __init__(self, dim=360, K=4, r=45, num_tasks=15,
+                 routing_mode="data-and-task-routing"):
+        super().__init__()
+        self.dim, self.K, self.r = dim, K, r
+        self.experts = nn.ModuleList([LowRankExpert(dim, r) for _ in range(K)])
+        self.router = TaskConditionedRouter(
+            dim=dim, K=K, num_tasks=num_tasks, mode=routing_mode,
+        )
+
+    def forward(self, x, x0, task_ids):
+        gate, auxiliary_loss = self.router(x, task_ids)
+        weighted = sum(
+            gate[:, index:index + 1] * expert(x)
+            for index, expert in enumerate(self.experts)
+        )
+        return weighted * x0 + x, gate, auxiliary_loss
+
+
+class DCNv2MoE_TaskConditionedLowRank(nn.Module):
+    """DCNv2 low-rank full-dimensional MoE for TCMR experiments.
+
+    MoE means Mixture of Experts. TCMR means Task-Conditioned Mixture Routing.
+    This class is isolated from ``DCNv2MoE_LowRank`` so historical Stage B
+    checkpoints and parameter names remain unchanged.
+    """
+
+    def __init__(self, dim=360, K=4, r=45, num_tasks=15,
+                 routing_mode="data-and-task-routing"):
+        super().__init__()
+        if routing_mode not in TASK_CONDITIONED_ROUTING_MODES:
+            raise ValueError(f"unknown routing_mode={routing_mode!r}")
+        self.dim, self.K, self.r = dim, K, r
+        self.num_tasks, self.routing_mode = num_tasks, routing_mode
+        self.sparse = Sparse()
+        self.cross_layers = nn.ModuleList([
+            TaskConditionedLowRankCrossExpertLayer(
+                dim=dim, K=K, r=r, num_tasks=num_tasks,
+                routing_mode=routing_mode,
+            )
+            for _ in range(3)
+        ])
+        self.dnn = nn.ModuleList([nn.Linear(dim, dim) for _ in range(2)])
+        self.head = nn.Linear(dim, num_tasks)
+
+    def embed(self, batch):
+        return self.sparse(batch)
+
+    def forward(self, batch):
+        x0 = self.embed(batch)
+        x = x0
+        gates = []
+        auxiliary_losses = []
+        representations = [x0.detach()]
+        task_ids = batch["tab"]
+        for layer in self.cross_layers:
+            x, gate, auxiliary_loss = layer(x, x0, task_ids)
+            gates.append(gate)
+            auxiliary_losses.append(auxiliary_loss)
+            representations.append(x.detach())
+        for layer in self.dnn:
+            x = layer(x.relu())
+            representations.append(x.detach())
+        batch["logit"] = self.head(x)[range(len(x)), task_ids]
+        batch["_gate"] = gates
+        batch["_routing_auxiliary_loss"] = torch.stack(auxiliary_losses).mean()
+        self.last_gates = gates
+        if hasattr(self, "CRs"):
+            for user_id, representation in zip(
+                    batch["user_id"], torch.stack(representations, 1)):
+                self.CRs[user_id] *= 0.99
+                self.CRs[user_id] += representation

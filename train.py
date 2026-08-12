@@ -8,6 +8,7 @@ from tqdm import tqdm
 
 import fields
 from dataset import Dataset, Split
+from task_conditioned_mixture_routing_protocol import task_conditioned_moe_batch_step
 
 # Default 10 workers keeps D18/D19/D20 historical numbers reproducible.
 # Lower this (e.g. LFM_NUM_WORKERS=4) only when packing multiple jobs per GPU.
@@ -17,13 +18,15 @@ from dataset import Dataset, Split
 NUM_WORKERS = int(os.environ.get("LFM_NUM_WORKERS", "10"))
 
 
-def infer(model, dataset, train=False, shuffle=False):
+def infer(model, dataset, train=False, shuffle=False, batch_size=10000,
+          num_workers=None):
     model.train(train)
     device = next(model.parameters()).device
+    workers = NUM_WORKERS if num_workers is None else num_workers
     loader = torch.utils.data.DataLoader(
         Dataset(dataset),
-        batch_size=10000,
-        num_workers=NUM_WORKERS,
+        batch_size=batch_size,
+        num_workers=workers,
         pin_memory=True,
         shuffle=shuffle,
     )
@@ -35,9 +38,10 @@ def infer(model, dataset, train=False, shuffle=False):
             yield batch
 
 
-def evaluate(model, dataset):
+def evaluate(model, dataset, batch_size=10000, num_workers=None):
     AUC = BinaryAUROC()
-    for batch in infer(model, dataset):
+    for batch in infer(
+            model, dataset, batch_size=batch_size, num_workers=num_workers):
         AUC.update(batch["logit"], batch["is_click"].float())
     return AUC.compute()
 
@@ -227,6 +231,86 @@ def train_moe(model, scenario, tracker=None, spec_loss=None, lr=1e-3,
         else:
             model.load_state_dict(state_dict)
             return evaluate(model, test_set)
+
+
+# ============================================================
+#  Task-Conditioned Mixture Routing (TCMR) fair training
+# ============================================================
+
+
+def train_task_conditioned_moe(
+        model, scenario="all", lr=1e-3, beta2=0.999, batch_size=10000,
+        shuffle=True, max_epochs=300, consistency_weight=0.01,
+        num_workers=None, epoch_probe=None, max_batches_per_epoch=None):
+    """Train TCMR with sample weighting and one step per original batch.
+
+    ``epoch_probe`` is an optional callback used for fixed validation-probe
+    routing diagnostics. ``max_batches_per_epoch`` exists only for smoke tests;
+    formal runs must leave it as ``None``.
+    """
+    train_set, valid_set, _ = Split(scenario)
+    criterion = torch.nn.BCEWithLogitsLoss()
+    optimizer = torch.optim.AdamW(
+        _trainable(model), lr=lr, betas=(0.9, beta2),
+    )
+    device = next(model.parameters()).device
+    workers = NUM_WORKERS if num_workers is None else num_workers
+    best_auc = float("-inf")
+    best_state = None
+    history = []
+
+    for epoch in range(1, max_epochs + 1):
+        loader = torch.utils.data.DataLoader(
+            Dataset(train_set), batch_size=batch_size, num_workers=workers,
+            pin_memory=True, shuffle=shuffle,
+        )
+        epoch_base_loss = 0.0
+        epoch_auxiliary_loss = 0.0
+        optimizer_steps = 0
+        for batch_index, batch in enumerate(
+                tqdm(loader, desc=f"TCMR Epoch {epoch}"), start=1):
+            model.train()
+            for field_name in fields.all:
+                batch[field_name] = batch[field_name].to(
+                    device, non_blocking=True,
+                ).int()
+            step_metrics = task_conditioned_moe_batch_step(
+                model=model, batch=batch, optimizer=optimizer,
+                criterion=criterion, consistency_weight=consistency_weight,
+            )
+            epoch_base_loss += step_metrics["base_loss"]
+            epoch_auxiliary_loss += step_metrics["routing_auxiliary_loss"]
+            optimizer_steps += step_metrics["optimizer_steps"]
+            if (max_batches_per_epoch is not None
+                    and batch_index >= max_batches_per_epoch):
+                break
+
+        valid_auc = float(evaluate(model, valid_set))
+        record = {
+            "epoch": epoch,
+            "valid_auc": valid_auc,
+            "base_loss_sum": epoch_base_loss,
+            "routing_auxiliary_loss_sum": epoch_auxiliary_loss,
+            "optimizer_steps": optimizer_steps,
+        }
+        if epoch_probe is not None:
+            record["routing_probe"] = epoch_probe(model, epoch)
+        history.append(record)
+        print(
+            f"TCMR Epoch {epoch} valid AUC={valid_auc:.4f} "
+            f"optimizer_steps={optimizer_steps}"
+        )
+
+        if valid_auc > best_auc + 0.001:
+            best_auc = valid_auc
+            best_state = deepcopy(model.state_dict())
+        else:
+            break
+
+    if best_state is None:
+        raise RuntimeError("TCMR training produced no checkpointable epoch")
+    model.load_state_dict(best_state)
+    return history
 
 
 # ============================================================

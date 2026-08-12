@@ -1,0 +1,107 @@
+{
+  "status": "done",
+  "driver": "docs/20260812-1139-Task-Conditioned-Mixture-Routing-\u9a71\u52a8.md",
+  "driver_sha256": "dc3d1cdc200a40b73584ffb42f3e9670657f657ca9bfdefe999b042e2f2c09f6",
+  "authorization": {
+    "status": "authorized",
+    "driver_path": "docs/20260812-1139-Task-Conditioned-Mixture-Routing-\u9a71\u52a8.md",
+    "driver_sha256": "dc3d1cdc200a40b73584ffb42f3e9670657f657ca9bfdefe999b042e2f2c09f6",
+    "authorized_scope": "fifteen-trial-multi-device-seed-group-parallel",
+    "authorized_at": "2026-08-12",
+    "note": "User authorized multi-device seed-group parallel matrix on 2026-08-12; each seed's five routing modes share one device, distinct seed groups run in parallel."
+  },
+  "execution": "2-device seed-group parallel",
+  "devices": [
+    "cuda:0",
+    "cuda:1"
+  ],
+  "seed_device_map": {
+    "42": "cuda:0",
+    "123": "cuda:1",
+    "456": "cuda:0"
+  },
+  "trials": [
+    "task-conditioned-mixture-routing-frozen-uniform-routing-seed-42",
+    "task-conditioned-mixture-routing-frozen-uniform-routing-seed-123",
+    "task-conditioned-mixture-routing-frozen-uniform-routing-seed-456",
+    "task-conditioned-mixture-routing-data-only-routing-seed-42",
+    "task-conditioned-mixture-routing-data-only-routing-seed-123",
+    "task-conditioned-mixture-routing-data-only-routing-seed-456",
+    "task-conditioned-mixture-routing-task-only-routing-seed-42",
+    "task-conditioned-mixture-routing-task-only-routing-seed-123",
+    "task-conditioned-mixture-routing-task-only-routing-seed-456",
+    "task-conditioned-mixture-routing-data-and-task-routing-seed-42",
+    "task-conditioned-mixture-routing-data-and-task-routing-seed-123",
+    "task-conditioned-mixture-routing-data-and-task-routing-seed-456",
+    "task-conditioned-mixture-routing-data-and-task-consistency-routing-seed-42",
+    "task-conditioned-mixture-routing-data-and-task-consistency-routing-seed-123",
+    "task-conditioned-mixture-routing-data-and-task-consistency-routing-seed-456"
+  ],
+  "completed_trials": [
+    "task-conditioned-mixture-routing-frozen-uniform-routing-seed-42",
+    "task-conditioned-mixture-routing-frozen-uniform-routing-seed-123",
+    "task-conditioned-mixture-routing-frozen-uniform-routing-seed-456",
+    "task-conditioned-mixture-routing-data-only-routing-seed-123",
+    "task-conditioned-mixture-routing-data-only-routing-seed-42",
+    "task-conditioned-mixture-routing-task-only-routing-seed-123",
+    "task-conditioned-mixture-routing-data-only-routing-seed-456",
+    "task-conditioned-mixture-routing-data-and-task-routing-seed-123",
+    "task-conditioned-mixture-routing-task-only-routing-seed-42",
+    "task-conditioned-mixture-routing-data-and-task-consistency-routing-seed-123",
+    "task-conditioned-mixture-routing-task-only-routing-seed-456",
+    "task-conditioned-mixture-routing-data-and-task-routing-seed-42",
+    "task-conditioned-mixture-routing-data-and-task-routing-seed-456",
+    "task-conditioned-mixture-routing-data-and-task-consistency-routing-seed-42",
+    "task-conditioned-mixture-routing-data-and-task-consistency-routing-seed-456"
+  ],
+  "invariant_report_sha256": "150c3cd423998acdf7f481012ab0839cff415fce4911aa28d1c20200e03cf455",
+  "invariant_report": {
+    "status": "pass",
+    "experiment": "Task-Conditioned Mixture Routing (TCMR)",
+    "routing_modes": [
+      "frozen-uniform-routing",
+      "data-only-routing",
+      "task-only-routing",
+      "data-and-task-routing",
+      "data-and-task-consistency-routing"
+    ],
+    "provenance": {
+      "source_sha256": {
+        "model.py": "76a5f846355331e5798594a8209366055630249e0ef0dd243a86e2ea2cf78087",
+        "task_conditioned_mixture_routing_protocol.py": "72a26f9510a2c28bcd626e150270f865ee339db6be46606ecdddb46b2cd05b2a",
+        "scripts/verify_task_conditioned_mixture_routing.py": "16862dcbe42f4a86a538a4d02dc0c80efbd94dad802152cca07e84aabd32fcc6"
+      },
+      "driver_path": "docs/20260812-1139-Task-Conditioned-Mixture-Routing-\u9a71\u52a8.md",
+      "driver_sha256": "dc3d1cdc200a40b73584ffb42f3e9670657f657ca9bfdefe999b042e2f2c09f6"
+    },
+    "checks": {
+      "frozen_uniform_deterministic": "pass",
+      "data_and_task_pathway_isolation": "pass",
+      "symmetric_kl_gradient_flow": "pass",
+      "sample_weighted_single_optimizer_step": "pass",
+      "shared_expert_initialization": "pass"
+    },
+    "shared_expert_initialization_hashes": {
+      "frozen-uniform-routing": "ac8721f5eae267400254e9e1121f26af4f234e7883b2b473f3f5bd3142553229",
+      "data-only-routing": "ac8721f5eae267400254e9e1121f26af4f234e7883b2b473f3f5bd3142553229",
+      "task-only-routing": "ac8721f5eae267400254e9e1121f26af4f234e7883b2b473f3f5bd3142553229",
+      "data-and-task-routing": "ac8721f5eae267400254e9e1121f26af4f234e7883b2b473f3f5bd3142553229",
+      "data-and-task-consistency-routing": "ac8721f5eae267400254e9e1121f26af4f234e7883b2b473f3f5bd3142553229"
+    },
+    "errors": []
+  },
+  "frozen_source_sha256": {
+    "model.py": "76a5f846355331e5798594a8209366055630249e0ef0dd243a86e2ea2cf78087",
+    "train.py": "c813dc9b19762a78d79451cbc682282b5c0d27f9f92660f61823fcea72814b4e",
+    "task_conditioned_mixture_routing_protocol.py": "72a26f9510a2c28bcd626e150270f865ee339db6be46606ecdddb46b2cd05b2a",
+    "dataset.py": "1bd10afdcedb0306c318907a3abd0f587e1e71d9f5951406627f41d9a5bdee04",
+    "fields.py": "ad66ae4a0517c0f0a1d1862ebb0efc411786f8efa45b6d3c2725cee208fafb4e",
+    "dataset.feather": "7f4be347e7a9017310f6600950f680185e01ead6805a08daa11d9a5b05abf614",
+    "run_task_conditioned_mixture_routing.py": "89f50554b93828cb92d33b8f0021c0099962a6676a3a97f1403b78c7abc4597f",
+    "scripts/verify_task_conditioned_mixture_routing.py": "16862dcbe42f4a86a538a4d02dc0c80efbd94dad802152cca07e84aabd32fcc6",
+    "scripts/run_task_conditioned_mixture_routing_matrix.py": "a605e4f7f25ad1a69d83aa993f29f052a615754ff00ffea06344eaa22529a22e",
+    "scripts/summarize_task_conditioned_mixture_routing.py": "cb750194b4251f7c509e2b38a92ab0d0add13ffa611dbb494cdcf2123fc21121",
+    "scripts/task_conditioned_mixture_routing_authorization.json": "0ec2ce6adfddb8f1c7d87ec005049a4d707c89308105b28a93bb9c6689d7d5f6",
+    "docs/20260812-1139-Task-Conditioned-Mixture-Routing-\u9a71\u52a8.md": "dc3d1cdc200a40b73584ffb42f3e9670657f657ca9bfdefe999b042e2f2c09f6"
+  }
+}

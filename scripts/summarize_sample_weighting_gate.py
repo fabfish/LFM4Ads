@@ -1,10 +1,11 @@
 #!/usr/bin/env python
-"""Stage A 关卡汇总与四态判定（run-code: swg-*）。
+"""Stage A 样本加权关卡汇总与四态判定。
 
-读取 cache/manifests/sample_weighting/*.json 与 equ-swg 不变量标记，计算：
-  - 稠密 sample 三 seed 均值、与 full(0.7807)/equal(0.7666) 的配对差、恢复率 R
+读取 cache/manifests/sample_weighting/*.json 与数值不变量标记，计算：
+  - 稠密 sample 三 seed 均值、与同 seed full-batch dense 的配对差
+  - 增益恢复率 R_gain 与配对残差恢复率 R_resid（禁止混称）
   - 关卡四态判定（PASS / FAIL / INCONCLUSIVE / DEBUG）
-  - 若已铺开，分组报告 MoE 相对 sample-dense / full-dense 的落后/匹配/超过
+  - 分组报告 MoE 相对同 seed sample-dense 的方向一致性
 
 用法：
   python scripts/summarize_sample_weighting_gate.py
@@ -20,11 +21,15 @@ import sys
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MANIFEST_DIR = os.path.join(REPO, "cache", "manifests", "sample_weighting")
 
-# 整批稠密（非 per-scenario）精确三 seed 均值，上界参照。
-# 注意：此前 docs 误记四位五入值 0.7807，导致恢复率被压到 0.997；
-# 精确值 0.780677 下恢复率 R≈0.999（见 decide_gate 的 residual 形式）。
-FULL = 0.780677
-EQUAL = 0.7666  # 按场景等权稠密 3-seed 均值（下界参照）
+# 整批稠密（非 per-scenario）三 seed 精确锚点。必须同 seed 配对，不能把
+# 单一均值重复用于 residual 计算。数值来自 moe_pretrain_summary_vanilla_from_scratch_seed*.json。
+FULL_BY_SEED = {
+    42: 0.7806205759391338,
+    123: 0.7815498621268214,
+    456: 0.7798601329239648,
+}
+FULL_MEAN = sum(FULL_BY_SEED.values()) / len(FULL_BY_SEED)
+EQUAL_MEAN = 0.7666  # 按场景等权稠密 3-seed 文档均值（下界参照）
 DIFF_TOL = 0.0036  # 与 full 均值差容差（等于 dense per-scenario 噪声地板）
 
 
@@ -50,35 +55,48 @@ def load_equ():
 
 
 def group_aucs(manifests, prefix):
-    aucs = []
-    for s in (42, 123, 456):
-        code = f"{prefix}-{s}"
+    aucs = {}
+    for seed in (42, 123, 456):
+        code = f"{prefix}-{seed}"
         if code in manifests:
-            aucs.append(manifests[code]["results"]["pooled_auc"])
+            aucs[seed] = manifests[code]["results"]["pooled_auc"]
     return aucs
 
 
-def decide_gate(sample_aucs, equ):
-    equ_ok = (equ is not None and equ.get("status") == "pass")
+def recovery_rates(sample_by_seed):
+    """返回语义不同、必须分开报告的两种恢复率。"""
+    seeds = sorted(sample_by_seed)
+    sample_mean = sum(sample_by_seed[s] for s in seeds) / len(seeds)
+    full_mean = sum(FULL_BY_SEED[s] for s in seeds) / len(seeds)
+    denominator = full_mean - EQUAL_MEAN
+    gain = (sample_mean - EQUAL_MEAN) / denominator
+    paired_residual = sum(
+        abs(sample_by_seed[s] - FULL_BY_SEED[s]) for s in seeds
+    ) / len(seeds)
+    residual = 1 - paired_residual / denominator
+    return gain, residual
+
+
+def decide_gate(sample_by_seed, equ):
+    equ_ok = equ is not None and equ.get("status") == "pass"
     if not equ_ok:
-        return "DEBUG", "equ-swg invariant NOT pass (see equ_swg_status.json)"
-    if len(sample_aucs) < 3:
-        return "DEBUG", f"seed incomplete: have {len(sample_aucs)}/3 succeeded"
-    mean = sum(sample_aucs) / 3
-    diff_full = abs(mean - FULL)
-    # 恢复率（residual 形式）：R = 1 - mean(|sample - full|) / (full - equal)
-    # 与增益形式 R_gain=(mean-EQUAL)/(FULL-EQUAL) 在 mean≈FULL 时一致；
-    # 用精确 FULL=0.780677 时 R≈0.999（此前用 0.7807 误得 0.997）。
-    R = 1 - sum(abs(a - FULL) for a in sample_aucs) / (len(sample_aucs) * (FULL - EQUAL))
-    R_gain = (mean - EQUAL) / (FULL - EQUAL)
-    if diff_full <= DIFF_TOL and R >= 0.75:
-        return "PASS", (f"mean={mean:.4f} |Δfull|={diff_full:.4f} "
-                        f"R={R:.3f} (≥0.75) R_gain={R_gain:.3f}")
-    if R <= 0.25 or (mean - EQUAL) <= DIFF_TOL:
-        return "FAIL", f"mean={mean:.4f} R={R:.3f} (≤0.25) gain_vs_equal={mean-EQUAL:.4f}"
-    if 0.25 < R < 0.75:
-        return "INCONCLUSIVE", f"mean={mean:.4f} R={R:.3f} in (0.25,0.75)"
-    return "DEBUG", f"unexpected mean={mean:.4f} diff_full={diff_full:.4f} R={R:.3f}"
+        return "DEBUG", "sample-weighting invariant NOT pass (see equ_swg_status.json)"
+    if len(sample_by_seed) < 3:
+        return "DEBUG", f"seed incomplete: have {len(sample_by_seed)}/3 succeeded"
+    mean = sum(sample_by_seed.values()) / len(sample_by_seed)
+    diff_full = abs(mean - FULL_MEAN)
+    r_gain, r_resid = recovery_rates(sample_by_seed)
+    if diff_full <= DIFF_TOL and r_resid >= 0.75:
+        return "PASS", (f"mean={mean:.6f} |Δfull_mean|={diff_full:.6f} "
+                        f"R_gain={r_gain:.3f} R_resid_paired={r_resid:.3f}")
+    if r_resid <= 0.25 or (mean - EQUAL_MEAN) <= DIFF_TOL:
+        return "FAIL", (f"mean={mean:.6f} R_gain={r_gain:.3f} "
+                        f"R_resid_paired={r_resid:.3f}")
+    if 0.25 < r_resid < 0.75:
+        return "INCONCLUSIVE", (f"mean={mean:.6f} "
+                                f"R_resid_paired={r_resid:.3f} in (0.25,0.75)")
+    return "DEBUG", (f"unexpected mean={mean:.6f} diff_full={diff_full:.6f} "
+                     f"R_resid_paired={r_resid:.3f}")
 
 
 def main():
@@ -93,14 +111,16 @@ def main():
     print("=" * 64)
     print("Stage A 样本加权关卡汇总")
     print("=" * 64)
-    print(f"参照: full-batch dense={FULL}  equal per-scenario dense={EQUAL}")
-    print(f"equ-swg 不变量: {equ['status'] if equ else 'MISSING'}")
+    print(f"参照: full-batch dense mean={FULL_MEAN:.9f}  "
+          f"equal per-scenario dense mean={EQUAL_MEAN:.4f}")
+    print(f"sample-weighting 不变量: {equ['status'] if equ else 'MISSING'}")
     print("-" * 64)
     print(f"稠密 sample 三 seed: {dens}")
     if dens:
-        mean = sum(dens) / len(dens)
-        print(f"  均值={mean:.4f}  |Δfull|={abs(mean-FULL):.4f}  "
-              f"R={(mean-EQUAL)/(FULL-EQUAL):.3f}")
+        mean = sum(dens.values()) / len(dens)
+        r_gain, r_resid = recovery_rates(dens)
+        print(f"  均值={mean:.9f}  |Δfull_mean|={abs(mean-FULL_MEAN):.9f}  "
+              f"R_gain={r_gain:.3f}  R_resid_paired={r_resid:.3f}")
     print(f"全路由冻结 sample 三 seed: {frout}")
     print(f"全路由正常 sample 三 seed: {nrout}")
     print(f"部分路由加共享 sample 三 seed: {pshr}")
@@ -111,21 +131,27 @@ def main():
     print(f"依据: {reason}")
 
     if frout and nrout and pshr and dens:
-        dmean = sum(dens) / 3
         def rel(name, aucs):
-            m = sum(aucs) / 3
-            vs_d = m - dmean
-            vs_full = m - FULL
-            tag = "超过" if vs_full > DIFF_TOL else ("匹配" if abs(vs_full) <= DIFF_TOL else "落后")
-            print(f"  {name}: mean={m:.4f}  vs sample-dense={vs_d:+.4f}  vs full={vs_full:+.4f} -> {tag}")
-        print("铺开分组（相对口径）:")
-        rel("frout(冻结)", frout)
-        rel("nrout(正常)", nrout)
-        rel("pshr(共享)", pshr)
+            seeds = sorted(set(aucs) & set(dens))
+            deltas = [aucs[seed] - dens[seed] for seed in seeds]
+            directions = ["+" if delta > 0 else "-" if delta < 0 else "0"
+                          for delta in deltas]
+            stable = len(set(directions)) == 1 and "0" not in directions
+            verdict = "方向一致" if stable else "跨 seed 变号，未稳定匹配"
+            print(f"  {name}: paired_deltas={[round(v, 7) for v in deltas]} "
+                  f"directions={directions} -> {verdict}")
+        print("铺开分组（同 seed 配对口径）:")
+        rel("frozen fully-routed", frout)
+        rel("trainable fully-routed", nrout)
+        rel("partial-routed with shared expert", pshr)
         if len(nrout) == 3 and len(frout) == 3:
-            nm = sum(nrout)/3; fm = sum(frout)/3
-            verdict = "正常路由稳定优于冻结" if (nm - fm) > 0.0036 else "正常路由未稳定优于冻结"
-            print(f"  normal vs frozen: Δ={nm-fm:+.4f} -> {verdict}")
+            deltas = [nrout[s] - frout[s] for s in sorted(nrout)]
+            directions = ["+" if delta > 0 else "-" if delta < 0 else "0"
+                          for delta in deltas]
+            verdict = ("方向一致" if len(set(directions)) == 1 and "0" not in directions
+                       else "跨 seed 变号，无稳定方向性差异")
+            print(f"  trainable vs frozen: paired_deltas="
+                  f"{[round(v, 7) for v in deltas]} -> {verdict}")
 
     print("=" * 64)
 

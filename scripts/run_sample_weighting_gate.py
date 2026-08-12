@@ -114,8 +114,15 @@ def run_one(code):
     router = card.get("router")
     freeze_router = bool(card.get("freeze_router", False))
     if freeze_router or router == "frozen":
-        router_semantics = ("frozen: router weights zeroed (uniform, "
-                            "zero-noise, vanilla-equiv)")
+        if card["model"] == "lowrank-full-dim":
+            router_semantics = (
+                "frozen: deterministic uniform gate over low-rank full-dimensional "
+                "experts; zero noise; not vanilla-equivalent"
+            )
+        else:
+            router_semantics = (
+                "frozen: router weights zeroed; deterministic uniform gate; zero noise"
+            )
     elif router == "soft":
         router_semantics = "soft: learnable DataRouter (data routing)"
     elif router == "none":
