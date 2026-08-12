@@ -1,0 +1,65 @@
+{
+  "status": "done",
+  "run_name": "shared-residual-specialist-screen-specialist-only-lr-1e-3-scenario-3-then-scenario-0-seed-123",
+  "created_at": "2026-08-12T19:37:10.661099",
+  "config": {
+    "arm": "specialist-only",
+    "expert_learning_rate": 0.001,
+    "head_learning_rate": 0.0005,
+    "shared_learning_rate_ratio": 0.0,
+    "order": [
+      3,
+      0
+    ],
+    "seed": 123,
+    "device": "cuda:1",
+    "batch_size": 10000,
+    "epochs_per_task": 2,
+    "num_workers": 4,
+    "expert_count": 4,
+    "expert_rank": 45,
+    "adam_beta_two": 0.999,
+    "fixed_step_budget": true,
+    "early_stopping": false,
+    "routing": "frozen-uniform-fully-routed",
+    "scenario_loss_weighting": "single-task-per-trial-step"
+  },
+  "provenance": {
+    "git": {
+      "commit": "ca9e8a68e67165a22109ef530b19cce1f8ec4b37",
+      "status": "M logs/gpu_keeper.log\n?? cache/manifests/shared_residual_continual/\n?? cache/shared_residual_continual/\n?? logs/gpu_keeper_gpu1.log\n?? logs/shared-residual-specialist-screen-specialist-only-lr-1e-3-scenario-0-then-scenario-3-seed-123.log\n?? logs/shared-residual-specialist-screen-specialist-only-lr-1e-3-scenario-0-then-scenario-3-seed-42.log\n?? logs/shared-residual-specialist-screen-specialist-only-lr-1e-3-scenario-0-then-scenario-3-seed-456.log\n?? logs/shared-residual-specialist-screen-specialist-only-lr-1e-3-scenario-3-then-scenario-0-seed-123.log\n?? logs/shared-residual-specialist-screen-specialist-only-lr-2e-4-scenario-0-then-scenario-3-seed-123.log\n?? logs/shared-residual-specialist-screen-specialist-only-lr-2e-4-scenario-0-then-scenario-3-seed-42.log\n?? logs/shared-residual-specialist-screen-specialist-only-lr-2e-4-scenario-0-then-scenario-3-seed-456.log\n?? logs/shared-residual-specialist-screen-specialist-only-lr-2e-4-scenario-3-then-scenario-0-seed-123.log\n?? logs/shared-residual-specialist-screen-specialist-only-lr-5e-4-scenario-0-then-scenario-3-seed-123.log\n?? logs/shared-residual-specialist-screen-specialist-only-lr-5e-4-scenario-0-then-scenario-3-seed-42.log\n?? logs/shared-residual-specialist-screen-specialist-only-lr-5e-4-scenario-0-then-scenario-3-seed-456.log\n?? logs/shared-residual-specialist-screen-specialist-only-lr-5e-4-scenario-3-then-scenario-0-seed-123.log\n?? logs/shared-residual-specialist-screen-task-head-only-lr-5e-4-scenario-0-then-scenario-3-seed-123.log\n?? logs/shared-residual-specialist-screen-task-head-only-lr-5e-4-scenario-0-then-scenario-3-seed-42.log\n?? logs/shared-residual-specialist-screen-task-head-only-lr-5e-4-scenario-0-then-scenario-3-seed-456.log\n?? logs/shared-residual-specialist-screen-task-head-only-lr-5e-4-scenario-3-then-scenario-0-seed-123.log\n?? logs/shared_residual_experiment_host.log\n?? logs/shared_residual_experiment_runtime.lock\n?? logs/shared_residual_experiment_start.lock"
+    },
+    "driver_path": "docs/20260812-1807-共享残差混合专家-函数保持与持续学习-驱动.md",
+    "driver_sha256": "b838fbd01a76211f7c74106723edb8d55595a6c6d9a2091e9b95fab843e19983",
+    "authorization": {
+      "status": "authorized",
+      "authorized_scope": "function-and-lr-invariants-plus-two-task-specialist-screen",
+      "driver_path": "docs/20260812-1807-共享残差混合专家-函数保持与持续学习-驱动.md",
+      "driver_sha256": "b838fbd01a76211f7c74106723edb8d55595a6c6d9a2091e9b95fab843e19983",
+      "authorized_at": "2026-08-12T18:07:00",
+      "authorization_basis": "user explicitly requested implementation and one-click execution handoff; scope remains bounded by the driver"
+    },
+    "dense_checkpoint": "/root/Documents/Lfm4ads/cache/vanilla_from_scratch_seed123.pt",
+    "dense_checkpoint_sha256": "c12a22583800172c9173c74becabc4286de99877d9cd20cf0ef2fac85c4121f6",
+    "dataset_sha256": "7f4be347e7a9017310f6600950f680185e01ead6805a08daa11d9a5b05abf614",
+    "source_sha256": {
+      "model.py": "e47134d6ea6ae1b90a58128d4e3f8ef4d712da3f75247adc44ac8aaa6415f60c",
+      "train.py": "c813dc9b19762a78d79451cbc682282b5c0d27f9f92660f61823fcea72814b4e",
+      "dataset.py": "1bd10afdcedb0306c318907a3abd0f587e1e71d9f5951406627f41d9a5bdee04",
+      "fields.py": "ad66ae4a0517c0f0a1d1862ebb0efc411786f8efa45b6d3c2725cee208fafb4e",
+      "shared_residual_continual_protocol.py": "c9e5148e01459e06e677bd4ac616602fc7cd03395ee0e4ab3cb15ce999b56cc1",
+      "run_shared_residual_continual_trial.py": "cb1173be7669e07eccb01072b7bd55be00cc67f42aba2f2cb65478d38d51c4a2",
+      "docs/20260812-1807-共享残差混合专家-函数保持与持续学习-驱动.md": "b838fbd01a76211f7c74106723edb8d55595a6c6d9a2091e9b95fab843e19983",
+      "scripts/shared_residual_experiment_authorization.json": "21bbbdf7f999b4af03030026da9cce4f49b6e737959fc88634e6c67c21ae035f"
+    }
+  },
+  "paths": {
+    "summary": "/root/Documents/Lfm4ads/cache/shared_residual_continual/shared-residual-specialist-screen-specialist-only-lr-1e-3-scenario-3-then-scenario-0-seed-123/summary.json",
+    "trial_result": "/root/Documents/Lfm4ads/cache/shared_residual_continual/shared-residual-specialist-screen-specialist-only-lr-1e-3-scenario-3-then-scenario-0-seed-123/trial_result.csv",
+    "checkpoint": "/root/Documents/Lfm4ads/cache/shared_residual_continual/shared-residual-specialist-screen-specialist-only-lr-1e-3-scenario-3-then-scenario-0-seed-123/model_state.pt"
+  },
+  "completed_at": "2026-08-12T19:38:25.907564",
+  "summary_sha256": "a67133c4cc3a01c3be7f82aa6c338b534d9b290024b52891e8e8350e92dabf8b",
+  "trial_result_sha256": "c8dbfd37e43458d2c52623b4ef63a3171f13dba889bc9d49662b752508ab1006",
+  "checkpoint_sha256": "2997d7db57d9707965a7dc86cda9e5ab53157ba73531d446edca7930ad6d1321"
+}

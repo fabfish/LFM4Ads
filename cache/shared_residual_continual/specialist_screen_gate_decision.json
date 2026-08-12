@@ -1,0 +1,137 @@
+{
+  "status": "done",
+  "gate": "Specialist-Only Continual Adaptation Screen",
+  "verdict": "INCONCLUSIVE",
+  "reason": "paired BWT direction/practical-significance rules are not jointly met",
+  "winning_specialist_learning_rate": null,
+  "comparisons_against_task_head_only": {
+    "0.0002": {
+      "scenario-0-then-scenario-3": {
+        "bwt_paired_differences": [
+          -1.226113409058538e-05,
+          1.9172893910734956e-05,
+          -8.224356737862593e-06
+        ],
+        "bwt_directions": [
+          "negative",
+          "positive",
+          "negative"
+        ],
+        "mean_bwt_difference": -4.375323059043386e-07,
+        "baseline_three_seed_range_noise_floor": 0.0,
+        "learning_accuracy_paired_differences": [
+          -0.004908127260577988,
+          0.0017218545186261647,
+          0.003935104726096705
+        ],
+        "order_pass": false
+      },
+      "scenario-3-then-scenario-0": {
+        "bwt_paired_differences": [
+          -0.011804781900762729,
+          0.003059388122375495,
+          0.005737423943782627
+        ],
+        "bwt_directions": [
+          "negative",
+          "positive",
+          "positive"
+        ],
+        "mean_bwt_difference": -0.001002656611534869,
+        "baseline_three_seed_range_noise_floor": 0.0,
+        "learning_accuracy_paired_differences": [
+          8.286589853767623e-05,
+          0.0006657915494900912,
+          0.000731057334596219
+        ],
+        "order_pass": false
+      }
+    },
+    "0.0005": {
+      "scenario-0-then-scenario-3": {
+        "bwt_paired_differences": [
+          -5.3093152038719005e-05,
+          5.2676169848830945e-05,
+          -3.415966546083116e-05
+        ],
+        "bwt_directions": [
+          "negative",
+          "positive",
+          "negative"
+        ],
+        "mean_bwt_difference": -1.1525549216906406e-05,
+        "baseline_three_seed_range_noise_floor": 0.0,
+        "learning_accuracy_paired_differences": [
+          -0.0053888273808018194,
+          0.0020287145903055137,
+          0.004553086835355935
+        ],
+        "order_pass": false
+      },
+      "scenario-3-then-scenario-0": {
+        "bwt_paired_differences": [
+          -0.013771531408004134,
+          0.0020738709400976996,
+          0.006465849687205427
+        ],
+        "bwt_directions": [
+          "negative",
+          "positive",
+          "positive"
+        ],
+        "mean_bwt_difference": -0.0017439369269003357,
+        "baseline_three_seed_range_noise_floor": 0.0,
+        "learning_accuracy_paired_differences": [
+          0.0006191503938550724,
+          0.001020667199650549,
+          0.0011382899064981133
+        ],
+        "order_pass": false
+      }
+    },
+    "0.001": {
+      "scenario-0-then-scenario-3": {
+        "bwt_paired_differences": [
+          -0.00015370642859002803,
+          9.108451865835754e-05,
+          -0.00010907330699683193
+        ],
+        "bwt_directions": [
+          "negative",
+          "positive",
+          "negative"
+        ],
+        "mean_bwt_difference": -5.723173897616748e-05,
+        "baseline_three_seed_range_noise_floor": 0.0,
+        "learning_accuracy_paired_differences": [
+          -0.006238344409473795,
+          0.003354615090244706,
+          0.005178329300694062
+        ],
+        "order_pass": false
+      },
+      "scenario-3-then-scenario-0": {
+        "bwt_paired_differences": [
+          -0.01641528837089734,
+          0.0011911903333619023,
+          0.007472791156054592
+        ],
+        "bwt_directions": [
+          "negative",
+          "positive",
+          "positive"
+        ],
+        "mean_bwt_difference": -0.0025837689604936154,
+        "baseline_three_seed_range_noise_floor": 0.0,
+        "learning_accuracy_paired_differences": [
+          0.0012058354792781056,
+          0.0014142400748505812,
+          0.0015255521083352708
+        ],
+        "order_pass": false
+      }
+    }
+  },
+  "unlock_shared_path_necessity_gate": false,
+  "claim_boundary": "PASS only authorizes the Shared-Path Necessity Gate; it does not establish a full continual-learning or sparse-scaling claim"
+}

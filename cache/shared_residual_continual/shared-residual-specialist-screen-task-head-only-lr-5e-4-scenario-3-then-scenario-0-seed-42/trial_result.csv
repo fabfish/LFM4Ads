@@ -1,0 +1,2 @@
+run_name,arm,expert_learning_rate,head_learning_rate,shared_learning_rate_ratio,order,seed,device,backward_transfer,learning_accuracy,average_forgetting,worst_task_forgetting
+shared-residual-specialist-screen-task-head-only-lr-5e-4-scenario-3-then-scenario-0-seed-42,task-head-only,0.0005,0.0005,0.0,"3,0",42,cuda:0,0.0,0.7387065808267006,0.0,0.0

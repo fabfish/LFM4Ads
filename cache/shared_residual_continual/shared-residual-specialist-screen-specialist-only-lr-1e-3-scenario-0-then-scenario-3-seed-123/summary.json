@@ -1,0 +1,224 @@
+{
+  "config": {
+    "run_name": "shared-residual-specialist-screen-specialist-only-lr-1e-3-scenario-0-then-scenario-3-seed-123",
+    "arm": "specialist-only",
+    "expert_learning_rate": 0.001,
+    "head_learning_rate": 0.0005,
+    "shared_learning_rate_ratio": 0.0,
+    "order": [
+      0,
+      3
+    ],
+    "seed": 123,
+    "device": "cuda:1",
+    "batch_size": 10000,
+    "epochs_per_task": 2,
+    "num_workers": 4,
+    "expert_count": 4,
+    "expert_rank": 45,
+    "adam_beta_two": 0.999,
+    "fixed_step_budget": true,
+    "early_stopping": false,
+    "routing": "frozen-uniform-fully-routed",
+    "scenario_loss_weighting": "single-task-per-trial-step"
+  },
+  "results": {
+    "pre_continual_auc": {
+      "0": 0.7138910156068285,
+      "3": 0.7255977375953381
+    },
+    "trajectory": [
+      {
+        "task_index": 0,
+        "train_scenario": 0,
+        "auc_per_scenario": {
+          "0": 0.7170505701606384,
+          "3": 0.7284857314251435
+        }
+      },
+      {
+        "task_index": 1,
+        "train_scenario": 3,
+        "auc_per_scenario": {
+          "0": 0.7171416546792968,
+          "3": 0.7304739052189562
+        }
+      }
+    ],
+    "metrics": {
+      "auc_matrix": [
+        [
+          0.7170505701606384,
+          0.7284857314251435
+        ],
+        [
+          0.7171416546792968,
+          0.7304739052189562
+        ]
+      ],
+      "learning_accuracy": 0.7237622376897973,
+      "backward_transfer": 9.108451865835754e-05,
+      "average_forgetting": 0.0,
+      "worst_task_forgetting": 0.0,
+      "backward_differences": [
+        9.108451865835754e-05
+      ]
+    },
+    "task_update_audits": [
+      {
+        "task_index": 0,
+        "train_scenario": 0,
+        "owner_expert": 0,
+        "parameter_groups": [
+          {
+            "name": "current-task-head",
+            "learning_rate": 0.0005,
+            "weight_decay": 0.0,
+            "parameter_count": 361
+          },
+          {
+            "name": "task-owned-specialist-0",
+            "learning_rate": 0.001,
+            "weight_decay": 0.0,
+            "parameter_count": 98415
+          }
+        ],
+        "training_history": [
+          {
+            "epoch": 1,
+            "loss_sum": 62.46375721693039,
+            "optimizer_steps": 193
+          },
+          {
+            "epoch": 2,
+            "loss_sum": 62.25110265612602,
+            "optimizer_steps": 193
+          }
+        ],
+        "block_drift": {
+          "backbone": {
+            "l2": 0.0,
+            "max_abs": 0.0,
+            "changed_elements": 0
+          },
+          "shared": {
+            "l2": 0.0,
+            "max_abs": 0.0,
+            "changed_elements": 0
+          },
+          "specialists": {
+            "l2": 9.781070703514763,
+            "max_abs": 0.1513512283563614,
+            "changed_elements": 98415
+          },
+          "router": {
+            "l2": 0.0,
+            "max_abs": 0.0,
+            "changed_elements": 0
+          },
+          "head": {
+            "l2": 0.3039304685971225,
+            "max_abs": 0.05091983824968338,
+            "changed_elements": 346
+          }
+        },
+        "inactive_head_immutability": "pass"
+      },
+      {
+        "task_index": 1,
+        "train_scenario": 3,
+        "owner_expert": 3,
+        "parameter_groups": [
+          {
+            "name": "current-task-head",
+            "learning_rate": 0.0005,
+            "weight_decay": 0.0,
+            "parameter_count": 361
+          },
+          {
+            "name": "task-owned-specialist-3",
+            "learning_rate": 0.001,
+            "weight_decay": 0.0,
+            "parameter_count": 98415
+          }
+        ],
+        "training_history": [
+          {
+            "epoch": 1,
+            "loss_sum": 0.4011213108897209,
+            "optimizer_steps": 4
+          },
+          {
+            "epoch": 2,
+            "loss_sum": 0.41519978642463684,
+            "optimizer_steps": 4
+          }
+        ],
+        "block_drift": {
+          "backbone": {
+            "l2": 0.0,
+            "max_abs": 0.0,
+            "changed_elements": 0
+          },
+          "shared": {
+            "l2": 0.0,
+            "max_abs": 0.0,
+            "changed_elements": 0
+          },
+          "specialists": {
+            "l2": 1.2433200402708815,
+            "max_abs": 0.007984904572367668,
+            "changed_elements": 98415
+          },
+          "router": {
+            "l2": 0.0,
+            "max_abs": 0.0,
+            "changed_elements": 0
+          },
+          "head": {
+            "l2": 0.04579195833927691,
+            "max_abs": 0.003903299570083618,
+            "changed_elements": 308
+          }
+        },
+        "inactive_head_immutability": "pass"
+      }
+    ],
+    "wall_clock_seconds": 69.21124158427119,
+    "initial_model_sha256": "322dcc798e275383c2088432bb9e91b66cea9885acdbd052620150de19c43602",
+    "final_model_sha256": "0a0c7d90113c387c2fd3c019e31e0c47b7c2b5a7c5abb7537702033be8a76668"
+  },
+  "provenance": {
+    "git": {
+      "commit": "ca9e8a68e67165a22109ef530b19cce1f8ec4b37",
+      "status": "M logs/gpu_keeper.log\n?? cache/manifests/shared_residual_continual/\n?? cache/shared_residual_continual/\n?? logs/gpu_keeper_gpu1.log\n?? logs/shared-residual-specialist-screen-specialist-only-lr-1e-3-scenario-0-then-scenario-3-seed-123.log\n?? logs/shared-residual-specialist-screen-specialist-only-lr-2e-4-scenario-0-then-scenario-3-seed-123.log\n?? logs/shared-residual-specialist-screen-specialist-only-lr-2e-4-scenario-0-then-scenario-3-seed-42.log\n?? logs/shared-residual-specialist-screen-specialist-only-lr-2e-4-scenario-0-then-scenario-3-seed-456.log\n?? logs/shared-residual-specialist-screen-specialist-only-lr-5e-4-scenario-0-then-scenario-3-seed-123.log\n?? logs/shared-residual-specialist-screen-task-head-only-lr-5e-4-scenario-0-then-scenario-3-seed-123.log\n?? logs/shared-residual-specialist-screen-task-head-only-lr-5e-4-scenario-0-then-scenario-3-seed-42.log\n?? logs/shared-residual-specialist-screen-task-head-only-lr-5e-4-scenario-0-then-scenario-3-seed-456.log\n?? logs/shared_residual_experiment_host.log\n?? logs/shared_residual_experiment_runtime.lock\n?? logs/shared_residual_experiment_start.lock"
+    },
+    "driver_path": "docs/20260812-1807-共享残差混合专家-函数保持与持续学习-驱动.md",
+    "driver_sha256": "b838fbd01a76211f7c74106723edb8d55595a6c6d9a2091e9b95fab843e19983",
+    "authorization": {
+      "status": "authorized",
+      "authorized_scope": "function-and-lr-invariants-plus-two-task-specialist-screen",
+      "driver_path": "docs/20260812-1807-共享残差混合专家-函数保持与持续学习-驱动.md",
+      "driver_sha256": "b838fbd01a76211f7c74106723edb8d55595a6c6d9a2091e9b95fab843e19983",
+      "authorized_at": "2026-08-12T18:07:00",
+      "authorization_basis": "user explicitly requested implementation and one-click execution handoff; scope remains bounded by the driver"
+    },
+    "dense_checkpoint": "/root/Documents/Lfm4ads/cache/vanilla_from_scratch_seed123.pt",
+    "dense_checkpoint_sha256": "c12a22583800172c9173c74becabc4286de99877d9cd20cf0ef2fac85c4121f6",
+    "dataset_sha256": "7f4be347e7a9017310f6600950f680185e01ead6805a08daa11d9a5b05abf614",
+    "source_sha256": {
+      "model.py": "e47134d6ea6ae1b90a58128d4e3f8ef4d712da3f75247adc44ac8aaa6415f60c",
+      "train.py": "c813dc9b19762a78d79451cbc682282b5c0d27f9f92660f61823fcea72814b4e",
+      "dataset.py": "1bd10afdcedb0306c318907a3abd0f587e1e71d9f5951406627f41d9a5bdee04",
+      "fields.py": "ad66ae4a0517c0f0a1d1862ebb0efc411786f8efa45b6d3c2725cee208fafb4e",
+      "shared_residual_continual_protocol.py": "c9e5148e01459e06e677bd4ac616602fc7cd03395ee0e4ab3cb15ce999b56cc1",
+      "run_shared_residual_continual_trial.py": "cb1173be7669e07eccb01072b7bd55be00cc67f42aba2f2cb65478d38d51c4a2",
+      "docs/20260812-1807-共享残差混合专家-函数保持与持续学习-驱动.md": "b838fbd01a76211f7c74106723edb8d55595a6c6d9a2091e9b95fab843e19983",
+      "scripts/shared_residual_experiment_authorization.json": "21bbbdf7f999b4af03030026da9cce4f49b6e737959fc88634e6c67c21ae035f"
+    }
+  },
+  "checkpoint": {
+    "path": "/root/Documents/Lfm4ads/cache/shared_residual_continual/shared-residual-specialist-screen-specialist-only-lr-1e-3-scenario-0-then-scenario-3-seed-123/model_state.pt",
+    "sha256": "11b03c13cdb9f8b592da3ce2810fa3f2b10590061ba7ae968b34ca12a8837550"
+  }
+}
