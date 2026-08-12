@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
-# 停止 GPU0 占位守护（含其假计算子进程）
+# 停止指定 GPU 的占位守护（默认 GPU0；可传 GPU 编号，如：stop_gpu_keeper.sh 1）
 cd "$(dirname "$0")/.." || exit 1
-PIDFILE=logs/gpu_keeper.pid
+GPU_ID="${1:-0}"
+if [ "$GPU_ID" = "0" ]; then
+  PIDFILE=logs/gpu_keeper.pid
+else
+  PIDFILE="logs/gpu_keeper_gpu${GPU_ID}.pid"
+fi
 
 if [ -f "$PIDFILE" ]; then
   PID="$(cat "$PIDFILE")"
@@ -14,9 +19,4 @@ if [ -f "$PIDFILE" ]; then
   rm -f "$PIDFILE"
 fi
 
-# 兜底：按名字清理残留
-if pgrep -f "gpu_keeper.py" >/dev/null 2>&1; then
-  pkill -f "gpu_keeper.py"
-  echo "已按名称清理残留进程"
-fi
-echo "done"
+echo "GPU${GPU_ID} gpu_keeper 已停止"

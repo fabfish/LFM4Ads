@@ -1,8 +1,21 @@
 #!/usr/bin/env bash
-# 启动 GPU0 占位守护（长驻后台，退出 shell 也不中断）
+# 启动指定 GPU 的占位守护（默认 GPU0；可传 GK_GPU_ID=1）
 cd "$(dirname "$0")/.." || exit 1
-LOG=logs/gpu_keeper.log
-PIDFILE=logs/gpu_keeper.pid
+
+GPU_ID="${GK_GPU_ID:-0}"
+for ARG in "$@"; do
+  case "$ARG" in
+    GK_GPU_ID=*) GPU_ID="${ARG#*=}" ;;
+  esac
+done
+
+if [ "$GPU_ID" = "0" ]; then
+  LOG=logs/gpu_keeper.log
+  PIDFILE=logs/gpu_keeper.pid
+else
+  LOG="logs/gpu_keeper_gpu${GPU_ID}.log"
+  PIDFILE="logs/gpu_keeper_gpu${GPU_ID}.pid"
+fi
 
 # cron 等精简环境里 PATH 可能找不到带 torch 的 python，这里固定用 conda 解释器
 if [ -x /opt/conda/envs/torch-base/bin/python3 ]; then
@@ -17,13 +30,8 @@ if [ -f "$PIDFILE" ] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
   exit 0
 fi
 
-# 单实例保护：若监测进程已在运行则跳过。
-# 注意只匹配监测主进程（命令行以 gpu_keeper.py 结尾、不带 --fake 的），
-# 否则会把“假计算子进程”也算进去。
-if pgrep -f "gpu_keeper.py$" >/dev/null 2>&1; then
-  echo "gpu_keeper 监测已在运行，log=$LOG"
-  exit 0
-fi
+# 最终单实例保护由 Python 进程对每张卡各自的 pidfile 执行 flock；
+# 即使 cron 同时拉起重复进程，重复实例也会立即退出。
 
 # 支持通过环境变量覆盖默认配置，例如：
 #   GK_IDLE_THRESHOLD_S=300 GK_FAKE_DURATION_S=0 ./scripts/start_gpu_keeper.sh

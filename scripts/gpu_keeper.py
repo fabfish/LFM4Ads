@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-gpu_keeper.py — GPU0 占位守护（fake load keeper）
+gpu_keeper.py — 多卡 GPU 占位守护（fake load keeper，按 GK_GPU_ID 区分）
 
 背景
 ----
@@ -43,11 +43,12 @@ import fcntl
 import logging
 import subprocess
 
-# 单实例锁与 pidfile（用绝对路径，避免 cron 等 cwd 不一致导致锁/pid 错位）
+# 单实例锁与 pidfile（按 GPU 隔离，避免多卡守护互相冲突）
 _HERE = os.path.dirname(os.path.abspath(__file__))
-PIDFILE = os.path.normpath(os.path.join(_HERE, "..", "logs", "gpu_keeper.pid"))
-
 GPU_ID = int(os.environ.get("GK_GPU_ID", "0"))
+_PID_NAME = "gpu_keeper.pid" if GPU_ID == 0 else f"gpu_keeper_gpu{GPU_ID}.pid"
+PIDFILE = os.path.normpath(os.path.join(_HERE, "..", "logs", _PID_NAME))
+
 TRIGGER = os.environ.get("GK_TRIGGER", "idle").lower()
 IDLE_THRESHOLD_S = int(os.environ.get("GK_IDLE_THRESHOLD_S", "60"))
 FAKE_DURATION_S = int(os.environ.get("GK_FAKE_DURATION_S", "1200"))

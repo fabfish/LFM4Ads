@@ -14,7 +14,6 @@ import argparse
 from datetime import datetime
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
-LOG = os.path.normpath(os.path.join(_HERE, "..", "logs", "gpu_keeper.log"))
 
 TS = re.compile(r"^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})")
 START = "已启动假计算程序"
@@ -30,12 +29,12 @@ def _close(cur, ts, reason, sessions):
     return None
 
 
-def parse():
+def parse(log_path):
     sessions = []
     cur = None
-    if not os.path.exists(LOG):
+    if not os.path.exists(log_path):
         return sessions
-    with open(LOG, encoding="utf-8", errors="replace") as f:
+    with open(log_path, encoding="utf-8", errors="replace") as f:
         for line in f:
             line = line.rstrip("\n")
             m = TS.match(line)
@@ -72,10 +71,14 @@ def parse():
 
 def main():
     ap = argparse.ArgumentParser()
+    ap.add_argument("--gpu", type=int, default=0, help="GPU 编号，默认 0")
     ap.add_argument("--min", type=float, default=0, help="只显示持续 >= N 秒的时段")
     args = ap.parse_args()
 
-    sessions = parse()
+    log_name = "gpu_keeper.log" if args.gpu == 0 else f"gpu_keeper_gpu{args.gpu}.log"
+    log_path = os.path.normpath(os.path.join(_HERE, "..", "logs", log_name))
+    sessions = parse(log_path)
+    print(f"GPU{args.gpu} 日志: {log_path}")
     total = 0.0
     shown = 0
     for s, e, r in sessions:
