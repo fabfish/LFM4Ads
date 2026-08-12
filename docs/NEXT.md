@@ -1,7 +1,7 @@
 # 后续安排与授权边界
 
 > 当前决策：**接受共享残差 G3 `INCONCLUSIVE`，冻结持续学习路线；转向 MoE 下游留出域参数高效迁移。**
-> 新路线当前为 `planned / auth=not-started`，只允许实现、审计和 smoke，不启动正式 GPU 矩阵。状态见 [`DRIVERS.md`](DRIVERS.md)，分析见 [`ANALYSIS.md`](ANALYSIS.md)。
+> 新路线已 `authorized / running`：G0 技术不变量与 G0-final 审计均 PASS、独立 authorization 已冻结（`formal_training_authorized=true`）；正式 GPU 矩阵由 `scripts/run_downstream_transfer_matrix.py` 按 G1→G2 阶段门控执行中。状态见 [`DRIVERS.md`](DRIVERS.md)，分析见 [`ANALYSIS.md`](ANALYSIS.md)。
 
 ## 1. 已冻结的旧路线
 
@@ -48,7 +48,7 @@
 
 ## 4. P1：seed 42 feasibility gate
 
-G0 PASS 且独立 authorization 完成后，才运行 seed 42：
+G0 PASS 且独立 authorization 已完成，seed 42 已按计划先行运行：
 
 - source models：same-FLOPs dense 与 `DCNv2MoE_LowRank(K=4,r=45)`；
 - target：2/5/6；
@@ -96,4 +96,4 @@ PASS 也只能支持“该固定协议、固定测试集上跨训练 seed 方向
 
 ## 7. 当前可执行动作
 
-无需再扩展旧 G3。当前仅执行新下游路线的 runner、G0 verifier、manifest/auth 模板和 smoke；在 G0 PASS 前，实验状态保持 `planned / auth=not-started`，不运行正式 GPU 任务。
+无需再扩展旧 G3。新下游路线已 `authorized / running`：runner、G0 verifier、authorization 与 smoke 均已完成并 PASS；正式 GPU 矩阵由 `scripts/run_downstream_transfer_matrix.py` 执行，G1（seed 42 验证门控）先行、通过才续 seeds 123/456，G2 冻结 verdict。禁止项（§6）全程生效。

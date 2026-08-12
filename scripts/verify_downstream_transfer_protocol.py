@@ -25,6 +25,7 @@ from downstream_transfer_protocol import (  # noqa: E402
     MoEDownstreamTransfer,
     RankResidualAdapter,
     assert_source_target_disjoint,
+    forward_smoke,
     source_frames,
     target_budget_split,
     trainable_parameter_count,
@@ -34,6 +35,7 @@ from model import DCNv2, DCNv2MoE_LowRank  # noqa: E402
 
 AUDIT_PATH = ROOT / "cache/audit/downstream_transfer/protocol_invariants.json"
 DRIVER_PATH = ROOT / "docs/archive/drivers/20260812-2303-MoE下游留出域参数高效迁移驱动.md"
+AUTH_PATH = ROOT / "scripts/downstream_transfer_authorization.json"
 SEEDS = (42, 123, 456)
 
 
@@ -139,6 +141,16 @@ def verify_paired_head_initialization(errors: list[str]) -> bool:
     return paired
 
 
+def verify_forward_smoke(errors: list[str]) -> dict:
+    results = forward_smoke("cpu")
+    for arm, info in results.items():
+        require(info["logit_shape"] == [5], f"{arm} logit shape != [5]", errors)
+        require(not info["has_nan"], f"{arm} produced NaN logits", errors)
+        require(info["trainable_grad_norm"] > 0.0,
+                f"{arm} has no gradient through trainable params", errors)
+    return results
+
+
 def verify_data(errors: list[str]) -> dict:
     frame = pd.read_feather(
         ROOT / "dataset.feather", columns=["date", "tab", "is_click"],
@@ -157,24 +169,35 @@ def verify_data(errors: list[str]) -> dict:
             split = target_budget_split(frame, target, seed)
             fit = set(split.fit_indices)
             validation_indices = set(split.validation_indices)
+            test_indices = set(split.test_indices)
             require(len(fit) == FIT_SIZE, "fit size mismatch", errors)
             require(len(validation_indices) == VALIDATION_SIZE,
                     "validation size mismatch", errors)
+            require(len(test_indices) >= 1, "test set empty", errors)
             require(not fit & validation_indices, "fit/validation overlap", errors)
+            require(not fit & test_indices, "fit/test overlap", errors)
+            require(not validation_indices & test_indices,
+                    "validation/test overlap", errors)
             require(len(fit | validation_indices) == LABEL_BUDGET,
                     "target label budget mismatch", errors)
             fit_frame = frame.loc[list(split.fit_indices)]
             validation_frame = frame.loc[list(split.validation_indices)]
+            test_frame = frame.loc[list(split.test_indices)]
             require(set(fit_frame["tab"]) == {target}, "fit target mismatch", errors)
             require(set(validation_frame["tab"]) == {target},
                     "validation target mismatch", errors)
+            require(set(test_frame["tab"]) == {target},
+                    "test target mismatch", errors)
             splits[str(target)][str(seed)] = {
                 "fit_count": len(split.fit_indices),
                 "validation_count": len(split.validation_indices),
+                "test_count": len(split.test_indices),
                 "fit_positive_count": int(fit_frame["is_click"].sum()),
                 "validation_positive_count": int(validation_frame["is_click"].sum()),
+                "test_positive_count": int(test_frame["is_click"].sum()),
                 "fit_sha256": split.fit_sha256,
                 "validation_sha256": split.validation_sha256,
+                "test_sha256": split.test_sha256,
             }
     return {
         "dataset_sha256": file_sha256(ROOT / "dataset.feather"),
@@ -185,12 +208,23 @@ def verify_data(errors: list[str]) -> dict:
     }
 
 
+def read_authorization() -> tuple[str, bool, str]:
+    if not AUTH_PATH.exists():
+        return "not-started", False, ""
+    auth = json.loads(AUTH_PATH.read_text())
+    status = auth.get("status", "not-started")
+    authorized = bool(auth.get("formal_training_authorized", False)) and status == "authorized"
+    return status, authorized, file_sha256(AUTH_PATH)
+
+
 def main() -> None:
     errors: list[str] = []
     counts, total_counts = verify_parameter_budget(errors)
     adapter_maximum = verify_adapter_identity(errors)
     paired_head_initialization = verify_paired_head_initialization(errors)
+    smoke = verify_forward_smoke(errors)
     data = verify_data(errors)
+    auth_status, formal_authorized, auth_sha = read_authorization()
     frozen_files = [
         ROOT / "model.py",
         ROOT / "dataset.py",
@@ -198,12 +232,13 @@ def main() -> None:
         ROOT / "downstream_transfer_protocol.py",
         Path(__file__).resolve(),
         DRIVER_PATH,
+        AUTH_PATH,
     ]
     report = {
         "status": "pass" if not errors else "fail",
         "gate": "downstream-transfer-protocol-invariants",
-        "authorization_status": "not-started",
-        "formal_training_authorized": False,
+        "authorization_status": auth_status,
+        "formal_training_authorized": formal_authorized,
         "errors": errors,
         "trainable_parameter_counts": counts,
         "total_parameter_counts": total_counts,
@@ -212,6 +247,7 @@ def main() -> None:
         ),
         "zero_init_adapter_max_abs": adapter_maximum,
         "paired_binary_head_initialization": paired_head_initialization,
+        "forward_smoke": smoke,
         "data": data,
         "frozen_source_sha256": {
             str(path.relative_to(ROOT)): file_sha256(path) for path in frozen_files

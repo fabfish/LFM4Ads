@@ -4,12 +4,17 @@ from __future__ import annotations
 
 import hashlib
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Iterable
 
+import numpy as np
 import pandas as pd
 import torch
 from torch import nn
+from torch.utils.data import Dataset as TorchDataset
 
+import fields
+from dataset import DATASET_PATH
 from model import DCNv2, DCNv2MoE_LowRank
 
 
@@ -32,8 +37,10 @@ class TargetBudgetSplit:
     seed: int
     fit_indices: tuple[int, ...]
     validation_indices: tuple[int, ...]
+    test_indices: tuple[int, ...]
     fit_sha256: str
     validation_sha256: str
+    test_sha256: str
 
 
 def _indices_sha256(indices: Iterable[int]) -> str:
@@ -59,15 +66,22 @@ def target_budget_split(frame: pd.DataFrame, target: int, seed: int) -> TargetBu
     selected = sorted(candidates, key=key)[:LABEL_BUDGET]
     fit = tuple(selected[:FIT_SIZE])
     validation = tuple(selected[FIT_SIZE:])
+    test = tuple(sorted(frame.index[
+        (frame["tab"] == target) & (frame["date"] >= 20220506)
+    ].tolist()))
     if len(fit) != FIT_SIZE or len(validation) != VALIDATION_SIZE:
         raise AssertionError("invalid target budget partition")
+    if len(test) < 1:
+        raise ValueError(f"target={target} has no test rows")
     return TargetBudgetSplit(
         target=target,
         seed=seed,
         fit_indices=fit,
         validation_indices=validation,
+        test_indices=test,
         fit_sha256=_indices_sha256(fit),
         validation_sha256=_indices_sha256(validation),
+        test_sha256=_indices_sha256(test),
     )
 
 
@@ -196,3 +210,134 @@ def frozen_parameter_sha256(model: nn.Module) -> str:
         (name, parameter) for name, parameter in model.named_parameters()
         if not parameter.requires_grad
     )
+
+
+SOURCE_CHECKPOINT_DIR = Path("cache/downstream_transfer/source")
+
+
+def source_checkpoint_path(model_type: str, seed: int) -> Path:
+    SOURCE_CHECKPOINT_DIR.mkdir(parents=True, exist_ok=True)
+    if model_type not in ("dense", "moe"):
+        raise ValueError(model_type)
+    return SOURCE_CHECKPOINT_DIR / f"{model_type}_seed{seed}.pt"
+
+
+def load_source_backbone(
+    model_type: str,
+    seed: int,
+    device: torch.device,
+    routing: str = "data",
+) -> DCNv2 | DCNv2MoE_LowRank:
+    """Load a frozen source-pretrained backbone for downstream transfer."""
+    if model_type == "dense":
+        backbone: DCNv2 | DCNv2MoE_LowRank = DCNv2()
+    elif model_type == "moe":
+        backbone = DCNv2MoE_LowRank(dim=360, K=4, r=45, routing=routing)
+    else:
+        raise ValueError(model_type)
+    path = source_checkpoint_path(model_type, seed)
+    if not path.exists():
+        raise FileNotFoundError(f"source checkpoint missing: {path}")
+    backbone.load_state_dict(torch.load(path, map_location=device))
+    backbone.to(device)
+    backbone.requires_grad_(False)
+    return backbone
+
+
+class DownstreamDataset(TorchDataset):
+    """A torch Dataset over a pre-selected, frozen subset of the raw frame."""
+
+    def __init__(self, rows: pd.DataFrame):
+        self.batch = _rows_to_batch(rows)
+
+    def __len__(self) -> int:
+        return len(self.batch["is_click"])
+
+    def __getitem__(self, index: int) -> dict[str, torch.Tensor]:
+        return {key: value[index] for key, value in self.batch.items()}
+
+
+def _rows_to_batch(rows: pd.DataFrame) -> dict[str, torch.Tensor]:
+    batch: dict[str, torch.Tensor] = {}
+    for field in fields.user:
+        batch[field] = torch.as_tensor(rows[field].to_numpy(), dtype=torch.long)
+    for field in fields.video:
+        batch[field] = torch.as_tensor(rows[field].to_numpy(), dtype=torch.long)
+    batch["tab"] = torch.as_tensor(rows["tab"].to_numpy(), dtype=torch.long)
+    batch["user_id"] = torch.as_tensor(rows["user_id"].to_numpy(), dtype=torch.long)
+    batch["is_click"] = torch.as_tensor(rows["is_click"].to_numpy(), dtype=torch.long)
+    return batch
+
+
+def _select_rows(target: int, period: str, indices: Iterable[int]) -> pd.DataFrame:
+    frame = pd.read_feather(DATASET_PATH, columns=list(fields.all))
+    if period in ("fit", "validation"):
+        frame = frame[(frame["tab"] == target) & (frame["date"] < 20220503)]
+    elif period == "test":
+        frame = frame[(frame["tab"] == target) & (frame["date"] >= 20220506)]
+    else:
+        raise ValueError(period)
+    selected = frame.loc[list(indices)].reset_index(drop=True)
+    if len(selected) != len(list(indices)):
+        raise AssertionError("downstream row selection dropped rows")
+    return selected
+
+
+def build_downstream_datasets(target: int, seed: int):
+    """Return (fit, validation, test) DownstreamDatasets and the frozen split."""
+    frame = pd.read_feather(DATASET_PATH, columns=list(fields.all))
+    split = target_budget_split(frame, target, seed)
+    fit_rows = _select_rows(target, "fit", split.fit_indices)
+    val_rows = _select_rows(target, "validation", split.validation_indices)
+    test_rows = _select_rows(target, "test", split.test_indices)
+    return (
+        DownstreamDataset(fit_rows),
+        DownstreamDataset(val_rows),
+        DownstreamDataset(test_rows),
+        split,
+    )
+
+
+def forward_smoke(device: str = "cpu") -> dict[str, dict]:
+    """One forward+backward for every arm on tiny random inputs (no data leakage)."""
+    torch.manual_seed(0)
+    dense = DCNv2().to(device)
+    moe = DCNv2MoE_LowRank(dim=360, K=4, r=45, routing="data").to(device)
+    arms = {
+        "dense-head": DenseDownstreamTransfer(dense),
+        "dense-adapter-r2": DenseDownstreamTransfer(dense, adapter_rank=2),
+        "moe-head": MoEDownstreamTransfer(moe, train_router=False),
+        "moe-router": MoEDownstreamTransfer(moe, train_router=True),
+    }
+    # Use in-bounds indices (zero) for every embedding field; cardinalities vary
+    # widely (some are < 10), so random ints would raise IndexError. A zero batch
+    # still exercises the full forward/backward path and gradient flow.
+    batch = {f: torch.zeros(5, dtype=torch.long, device=device) for f in fields.user}
+    for f in fields.video:
+        batch[f] = torch.zeros(5, dtype=torch.long, device=device)
+    batch["tab"] = torch.zeros(5, dtype=torch.long, device=device)
+    batch["user_id"] = torch.zeros(5, dtype=torch.long, device=device)
+    batch["is_click"] = torch.zeros(5, dtype=torch.long, device=device)
+    results: dict[str, dict] = {}
+    for name, arm in arms.items():
+        arm.to(device)
+        arm.zero_grad(set_to_none=True)
+        arm(batch)
+        logit = batch["logit"]
+        loss = torch.nn.functional.binary_cross_entropy_with_logits(
+            logit, batch["is_click"].float()
+        )
+        loss.backward()
+        grad_norm = sum(
+            p.grad.detach().abs().sum().item()
+            for p in arm.parameters() if p.grad is not None
+        )
+        results[name] = {
+            "logit_shape": list(logit.shape),
+            "loss": float(loss.item()),
+            "trainable_grad_norm": grad_norm,
+            "has_nan": bool(torch.isnan(logit).any()),
+        }
+        for p in arm.parameters():
+            p.grad = None
+    return results

@@ -1,8 +1,8 @@
 {
   "status": "pass",
   "gate": "downstream-transfer-protocol-invariants",
-  "authorization_status": "not-started",
-  "formal_training_authorized": false,
+  "authorization_status": "authorized",
+  "formal_training_authorized": true,
   "errors": [],
   "trainable_parameter_counts": {
     "dense-head": 361,
@@ -19,6 +19,40 @@
   "primary_arm_parameter_difference": 12,
   "zero_init_adapter_max_abs": 0.0,
   "paired_binary_head_initialization": true,
+  "forward_smoke": {
+    "dense-head": {
+      "logit_shape": [
+        5
+      ],
+      "loss": 0.7427026033401489,
+      "trainable_grad_norm": 34.18111044168472,
+      "has_nan": false
+    },
+    "dense-adapter-r2": {
+      "logit_shape": [
+        5
+      ],
+      "loss": 0.6699855327606201,
+      "trainable_grad_norm": 33.65334476530552,
+      "has_nan": false
+    },
+    "moe-head": {
+      "logit_shape": [
+        5
+      ],
+      "loss": 0.7243272066116333,
+      "trainable_grad_norm": 36.5059052198194,
+      "has_nan": false
+    },
+    "moe-router": {
+      "logit_shape": [
+        5
+      ],
+      "loss": 0.664120078086853,
+      "trainable_grad_norm": 37.41147155780345,
+      "has_nan": false
+    }
+  },
   "data": {
     "dataset_sha256": "7f4be347e7a9017310f6600950f680185e01ead6805a08daa11d9a5b05abf614",
     "source_scenarios": [
@@ -43,78 +77,105 @@
         "42": {
           "fit_count": 3072,
           "validation_count": 1024,
+          "test_count": 40645,
           "fit_positive_count": 1196,
           "validation_positive_count": 414,
+          "test_positive_count": 14997,
           "fit_sha256": "138fc7f4aba8b2cc11c1434d0b614fefdc00c1a70ebf5a1b6a0f9f718e6595dd",
-          "validation_sha256": "77ca8650580b185f744cda002ae1a2bfb0d680d5f94d91996d11f602dfb0480b"
+          "validation_sha256": "77ca8650580b185f744cda002ae1a2bfb0d680d5f94d91996d11f602dfb0480b",
+          "test_sha256": "4c5b724748bc2c11b36818e6e398654b30a0bdc59b0e7fb0ceb86e70592c12e3"
         },
         "123": {
           "fit_count": 3072,
           "validation_count": 1024,
+          "test_count": 40645,
           "fit_positive_count": 1261,
           "validation_positive_count": 387,
+          "test_positive_count": 14997,
           "fit_sha256": "007cccf603faef41f79c0d271b9a2029a44477f715020bc32fe5e6929823dd0c",
-          "validation_sha256": "3b4aea0876470a96955db318eb3b4356119986a58f6fea36dc691c73347b4840"
+          "validation_sha256": "3b4aea0876470a96955db318eb3b4356119986a58f6fea36dc691c73347b4840",
+          "test_sha256": "4c5b724748bc2c11b36818e6e398654b30a0bdc59b0e7fb0ceb86e70592c12e3"
         },
         "456": {
           "fit_count": 3072,
           "validation_count": 1024,
+          "test_count": 40645,
           "fit_positive_count": 1204,
           "validation_positive_count": 414,
+          "test_positive_count": 14997,
           "fit_sha256": "b7a96f97c26a90969b762dfe4d898de3d8c0e17b4c0ce0be33ab1c31833257d2",
-          "validation_sha256": "c5ad2edd40efebeced537fe8feb8e636c60045edfeffb28d1143ddfe8e3ac1d4"
+          "validation_sha256": "c5ad2edd40efebeced537fe8feb8e636c60045edfeffb28d1143ddfe8e3ac1d4",
+          "test_sha256": "4c5b724748bc2c11b36818e6e398654b30a0bdc59b0e7fb0ceb86e70592c12e3"
         }
       },
       "5": {
         "42": {
           "fit_count": 3072,
           "validation_count": 1024,
+          "test_count": 1833,
           "fit_positive_count": 666,
           "validation_positive_count": 187,
+          "test_positive_count": 368,
           "fit_sha256": "848fa71dd202f58e7259e988f670519798ac317ac538ae1628879e0faa3317bf",
-          "validation_sha256": "68fe25c1f398371c09ae359b24f326dd72a11c0afacfe95d84311d0269deac74"
+          "validation_sha256": "68fe25c1f398371c09ae359b24f326dd72a11c0afacfe95d84311d0269deac74",
+          "test_sha256": "57a84e5c3e868ccf7719260dc195dd0e7dfdbc23e3e5abca034c108a41c4f5ea"
         },
         "123": {
           "fit_count": 3072,
           "validation_count": 1024,
+          "test_count": 1833,
           "fit_positive_count": 663,
           "validation_positive_count": 211,
+          "test_positive_count": 368,
           "fit_sha256": "db2ae1004f0c74810a556b8d968c4fc956197624937dd95b974344bd0bc66b2f",
-          "validation_sha256": "beba607ef72e6660e52afb870715e8f4f1925edb6700883366508d8176d7fa88"
+          "validation_sha256": "beba607ef72e6660e52afb870715e8f4f1925edb6700883366508d8176d7fa88",
+          "test_sha256": "57a84e5c3e868ccf7719260dc195dd0e7dfdbc23e3e5abca034c108a41c4f5ea"
         },
         "456": {
           "fit_count": 3072,
           "validation_count": 1024,
+          "test_count": 1833,
           "fit_positive_count": 633,
           "validation_positive_count": 224,
+          "test_positive_count": 368,
           "fit_sha256": "df39fd8c42b1af70523a2b913ad5a9fbe54e0a5e05aeac4b164ebae92fd9d87f",
-          "validation_sha256": "2fdd98039bbe2095982119c7207cfe7a065e9296af040462343f4a0ae8a83647"
+          "validation_sha256": "2fdd98039bbe2095982119c7207cfe7a065e9296af040462343f4a0ae8a83647",
+          "test_sha256": "57a84e5c3e868ccf7719260dc195dd0e7dfdbc23e3e5abca034c108a41c4f5ea"
         }
       },
       "6": {
         "42": {
           "fit_count": 3072,
           "validation_count": 1024,
+          "test_count": 21600,
           "fit_positive_count": 626,
           "validation_positive_count": 174,
+          "test_positive_count": 3171,
           "fit_sha256": "41c3fe8225560cc495514e54b6c10a3183e822ebfdf9e3a67d1f4cc0684e48b7",
-          "validation_sha256": "4f7d5402e05cebfbbf5648929e8a75cbaa7f3a02b5151184510bd6f3aee23452"
+          "validation_sha256": "4f7d5402e05cebfbbf5648929e8a75cbaa7f3a02b5151184510bd6f3aee23452",
+          "test_sha256": "f2a26ead9539ff18e517fe62f2fb00375704fa763c94560e5a0736739526bcea"
         },
         "123": {
           "fit_count": 3072,
           "validation_count": 1024,
+          "test_count": 21600,
           "fit_positive_count": 557,
           "validation_positive_count": 195,
+          "test_positive_count": 3171,
           "fit_sha256": "dc0b76aaffc9a2622d1feb059bcdc6f2c1129f639b3e9150a60d6ce677e9ec8f",
-          "validation_sha256": "c45e4ba2801eee2a0dbf746240aa03f1bbfe1408ab2b967f2699ee2cf2ec34f1"
+          "validation_sha256": "c45e4ba2801eee2a0dbf746240aa03f1bbfe1408ab2b967f2699ee2cf2ec34f1",
+          "test_sha256": "f2a26ead9539ff18e517fe62f2fb00375704fa763c94560e5a0736739526bcea"
         },
         "456": {
           "fit_count": 3072,
           "validation_count": 1024,
+          "test_count": 21600,
           "fit_positive_count": 619,
           "validation_positive_count": 176,
+          "test_positive_count": 3171,
           "fit_sha256": "153a184d7036c64c9db35865f29577578c650410134bc83b4aeebdaad3cd8133",
-          "validation_sha256": "8ca4a1a9aec8ea2d009ce3a0b72720f09dc1359c793830488f454b34c75649bb"
+          "validation_sha256": "8ca4a1a9aec8ea2d009ce3a0b72720f09dc1359c793830488f454b34c75649bb",
+          "test_sha256": "f2a26ead9539ff18e517fe62f2fb00375704fa763c94560e5a0736739526bcea"
         }
       }
     }
@@ -123,8 +184,9 @@
     "model.py": "e47134d6ea6ae1b90a58128d4e3f8ef4d712da3f75247adc44ac8aaa6415f60c",
     "dataset.py": "1bd10afdcedb0306c318907a3abd0f587e1e71d9f5951406627f41d9a5bdee04",
     "fields.py": "ad66ae4a0517c0f0a1d1862ebb0efc411786f8efa45b6d3c2725cee208fafb4e",
-    "downstream_transfer_protocol.py": "c30cf293a6772e3c0287a93071dd0beacbdc4af611979e5e2a081c68ee00c155",
-    "scripts/verify_downstream_transfer_protocol.py": "dda797479ac1a889b013216d1c39ca0ac7eacf4acba3c6c7f8a4fbcc58a547af",
-    "docs/archive/drivers/20260812-2303-MoE下游留出域参数高效迁移驱动.md": "a281de3800ded56942c3af232f1a8e68288bc396958e6e4a2fb1961290d7d9be"
+    "downstream_transfer_protocol.py": "f376714a10c68ac750b3f15900bb202219282fdba5fc239a0da3db354789c73a",
+    "scripts/verify_downstream_transfer_protocol.py": "1db4263cb049006f2bf5d0fb454538eb20def6fbc6d96ed9920308a26ad58497",
+    "docs/archive/drivers/20260812-2303-MoE下游留出域参数高效迁移驱动.md": "a281de3800ded56942c3af232f1a8e68288bc396958e6e4a2fb1961290d7d9be",
+    "scripts/downstream_transfer_authorization.json": "a5efdd624a997673d8cabb61c300505fc44b6502d7ccd79a29b39155a3cc0c50"
   }
 }
