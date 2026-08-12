@@ -1320,3 +1320,159 @@ class DCNv2MoE_TaskConditionedLowRank(nn.Module):
                     batch["user_id"], torch.stack(representations, 1)):
                 self.CRs[user_id] *= 0.99
                 self.CRs[user_id] += representation
+
+
+# ============================================================
+#  Function-preserving shared-residual fully-routed MoE
+# ============================================================
+
+
+class ScenarioSpecificHead(nn.Module):
+    """Independent per-scenario heads so inactive rows never receive decay."""
+
+    def __init__(self, dim=360, num_tasks=15):
+        super().__init__()
+        self.dim, self.num_tasks = dim, num_tasks
+        self.rows = nn.ModuleList([nn.Linear(dim, 1) for _ in range(num_tasks)])
+
+    def load_dense(self, dense_head):
+        with torch.no_grad():
+            for task_id, row in enumerate(self.rows):
+                row.weight.copy_(dense_head.weight[task_id:task_id + 1])
+                row.bias.copy_(dense_head.bias[task_id:task_id + 1])
+
+    def forward(self, x, task_ids):
+        output = x.new_empty(len(x))
+        for task_id in task_ids.unique():
+            task_index = int(task_id.item())
+            mask = task_ids == task_id
+            output[mask] = self.rows[task_index](x[mask]).squeeze(-1)
+        return output
+
+
+class SharedResidualCrossExpertLayer(nn.Module):
+    """Dense shared path plus zero-initialized, fully-routed residual experts.
+
+    The shared transform is copied from a dense Cross layer. Every specialist
+    returns exactly zero immediately after ``load_dense`` because its up
+    projection is zeroed. Therefore conversion preserves the dense function
+    while retaining a usable gradient path into each specialist up projection.
+    """
+
+    def __init__(self, dim=360, K=4, r=45, num_tasks=15,
+                 routing_mode="frozen-uniform-routing", residual_scale=1.0):
+        super().__init__()
+        self.dim, self.K, self.r = dim, K, r
+        self.residual_scale = float(residual_scale)
+        self.shared = nn.Linear(dim, dim)
+        self.experts = nn.ModuleList([LowRankExpert(dim, r) for _ in range(K)])
+        self.router = TaskConditionedRouter(
+            dim=dim, K=K, num_tasks=num_tasks, mode=routing_mode,
+        )
+        self.zero_specialists()
+
+    def zero_specialists(self):
+        with torch.no_grad():
+            for expert in self.experts:
+                nn.init.zeros_(expert.up.weight)
+                nn.init.zeros_(expert.up.bias)
+
+    def load_dense(self, dense_layer):
+        self.shared.load_state_dict(dense_layer.state_dict())
+        self.zero_specialists()
+
+    def forward(self, x, x0, task_ids):
+        gate, auxiliary_loss = self.router(x, task_ids)
+        residual = sum(
+            gate[:, index:index + 1] * expert(x)
+            for index, expert in enumerate(self.experts)
+        )
+        mixed = self.shared(x) + self.residual_scale * residual
+        return mixed * x0 + x, gate, auxiliary_loss
+
+
+class DCNv2MoE_SharedResidual(nn.Module):
+    """Function-preserving DCNv2 upcycle target for continual-learning gates."""
+
+    def __init__(self, dim=360, K=4, r=45, num_tasks=15,
+                 routing_mode="frozen-uniform-routing", residual_scale=1.0):
+        super().__init__()
+        if routing_mode not in TASK_CONDITIONED_ROUTING_MODES:
+            raise ValueError(f"unknown routing_mode={routing_mode!r}")
+        self.dim, self.K, self.r = dim, K, r
+        self.num_tasks, self.routing_mode = num_tasks, routing_mode
+        self.sparse = Sparse()
+        self.cross_layers = nn.ModuleList([
+            SharedResidualCrossExpertLayer(
+                dim=dim, K=K, r=r, num_tasks=num_tasks,
+                routing_mode=routing_mode, residual_scale=residual_scale,
+            )
+            for _ in range(3)
+        ])
+        self.dnn = nn.ModuleList([nn.Linear(dim, dim) for _ in range(2)])
+        self.head = ScenarioSpecificHead(dim=dim, num_tasks=num_tasks)
+
+    def load_pretrained(self, pretrained):
+        """Copy a dense ``DCNv2`` checkpoint without changing its function."""
+        self.sparse.load_state_dict(pretrained.sparse.state_dict())
+        for layer_index, cross_layer in enumerate(self.cross_layers):
+            cross_layer.load_dense(pretrained.layers[layer_index])
+        self.dnn[0].load_state_dict(pretrained.layers[3].state_dict())
+        self.dnn[1].load_state_dict(pretrained.layers[4].state_dict())
+        self.head.load_dense(pretrained.layers[5])
+        return self
+
+    def embed(self, batch):
+        return self.sparse(batch)
+
+    def forward(self, batch):
+        x0 = self.embed(batch)
+        x = x0
+        gates = []
+        auxiliary_losses = []
+        task_ids = batch["tab"]
+        for layer in self.cross_layers:
+            x, gate, auxiliary_loss = layer(x, x0, task_ids)
+            gates.append(gate)
+            auxiliary_losses.append(auxiliary_loss)
+        for layer in self.dnn:
+            x = layer(x.relu())
+        batch["logit"] = self.head(x.relu(), task_ids)
+        batch["_gate"] = gates
+        batch["_routing_auxiliary_loss"] = torch.stack(auxiliary_losses).mean()
+        self.last_gates = gates
+
+    def parameter_blocks(self):
+        """Return named blocks used by block-wise optimizers and audits."""
+        return {
+            "backbone": list(self.sparse.parameters()) + list(self.dnn.parameters()),
+            "shared": [
+                parameter
+                for layer in self.cross_layers
+                for parameter in layer.shared.parameters()
+            ],
+            "specialists": [
+                parameter
+                for layer in self.cross_layers
+                for expert in layer.experts
+                for parameter in expert.parameters()
+            ],
+            "router": [
+                parameter
+                for layer in self.cross_layers
+                for parameter in layer.router.parameters()
+            ],
+            "head": list(self.head.parameters()),
+        }
+
+    def specialist_parameters(self, expert_index):
+        if not 0 <= expert_index < self.K:
+            raise IndexError(f"expert_index={expert_index} outside [0, {self.K})")
+        return [
+            parameter
+            for layer in self.cross_layers
+            for parameter in layer.experts[expert_index].parameters()
+        ]
+
+    def task_head_parameters(self, task_id):
+        return list(self.head.rows[int(task_id)].parameters())

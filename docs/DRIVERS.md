@@ -114,14 +114,46 @@
 ## 七、Task-Conditioned Mixture Routing（TCMR）静态路由关卡
 
 - **驱动文档**：`docs/20260812-1139-Task-Conditioned-Mixture-Routing-驱动.md`
-- **状态**：`auth=not-started`；代码已准备，本轮禁止启动十五次长程训练。
+- **结论文档**：`docs/20260812-1703-TCMR-结论.md`
+- **状态**：`auth=done`；15/15 完成；关卡判定 **INCONCLUSIVE（不可晋级）**。
 - **矩阵**：Frozen Uniform Routing（FUR）、Data-Only Routing（DOR）、Task-Only Routing（TOR）、
   Data-and-Task Routing（DATR）、Data-and-Task Consistency Routing（DATCR）× seeds 42/123/456。
-- **主终点**：DATR 对 FUR、DATR 对 DOR 的同 seed pooled AUC 配对差；任一比较跨 seed 变号只能 INCONCLUSIVE。
-- **双层判定**：三 seed 同向且保护条件通过只解锁探索关卡；“稳定改进”仍需平均配对差超过
-  各自锚点三 seed 极差，汇总器必须同时报告两者。
-- **边界**：只验证静态任务条件路由；AdaTask 更新、持续学习、BWT 与 sparse scaling 继续 blocked。
+- **主结果**：DATR−FUR 为 `[+0.000619,+0.000559,-0.000090]`；DATR−DOR 为
+  `[+0.000180,-0.000077,+0.000561]`，两组同 seed pooled AUC 配对差均跨 seed 变号。
+- **稳定性门槛**：平均配对差 `0.000363 / 0.000221`，均未超过锚点三 seed 极差
+  `0.001819 / 0.002016`；`stable_improvement_claim=NOT_SUPPORTED`。
+- **边界**：只验证静态任务条件路由；没有解锁 AdaTask 更新、持续学习、BWT 与 sparse scaling。
 - **命名**：所有新 run / 日志 / manifest / summary 使用完整描述性英文名称，禁止简单 stage code。
+
+## 八、MoE 学习率分配与持续学习研究
+
+- **审计与总驱动**：`docs/20260812-1723-MoE-学习率分配审计与实验计划.md`
+- **核心纠正**：当前仓库没有独立 router/shared/specialist/task LR 的已完成实验；现有 AdaTask 是
+  单一 AdamW 前的梯度乘因子，不能称 task-specific learning rate。
+- **数学对象**：allocation gate、always-on shared expert weights、task-conditioned specialist router、
+  routed specialist expert weights；当前 TCMR 只具备后两者和共享 backbone，不能冒充完整四块。
+- **学习率先验（待检验，非结论）**：`η_expert=5e-4` 候选锚点；shared 为 `0.05–0.1×`；
+  global router 初始冻结；新任务 router 行为 `0.1–0.25×`，旧任务行严格冻结且不做 weight decay。
+- **新结构路线**：TCMR 的 `INCONCLUSIVE/no-unlock` 不自动解锁持续学习；现改为从函数保持的
+  `shared residual + fully-routed specialists` 重新建立授权链。
+- **当前关卡**：G1 `Function-Preserving Dense-to-MoE Upcycling Gate` + G2
+  `Learning-Rate Semantics Invariant Gate` 已实现；正式运行前必须由 invariant report 判定 PASS。
+
+## 九、共享残差 MoE 函数保持与专家持续学习筛选
+
+- **正式驱动**：`docs/20260812-1807-共享残差混合专家-函数保持与持续学习-驱动.md`
+- **入口**：`bash scripts/shared_residual_experiment.sh start`
+- **状态**：G1/G2=`done/PASS`，G3=`not-started/authorized/NOT_EVALUATED`；结论见
+  `docs/20260812-1832-共享残差混合专家-G1G2不变量结论.md`；授权只覆盖 G3 的 24 次 two-task screen。
+- **架构**：dense Cross 逐位复制为 always-on shared path；K=4 低秩全维 specialists 的 up projection
+  零初始化；router frozen uniform；15 个 task head 拆为独立参数，旧任务 head 不进入 optimizer。
+- **矩阵**：`2 orders × 3 seeds × (1 head-only + 3 specialist LR)=24 trials`；每 task 固定 2 epochs，
+  禁用 early-stop；head LR 始终固定 `5e-4`，仅 specialist LR 扫描 `2e-4/5e-4/1e-3`。
+- **双卡**：seed 42/456→`cuda:0`，seed 123→`cuda:1`；同 seed 的所有配对同卡，每卡单 trial 串行。
+- **失败隔离**：单 trial 失败写入 `failed_trials` 后自动运行下一项；immutable run/log 不覆盖；
+  任何缺失或失败使汇总 Gate=`BLOCKED`。
+- **解锁边界**：只有 G3 双 order、三 seed 的 BWT/LA 机器规则 PASS，才允许另立 shared-path Gate；
+  shared LR、router LR、完整 baseline matrix 与 sparse scale-out 当前均 blocked。
 
 ---
 

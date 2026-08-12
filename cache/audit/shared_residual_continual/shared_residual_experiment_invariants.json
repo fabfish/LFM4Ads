@@ -1,0 +1,88 @@
+{
+  "status": "pass",
+  "gate_verdict": "PASS",
+  "tolerances": {
+    "logit_max_abs_error": 1e-06,
+    "loss_abs_error": 1e-07,
+    "auc_abs_error": 1e-12
+  },
+  "checks": {
+    "function_preserving_upcycling": {
+      "42": {
+        "dense_checkpoint": "cache/vanilla_from_scratch_seed42.pt",
+        "dense_checkpoint_sha256": "e5891c407855d8736964d7f1c823079dc87d2620c7d1ccdd9412264a588ca3a6",
+        "logit_max_abs_error": 7.152557373046875e-07,
+        "loss_abs_error": 0.0,
+        "pooled_probe_auc_abs_error": 0.0,
+        "shared_parameter_copy_exact": true,
+        "specialist_up_projection_max_abs": 0.0,
+        "router_exactly_uniform": true
+      },
+      "123": {
+        "dense_checkpoint": "cache/vanilla_from_scratch_seed123.pt",
+        "dense_checkpoint_sha256": "c12a22583800172c9173c74becabc4286de99877d9cd20cf0ef2fac85c4121f6",
+        "logit_max_abs_error": 2.384185791015625e-07,
+        "loss_abs_error": 0.0,
+        "pooled_probe_auc_abs_error": 0.0,
+        "shared_parameter_copy_exact": true,
+        "specialist_up_projection_max_abs": 0.0,
+        "router_exactly_uniform": true
+      },
+      "456": {
+        "dense_checkpoint": "cache/vanilla_from_scratch_seed456.pt",
+        "dense_checkpoint_sha256": "143224f7911ad2bb883e003f279e080280a56e9e8c9d18ca7da39ba3cb715879",
+        "logit_max_abs_error": 4.76837158203125e-07,
+        "loss_abs_error": 0.0,
+        "pooled_probe_auc_abs_error": 0.0,
+        "shared_parameter_copy_exact": true,
+        "specialist_up_projection_max_abs": 0.0,
+        "router_exactly_uniform": true
+      }
+    },
+    "optimizer_semantics": {
+      "pre_adam_constant_scaling_update_ratio": 1.0,
+      "parameter_group_learning_rate_update_ratio": 9.998212157330155
+    },
+    "update_isolation": {
+      "selected_expert_changed": true,
+      "non_selected_experts_immutable": true,
+      "inactive_task_head_immutable": true,
+      "formal_optimizer_group_learning_rates": {
+        "current-task-head": 0.0005,
+        "task-owned-specialist-0": 0.0002
+      }
+    },
+    "sample_weighted_gradient_conservation": {
+      "gradient_abs_error": 0.0
+    },
+    "standard_bwt_matrix": {
+      "auc_matrix": [
+        [
+          0.8,
+          0.5
+        ],
+        [
+          0.7,
+          0.9
+        ]
+      ],
+      "learning_accuracy": 0.8500000000000001,
+      "backward_transfer": -0.10000000000000009,
+      "average_forgetting": 0.10000000000000009,
+      "worst_task_forgetting": 0.10000000000000009,
+      "backward_differences": [
+        -0.10000000000000009
+      ]
+    }
+  },
+  "provenance": {
+    "driver_path": "docs/20260812-1807-共享残差混合专家-函数保持与持续学习-驱动.md",
+    "driver_sha256": "b838fbd01a76211f7c74106723edb8d55595a6c6d9a2091e9b95fab843e19983",
+    "source_sha256": {
+      "model.py": "e47134d6ea6ae1b90a58128d4e3f8ef4d712da3f75247adc44ac8aaa6415f60c",
+      "shared_residual_continual_protocol.py": "c9e5148e01459e06e677bd4ac616602fc7cd03395ee0e4ab3cb15ce999b56cc1",
+      "scripts/verify_shared_residual_experiment.py": "20874ecb5d41e3027f71e9c5195008a9c7bf8b72e1aa483e5a430ac1b70621fb"
+    }
+  },
+  "errors": []
+}

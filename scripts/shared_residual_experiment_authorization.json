@@ -1,0 +1,8 @@
+{
+  "status": "authorized",
+  "authorized_scope": "function-and-lr-invariants-plus-two-task-specialist-screen",
+  "driver_path": "docs/20260812-1807-共享残差混合专家-函数保持与持续学习-驱动.md",
+  "driver_sha256": "b838fbd01a76211f7c74106723edb8d55595a6c6d9a2091e9b95fab843e19983",
+  "authorized_at": "2026-08-12T18:07:00",
+  "authorization_basis": "user explicitly requested implementation and one-click execution handoff; scope remains bounded by the driver"
+}
