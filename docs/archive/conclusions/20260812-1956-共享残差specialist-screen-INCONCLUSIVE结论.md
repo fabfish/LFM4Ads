@@ -2,7 +2,7 @@
 
 - 记录时间：2026-08-12 19:56
 - 实验入口：`scripts/shared_residual_experiment.sh`（双卡矩阵 runner）
-- 驱动文档：`docs/20260812-1807-共享残差混合专家-函数保持与持续学习-驱动.md`
+- 驱动文档：`docs/archive/drivers/20260812-1807-共享残差混合专家-函数保持与持续学习-驱动.md`
 - Gate 判定文件：`cache/shared_residual_continual/specialist_screen_gate_decision.json`
 - 结果表：`result_shared_residual_specialist_screen.csv`
 

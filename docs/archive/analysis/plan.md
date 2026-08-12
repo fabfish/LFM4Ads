@@ -260,7 +260,7 @@ f_{\text{MoE}}(x;\alpha=0)=f_{\text{dense}}(x)
 
 ## 能支持一个受限问题，但不能支持完整结论
 
-现有 `docs/20260812-1723-MoE-学习率分配审计与实验计划.md` 已经预注册：
+现有 `docs/archive/analysis/20260812-1723-MoE-学习率分配审计与实验计划.md` 已经预注册：
 
 - 先扫描 specialist LR；
 - 此时 shared/router 冻结；
