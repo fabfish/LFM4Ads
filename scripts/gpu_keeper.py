@@ -46,7 +46,7 @@ TRIGGER = os.environ.get("GK_TRIGGER", "idle").lower()
 IDLE_THRESHOLD_S = int(os.environ.get("GK_IDLE_THRESHOLD_S", "1200"))
 FAKE_DURATION_S = int(os.environ.get("GK_FAKE_DURATION_S", "1200"))
 POLL_S = int(os.environ.get("GK_POLL_S", "10"))
-TARGET_UTIL = float(os.environ.get("GK_TARGET_UTIL", "10"))
+TARGET_UTIL = float(os.environ.get("GK_TARGET_UTIL", "100"))
 
 logging.basicConfig(
     level=logging.INFO,
@@ -139,7 +139,7 @@ def fake_worker(gpu_id, target_util):
     N = 4096  # 足够大以压过 Python 循环开销，保证占空比可控
     a = torch.randn(N, N, device=dev)
     b = torch.randn(N, N, device=dev)
-    duty = max(0.01, min(0.99, target_util / 100.0))
+    duty = max(0.01, min(1.0, target_util / 100.0))
 
     log.info("假计算程序在 %s 上运行，目标利用率 ~%.0f%%", dev, target_util)
     c = a
