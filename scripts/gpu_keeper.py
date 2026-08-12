@@ -39,8 +39,13 @@ import os
 import sys
 import time
 import signal
+import fcntl
 import logging
 import subprocess
+
+# 单实例锁与 pidfile（用绝对路径，避免 cron 等 cwd 不一致导致锁/pid 错位）
+_HERE = os.path.dirname(os.path.abspath(__file__))
+PIDFILE = os.path.normpath(os.path.join(_HERE, "..", "logs", "gpu_keeper.pid"))
 
 GPU_ID = int(os.environ.get("GK_GPU_ID", "0"))
 TRIGGER = os.environ.get("GK_TRIGGER", "idle").lower()
@@ -196,6 +201,19 @@ def _handle_term(signum, frame):
 
 def main_monitor():
     global _fake_proc
+    # ---- 单实例保护：flock 保证同一时刻只有一个监测进程 ----
+    # 启动脚本里 `setsid ... &; echo $!` 写的是 setsid 的 pid，不等于本进程 pid，
+    # 单靠 pidfile 易被 cron 看门狗再次拉起造成“双实例互殴”。这里由本进程自己持锁。
+    try:
+        _pidf = open(PIDFILE, "w")
+        fcntl.flock(_pidf.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError:
+        log.error("另一实例已在运行（无法获取 %s 锁），退出", PIDFILE)
+        sys.exit(1)
+    _pidf.write(str(os.getpid()))
+    _pidf.flush()
+    # --------------------------------------------------------
+
     signal.signal(signal.SIGTERM, _handle_term)
     signal.signal(signal.SIGINT, _handle_term)
 

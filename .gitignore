@@ -19,3 +19,8 @@ result_moe_downstream.csv
 .codebuddy/
 .vscode/
 .idea/
+
+# gpu_keeper runtime artifacts (volatile, regenerated each run)
+logs/*.pid
+logs/gpu_keeper.log
+.Trash-*/

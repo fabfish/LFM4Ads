@@ -17,9 +17,16 @@ if [ -f "$PIDFILE" ] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
   exit 0
 fi
 
+# 单实例保护：若监测进程已在运行则跳过。
+# 注意只匹配监测主进程（命令行以 gpu_keeper.py 结尾、不带 --fake 的），
+# 否则会把“假计算子进程”也算进去。
+if pgrep -f "gpu_keeper.py$" >/dev/null 2>&1; then
+  echo "gpu_keeper 监测已在运行，log=$LOG"
+  exit 0
+fi
+
 # 支持通过环境变量覆盖默认配置，例如：
 #   GK_IDLE_THRESHOLD_S=300 GK_FAKE_DURATION_S=0 ./scripts/start_gpu_keeper.sh
 setsid nohup env "$@" "$PYTHON" scripts/gpu_keeper.py >> "$LOG" 2>&1 &
-echo $! > "$PIDFILE"
-echo "gpu_keeper 已启动 (pid=$(cat "$PIDFILE"))，log=$LOG"
+echo "gpu_keeper 已启动，log=$LOG"
 echo "查看日志: tail -f $LOG"
