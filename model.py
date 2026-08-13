@@ -1476,3 +1476,221 @@ class DCNv2MoE_SharedResidual(nn.Module):
 
     def task_head_parameters(self, task_id):
         return list(self.head.rows[int(task_id)].parameters())
+
+
+# ============================================================
+#  Capacity-Scale MoE: full-rank experts + true top-k sparse dispatch
+#
+#  这是仓库中第一个「同激活、K× 总容量」的 MoE：K 个 full-rank
+#  nn.Linear(dim,dim) 专家（每个专家容量 == dense 交叉层），router 只激活
+#  top_k 个专家，未选中专家的前向完全不被执行（区别于 V2 的「全算后加权」）。
+#
+#  设计取舍（见 docs/20260813-1642-capacity-MoE-驱动.md §3.2）：
+#  放弃严格函数保持，所有专家初始化为 dense 副本 + 乘法扰动以打破对称性，
+#  router 用非零小随机 init，换取「路由可特化」。初始 AUC 略低于 dense。
+# ============================================================
+
+
+class CapacityCrossExpertLayer(nn.Module):
+    """Full-rank capacity MoE Cross layer with true top-k sparse dispatch.
+
+    K 个 full-rank ``nn.Linear(dim, dim)`` 专家 + data-driven router
+    ``nn.Linear(dim, K)``。forward 只对被 top-k 选中的专家做前向，未选中
+    专家的前向完全不执行（真实稀疏计算，激活 FLOPs ≈ O(B * top_k * dim²)）。
+
+    Args:
+        dim:         Cross layer dimension (360)
+        K:           number of experts (4)
+        top_k:       number of active experts per token (1)
+        noise_scale: multiplicative perturbation std when upcycling from dense
+        lb_alpha:    load-balancing loss coefficient (Switch Transformer style)
+    """
+
+    def __init__(self, dim=360, K=4, top_k=1, noise_scale=0.01, lb_alpha=0.01):
+        super().__init__()
+        self.dim, self.K = dim, K
+        self.top_k = min(top_k, K)
+        self.noise_scale = noise_scale
+        self.lb_alpha = lb_alpha
+
+        # Full-rank experts: each has the capacity of a dense Cross layer.
+        self.experts = nn.ModuleList([nn.Linear(dim, dim) for _ in range(K)])
+
+        # Data-driven router: non-zero small init breaks the uniform deadlock.
+        self.router = nn.Linear(dim, K)
+        nn.init.normal_(self.router.weight, std=0.01)
+        nn.init.zeros_(self.router.bias)
+
+    def set_top_k(self, k: int):
+        self.top_k = min(k, self.K)
+
+    def upcycle_from_dense(self, dense_linear: nn.Linear):
+        """Copy a dense Cross layer into every expert + multiplicative noise.
+
+        放弃严格函数保持：每个专家 = dense 权重 * (1 + noise_scale * randn)。
+        这样专家不再完全对称，router 有可特化的梯度路径。
+        """
+        device = self.experts[0].weight.device
+        w = dense_linear.weight.data.to(device)
+        b = dense_linear.bias.data.to(device)
+        with torch.no_grad():
+            for expert in self.experts:
+                expert.weight.copy_(
+                    w * (1.0 + self.noise_scale * torch.randn_like(w)))
+                expert.bias.copy_(
+                    b + self.noise_scale * torch.randn_like(b))
+
+    def _load_balance_loss(self, clean_prob: torch.Tensor,
+                           topk_idx: torch.Tensor) -> torch.Tensor:
+        """Switch Transformer load-balancing loss.
+
+        L_balance = K * Σ_i f_i * P_i, where f_i = fraction of tokens
+        dispatched to expert i, P_i = mean clean softmax prob of expert i.
+        """
+        if self.lb_alpha <= 0:
+            return torch.tensor(0.0, device=clean_prob.device)
+        P_i = clean_prob.mean(0)  # [K]
+        disp = torch.zeros(self.K, device=clean_prob.device)
+        for i in range(self.K):
+            disp[i] = (topk_idx == i).any(dim=-1).float().mean()
+        f_i = disp + 1e-8
+        return self.lb_alpha * self.K * (f_i * P_i).sum()
+
+    def forward(self, x, x0, tab=None):
+        """Cross layer forward with true sparse dispatch.
+
+        Returns:
+            out:             [B, dim] (weighted * x0 + x)
+            clean_prob:      [B, K] full-rank softmax (for entropy sentinel + lb)
+            lb_loss:         scalar load-balance loss
+            dispatch_counts: [K] int list — tokens actually computed per expert
+        """
+        B = x.shape[0]
+        logits = self.router(x)            # [B, K]
+        clean_prob = F.softmax(logits, dim=-1)  # [B, K] (full K, not truncated)
+
+        if self.top_k >= self.K:
+            # Full soft routing (non-sparse fallback, e.g. set_top_k(K)).
+            expert_outs = torch.stack([e(x) for e in self.experts], dim=1)
+            weighted = (clean_prob.unsqueeze(-1) * expert_outs).sum(1)
+            dispatch_counts = [B] * self.K
+            lb_loss = torch.tensor(0.0, device=x.device)
+            return weighted * x0 + x, clean_prob, lb_loss, dispatch_counts
+
+        # True top-k sparse dispatch: only compute selected experts.
+        topk_logits, topk_idx = logits.topk(self.top_k, dim=-1)   # [B, top_k]
+        topk_gates = F.softmax(topk_logits, dim=-1)               # [B, top_k]
+
+        # Straight-through estimator (STE): forward uses the hard sparse gate,
+        # backward propagates through the full K-way softmax. Without this the
+        # top-1 argmax is non-differentiable and the router receives ZERO
+        # gradient from the BCE objective (top_k=1 softmax over a single logit
+        # is identically 1.0). See docs/20260813-1642-capacity-MoE-驱动.md.
+        hard_gate = torch.zeros_like(clean_prob).scatter(
+            -1, topk_idx, topk_gates)                             # [B, K] sparse
+        gate = (clean_prob + (hard_gate - hard_gate.detach())
+                if self.training else hard_gate)                  # [B, K] STE
+
+        # Flatten each (token, selected slot) into a single dispatch record.
+        flat_idx = topk_idx.reshape(-1)           # [B*top_k]
+        sample_idx = torch.arange(B, device=x.device).repeat_interleave(
+            self.top_k)                            # [B*top_k]
+
+        out = torch.zeros_like(x)
+        dispatch_counts = [0] * self.K
+        for e in range(self.K):
+            mask = (flat_idx == e)
+            dispatch_counts[e] = int(mask.sum().item())
+            if not mask.any():
+                continue
+            sel_samples = sample_idx[mask]                       # [n]
+            sel_gates = gate[sel_samples, e].unsqueeze(-1)       # [n, 1] (STE)
+            expert_out = self.experts[e](x[sel_samples])         # [n, dim]
+            out.index_add_(0, sel_samples, sel_gates * expert_out)
+
+        lb_loss = self._load_balance_loss(clean_prob, topk_idx)
+        return out * x0 + x, clean_prob, lb_loss, dispatch_counts
+
+
+class DCNv2CapacityMoE(nn.Module):
+    """DCNv2 upcycled into a capacity-scale MoE (full-rank + true sparse).
+
+    3 × CapacityCrossExpertLayer + 2 × DNN(Linear dim,dim) + head(Linear dim,15).
+    Isolated from all historical MoE classes so checkpoints/param names stay
+    unchanged.
+    """
+
+    def __init__(self, dim=360, K=4, top_k=1, noise_scale=0.01, lb_alpha=0.01):
+        super().__init__()
+        self.dim, self.K = dim, K
+        self.top_k = min(top_k, K)
+        self.noise_scale = noise_scale
+        self.lb_alpha = lb_alpha
+        self.sparse = Sparse()
+        self.cross_layers = nn.ModuleList([
+            CapacityCrossExpertLayer(dim, K, top_k=top_k,
+                                     noise_scale=noise_scale, lb_alpha=lb_alpha)
+            for _ in range(3)
+        ])
+        self.dnn = nn.ModuleList([nn.Linear(dim, dim) for _ in range(2)])
+        self.head = nn.Linear(dim, 15)
+
+    def set_top_k(self, k: int):
+        for layer in self.cross_layers:
+            layer.set_top_k(k)
+
+    def upcycle_from_dense(self, dense: DCNv2):
+        """Upcycle a dense DCNv2 checkpoint (Sparse/DNN/Head copied exactly;
+        Cross layers copied with symmetry-breaking noise)."""
+        self.sparse.load_state_dict(dense.sparse.state_dict())
+        for i, cross_layer in enumerate(self.cross_layers):
+            cross_layer.upcycle_from_dense(dense.layers[i])
+        self.dnn[0].load_state_dict(dense.layers[3].state_dict())
+        self.dnn[1].load_state_dict(dense.layers[4].state_dict())
+        self.head.load_state_dict(dense.layers[5].state_dict())
+        return self
+
+    def embed(self, batch):
+        return self.sparse(batch)
+
+    def forward(self, batch):
+        x0 = self.embed(batch)
+        x = x0
+        gates = []
+        dispatch_counts = []
+        lb_total = torch.tensor(0.0, device=x.device)
+        for layer in self.cross_layers:
+            x, gate, lb, dc = layer(x, x0)
+            gates.append(gate)
+            dispatch_counts.append(dc)
+            lb_total = lb_total + lb
+        for layer in self.dnn:
+            x = layer(x.relu())
+        batch["logit"] = self.head(x)[range(len(x)), batch["tab"]]
+        batch["_gate"] = gates                     # 3 × [B, K] clean softmax
+        batch["_dispatch_counts"] = dispatch_counts  # 3 × [K] int list
+        batch["_load_balance_loss"] = lb_total
+
+    @staticmethod
+    def param_summary(model) -> str:
+        groups = {
+            "Sparse": ["sparse"],
+            "FullRank Experts": ["cross_layers.0.experts", "cross_layers.1.experts",
+                                 "cross_layers.2.experts"],
+            "Routers": ["cross_layers.0.router", "cross_layers.1.router",
+                        "cross_layers.2.router"],
+            "DNN": ["dnn"],
+            "Head": ["head"],
+        }
+        lines = ["Parameter Summary (Capacity MoE):"]
+        total = 0
+        for name, prefixes in groups.items():
+            count = 0
+            for n, p in model.named_parameters():
+                if any(n.startswith(px) for px in prefixes):
+                    count += p.numel()
+            total += count
+            pct = count / total * 100 if total > 0 else 0
+            lines.append(f"  {name:20s}: {count:>10,}  ({pct:5.1f}%)")
+        lines.append(f'  {"TOTAL":20s}: {total:>10,}')
+        return "\n".join(lines)

@@ -19,6 +19,7 @@
 | 按场景 sample weighting | `done` | **PASS** | 样本加权恢复 full-batch 目标；`R_gain≈0.999`、同 seed `R_resid≈0.992` | 已解锁并完成 Stage B | [驱动](archive/drivers/20260811-2010-按场景训练代价消除与混合专家可竞争性验证.md)；[结论](archive/conclusions/20260811-2242-按场景训练代价消除结论.md)；[审计](archive/analysis/20260811-2300-按场景训练代价消除-HY3审计.md) |
 | Stage B same-FLOPs MoE | `done` | **FAIL**（竞争性主张） | frozen/soft 相对 same-FLOPs dense 的同 seed 差均为 `[-,-,+]`；MoE wall-clock 更慢 | sparse scaling / same-latency 叙事关闭 | [驱动](archive/drivers/20260811-2310-StageB-MoE-九次训练驱动.md)；[结论](archive/conclusions/20260812-0103-StageB-MoE-九次训练结论.md) |
 | 下游留出域参数高效迁移 | `done` | **FAIL**（G1 可行性门控） | 12/12 trial 完成；validation 上 moe-router 仅 t2 胜 dense-adapter-r2（+0.0003），t5/t6 均败；G1 未过 → 按协议停止、未扩 seeds 123/456 | 停止，不扫描 LR/K/r/target | [驱动](archive/drivers/20260812-2303-MoE下游留出域参数高效迁移驱动.md)；[结论](archive/conclusions/20260813-1219-MoE下游留出域迁移G1结论.md)；[G1 判定](../cache/downstream_transfer/g1_decision.json) |
+| Capacity-MoE 真实稀疏（full-rank + top-k dispatch） | `done` | **PASS**（哨兵） | 首个 full-rank 专家 + 真实 top-k 稀疏 dispatch；STE+warmup+lb 调优首次让 router 熵离开 log K，12/12 哨兵 PASS；test AUC Δ 微弱正向（+0.0002~+0.0025，top_k=2 优于 1），未达显著 | AUC 优势未证明，暂不扩 3-seed | [驱动](./20260813-1642-capacity-MoE-驱动.md)；[结论](./20260813-1812-capacity-MoE-smoke结论.md) |
 | TCMR 静态任务条件路由 | `done` | **INCONCLUSIVE** | 15/15 完成；DATR 对 FUR、DOR 的同 seed pooled-AUC 差均跨 seed 变号且未越过噪声地板 | AdaTask、持续学习、BWT、稀疏扩展仍 `blocked` | [驱动](archive/drivers/20260812-1139-Task-Conditioned-Mixture-Routing-驱动.md)；[结论](archive/conclusions/20260812-1703-TCMR-结论.md)；[机器判定](../cache/task_conditioned_mixture_routing/gate_decision.json) |
 | 共享残差 G1：函数保持 upcycling | `done` | **PASS** | 3 seed 的 logits/loss/AUC 与 dense 在预注册阈值内一致 | 仅与 G2 一起授权既定 G3 | [正式驱动](archive/drivers/20260812-1807-共享残差混合专家-函数保持与持续学习-驱动.md)；[G1/G2 结论](archive/conclusions/20260812-1832-共享残差混合专家-G1G2不变量结论.md)；[不变量](../cache/audit/shared_residual_continual/shared_residual_experiment_invariants.json) |
 | 共享残差 G2：LR/冻结语义 | `done` | **PASS** | pre-Adam 常数缩放 update ratio≈1；parameter-group 10× LR update ratio≈9.9982；冻结与更新隔离通过 | 仅授权既定 G3 | 同上 |
@@ -61,16 +62,30 @@
 - 当前证据：G1（seed 42）12/12 trial 完成；validation 上 moe-router 仅 t2 胜 dense-adapter-r2（0.7635 vs 0.7633），t5/t6 均败，G1 门控 **FAIL** → 按预注册协议停止、未扩 seeds 123/456。test 差分方向混合：Δ_primary = t2 −0.0072 / t5 +0.0128 / t6 +0.0053。
 - 启动边界：本路线在 G1 关闭；不扫描 LR/K/r/target。若需更强证据，仅可另立独立"扩充 seed"关卡（协议其余不变、独立目录、不覆盖本 12 trial 与判定）。
 
+### 3.6 Capacity-MoE 真实稀疏
+
+- 代码：`model.py` 新增 `CapacityCrossExpertLayer`（K 个 full-rank `Linear(360,360)` 专家 + 真实 top-k
+  稀疏 dispatch + STE 直通）+ `DCNv2CapacityMoE`；入口 `main_moe_capacity.py`。
+- 机制链（本次核心发现）：① 硬 top-1 argmax 不可微 → router 梯度=0；② STE 恢复梯度但专家同质时是噪声；
+  ③ warmup（软路由 top_k=K）首次让 router 熵离开 log K（1.386→1.10）；④ lb loss 阻碍特化（sparsify 后
+  熵回升）；⑤ `lb_alpha≈0.001` 是「防坍缩 + 不阻碍特化」的平衡点（熵≈1.0）。
+- 哨兵：warmup+lb 矩阵 **12/12 PASS**（熵 0.28~1.28，均离开 log K）；test AUC Δ 全正但微弱
+  （+0.0002~+0.0025，top_k=2 > top_k=1）。
+- 结论边界：PASS 只证明「router 特化机制成立」，**未证明 capacity MoE 显著跑赢 dense**；不得据此宣称
+  AUC 优势。详见[结论](./20260813-1812-capacity-MoE-smoke结论.md)。
+
 ## 4. 当前执行边界
 
 当前没有已授权 GPU 实验。持续学习与稀疏扩展旧路线继续 `blocked`：
 
 1. shared-path necessity、shared LR 与 blockwise LR 分配；
 2. continual router LR、完整 continual baseline matrix 与 alignment-aware 消融；
-3. 真实 top-k dispatch、sparse scale-out 与 same-latency 叙事；
+3. sparse scale-out 与 same-latency 叙事（真实 top-k dispatch 已由 Capacity-MoE 路线完成哨兵验证，见 §3.6）；
 4. 将 TCMR 或 G3 的跨 seed 变号结果写成稳定收益。
 
 新下游路线已 `done / G1 FAIL`：`scripts/run_downstream_transfer_matrix.py` 完成 G1（seed 42 验证门控）后按协议停止，未续 seeds 123/456；正式结论见[G1 结论](archive/conclusions/20260813-1219-MoE下游留出域迁移G1结论.md)。
+
+Capacity-MoE 路线已 `done / 哨兵 PASS`：router 熵离开 log K 的机制验证完成（12/12 PASS），但 AUC 仅微弱正向、未达显著，暂不授权 3-seed 正式矩阵；详见[结论](./20260813-1812-capacity-MoE-smoke结论.md)。
 
 ## 5. 统一测量口径
 
