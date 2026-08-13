@@ -1,0 +1,24 @@
+{
+  "gate": "G1",
+  "passed": false,
+  "detail": {
+    "2": {
+      "moe_router": 0.7635186505108101,
+      "dense_adapter_r2": 0.7632612655420924,
+      "moe_head": 0.7551160212243605,
+      "passed": true
+    },
+    "5": {
+      "moe_router": 0.6693436579584587,
+      "dense_adapter_r2": 0.6822302723630996,
+      "moe_head": 0.6361144653364768,
+      "passed": false
+    },
+    "6": {
+      "moe_router": 0.7318526031102096,
+      "dense_adapter_r2": 0.7455916159567275,
+      "moe_head": 0.7431507775524002,
+      "passed": false
+    }
+  }
+}

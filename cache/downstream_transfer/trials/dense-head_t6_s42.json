@@ -1,0 +1,19 @@
+{
+  "arm": "dense-head",
+  "target": 6,
+  "seed": 42,
+  "source_type": "dense",
+  "source_seed": 42,
+  "device": "cuda:1",
+  "trainable_param_count": 361,
+  "best_val_auc": 0.7376943881000676,
+  "test_auc": 0.7212321533532453,
+  "seconds": 22.4,
+  "epochs_run": 50,
+  "fit_sha256": "41c3fe8225560cc495514e54b6c10a3183e822ebfdf9e3a67d1f4cc0684e48b7",
+  "validation_sha256": "4f7d5402e05cebfbbf5648929e8a75cbaa7f3a02b5151184510bd6f3aee23452",
+  "test_sha256": "f2a26ead9539ff18e517fe62f2fb00375704fa763c94560e5a0736739526bcea",
+  "source_checkpoint_sha256": "cc0262f5dcf3c7a106d3cc2fcc5b026397ec079a40461a523173ce4794ef18d3",
+  "frozen_param_sha256": "fe3354d56fbde037915e0fb2ff39946fcccc2b114b9a12d1046f383eeb2b56eb",
+  "audit_protocol_sha256": "fb318dbbb63862f7add4f8033da56e56e8860d408214b8606e99e90226928aff"
+}

@@ -1,0 +1,19 @@
+{
+  "arm": "dense-adapter-r2",
+  "target": 2,
+  "seed": 42,
+  "source_type": "dense",
+  "source_seed": 42,
+  "device": "cuda:1",
+  "trainable_param_count": 4681,
+  "best_val_auc": 0.7632612655420924,
+  "test_auc": 0.7816934305971196,
+  "seconds": 20.6,
+  "epochs_run": 31,
+  "fit_sha256": "138fc7f4aba8b2cc11c1434d0b614fefdc00c1a70ebf5a1b6a0f9f718e6595dd",
+  "validation_sha256": "77ca8650580b185f744cda002ae1a2bfb0d680d5f94d91996d11f602dfb0480b",
+  "test_sha256": "4c5b724748bc2c11b36818e6e398654b30a0bdc59b0e7fb0ceb86e70592c12e3",
+  "source_checkpoint_sha256": "cc0262f5dcf3c7a106d3cc2fcc5b026397ec079a40461a523173ce4794ef18d3",
+  "frozen_param_sha256": "fe3354d56fbde037915e0fb2ff39946fcccc2b114b9a12d1046f383eeb2b56eb",
+  "audit_protocol_sha256": "fb318dbbb63862f7add4f8033da56e56e8860d408214b8606e99e90226928aff"
+}

@@ -73,7 +73,7 @@ G3 已确认：
 
 因此，旧“MoE 三级下游 112 对”必须降格为“104 个 FeatureUsage 对照 + 8 个随机初始化占位”，不能用于否定或支持真正的模块级/模型级迁移。现有 FeatureUsage 还使用 train+validation 聚合的用户静态 `CRs`，不等于目标域标签留出的逐样本迁移。
 
-合适的新问题不是继续扫描旧 CR 融合层，而是检验：目标场景完全留出、4096 总标注固定、下游可训练参数近似匹配时，预训练 MoE 专家能否通过 router-only 适配优于 dense adapter，并以双重差分确认增益来自适配而非仅来自冻结表示。该路线独立于已关闭的静态 pooled-AUC 与持续学习关卡，协议见[下游迁移驱动](archive/drivers/20260812-2303-MoE下游留出域参数高效迁移驱动.md)。在正式结果前状态为 `NOT_EVALUATED`，不能预设优势成立。
+合适的新问题不是继续扫描旧 CR 融合层，而是检验：目标场景完全留出、4096 总标注固定、下游可训练参数近似匹配时，预训练 MoE 专家能否通过 router-only 适配优于 dense adapter，并以双重差分确认增益来自适配而非仅来自冻结表示。该路线独立于已关闭的静态 pooled-AUC 与持续学习关卡，协议见[下游迁移驱动](archive/drivers/20260812-2303-MoE下游留出域参数高效迁移驱动.md)。该路线 G1（seed 42）可行性门控已 **FAIL** 并停止：validation 上 moe-router 仅 1/3 target 胜 dense-adapter-r2，test 差分方向混合（Δ_primary = t2 −0.0072 / t5 +0.0128 / t6 +0.0053），未建立稳定的留出域迁移优势；详见[G1 结论](archive/conclusions/20260813-1219-MoE下游留出域迁移G1结论.md)。
 
 ## 3. 已关闭或降格的主张
 

@@ -1,0 +1,16 @@
+{
+  "route": "downstream-transfer",
+  "status": "done",
+  "gate": "G1",
+  "verdict": "FAIL",
+  "reason": "validation moe-router > dense-adapter-r2 only on target 2 (+0.0003); targets 5 and 6 failed (router < adapter), and target 6 also router < moe-head; matrix stopped per protocol, seeds 123/456 not run",
+  "g1_validation_by_target": {
+    "2": {"moe_router": 0.7635, "dense_adapter_r2": 0.7633, "moe_head": 0.7551, "passed": true},
+    "5": {"moe_router": 0.6693, "dense_adapter_r2": 0.6822, "moe_head": 0.6361, "passed": false},
+    "6": {"moe_router": 0.7319, "dense_adapter_r2": 0.7456, "moe_head": 0.7432, "passed": false}
+  },
+  "seed42_test_delta_primary": {"2": -0.0072, "5": 0.0128, "6": 0.0053},
+  "seed42_test_delta_adaptation": {"2": -0.0158, "5": 0.0033, "6": 0.0056},
+  "source_pretrain_test_auc": {"dense": 0.7771, "moe": 0.7778},
+  "conclusion": "docs/archive/conclusions/20260813-1219-MoE下游留出域迁移G1结论.md"
+}

@@ -1,0 +1,19 @@
+{
+  "arm": "moe-router",
+  "target": 2,
+  "seed": 42,
+  "source_type": "moe",
+  "source_seed": 42,
+  "device": "cuda:1",
+  "trainable_param_count": 4693,
+  "best_val_auc": 0.7635186505108101,
+  "test_auc": 0.7744532712947247,
+  "seconds": 31.9,
+  "epochs_run": 50,
+  "fit_sha256": "138fc7f4aba8b2cc11c1434d0b614fefdc00c1a70ebf5a1b6a0f9f718e6595dd",
+  "validation_sha256": "77ca8650580b185f744cda002ae1a2bfb0d680d5f94d91996d11f602dfb0480b",
+  "test_sha256": "4c5b724748bc2c11b36818e6e398654b30a0bdc59b0e7fb0ceb86e70592c12e3",
+  "source_checkpoint_sha256": "ad8afd84c0cb23be97cf846cf1d4adb14bb391acea47ad51734d5463e1b41ac9",
+  "frozen_param_sha256": "b955d1438ab2431b052e03b00c47ae646d2d6589c10b534e8d525693516f16e4",
+  "audit_protocol_sha256": "fb318dbbb63862f7add4f8033da56e56e8860d408214b8606e99e90226928aff"
+}

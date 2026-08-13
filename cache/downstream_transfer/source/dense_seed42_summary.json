@@ -1,0 +1,11 @@
+{
+  "best_val_auc": 0.7757353179744618,
+  "test_auc": 0.7771283186530593,
+  "model_type": "dense",
+  "seed": 42,
+  "device": "cuda:1",
+  "lr": 0.001,
+  "beta2": 0.999,
+  "seconds": 154.6,
+  "checkpoint": "cache/downstream_transfer/source/dense_seed42.pt"
+}

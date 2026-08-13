@@ -1,7 +1,7 @@
 # 后续安排与授权边界
 
 > 当前决策：**接受共享残差 G3 `INCONCLUSIVE`，冻结持续学习路线；转向 MoE 下游留出域参数高效迁移。**
-> 新路线已 `authorized / running`：G0 技术不变量与 G0-final 审计均 PASS、独立 authorization 已冻结（`formal_training_authorized=true`）；正式 GPU 矩阵由 `scripts/run_downstream_transfer_matrix.py` 按 G1→G2 阶段门控执行中。状态见 [`DRIVERS.md`](DRIVERS.md)，分析见 [`ANALYSIS.md`](ANALYSIS.md)。
+> 新路线已 `done / G1 FAIL`：G0/G0-final 审计 PASS、authorization 已冻结（`formal_training_authorized=true`）；G1（seed 42 验证门控）失败，矩阵按协议停止、未扩 seeds 123/456。状态见 [`DRIVERS.md`](DRIVERS.md)，分析见 [`ANALYSIS.md`](ANALYSIS.md)，结论见 [G1 结论](archive/conclusions/20260813-1219-MoE下游留出域迁移G1结论.md)。
 
 ## 1. 已冻结的旧路线
 
@@ -96,4 +96,4 @@ PASS 也只能支持“该固定协议、固定测试集上跨训练 seed 方向
 
 ## 7. 当前可执行动作
 
-无需再扩展旧 G3。新下游路线已 `authorized / running`：runner、G0 verifier、authorization 与 smoke 均已完成并 PASS；正式 GPU 矩阵由 `scripts/run_downstream_transfer_matrix.py` 执行，G1（seed 42 验证门控）先行、通过才续 seeds 123/456，G2 冻结 verdict。禁止项（§6）全程生效。
+无需再扩展旧 G3。新下游路线已 `done / G1 FAIL`：12/12 seed-42 trial 完成，G1 验证门控失败，按预注册协议停止、未扩 seeds 123/456；正式结论见 [G1 结论](archive/conclusions/20260813-1219-MoE下游留出域迁移G1结论.md)。禁止项（§6）全程生效。
