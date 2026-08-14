@@ -1703,3 +1703,91 @@ class DCNv2CapacityMoE(nn.Module):
             lines.append(f"  {name:20s}: {count:>10,}  ({pct:5.1f}%)")
         lines.append(f'  {"TOTAL":20s}: {total:>10,}')
         return "\n".join(lines)
+
+
+class DenseWidenedCrossLayer(nn.Module):
+    """A Cross layer with genuinely widened hidden capacity (no router).
+
+    ``x0 ⊙ (W2 · ReLU(W1 · x)) + x`` with ``W1:[dim,hidden]``,
+    ``W2:[hidden,dim]``. A plain stack of full-rank experts averaged together
+    would collapse back to a single ``Linear(dim,dim)`` (the mean of linear
+    maps is a linear map), so widening MUST go through a higher-dimensional
+    hidden with a nonlinearity to represent real extra capacity.
+    """
+
+    def __init__(self, dim=360, hidden=720):
+        super().__init__()
+        self.dim, self.hidden = dim, hidden
+        self.w1 = nn.Linear(dim, hidden)
+        self.w2 = nn.Linear(hidden, dim)
+
+    def forward(self, x, x0):
+        return x0 * self.w2(F.relu(self.w1(x))) + x
+
+
+class DenseWidenedDCNv2(nn.Module):
+    """DCNv2 with 4×-widened Cross layers and NO routing.
+
+    The capacity-benefit control for the capacity MoE: if this widened dense
+    (same ~4× cross-layer params as 4 full-rank experts, but no router / no
+    sparse dispatch / no load-balancing) improves AUC, then cross-layer
+    capacity is a real bottleneck and the MoE router is the culprit. If it does
+    NOT improve AUC, capacity is not the bottleneck and the capacity-MoE route
+    is closed on this task.
+    """
+
+    def __init__(self, dim=360, width=2):
+        super().__init__()
+        self.dim, self.width = dim, width
+        self.hidden = dim * width
+        self.sparse = Sparse()
+        self.cross_layers = nn.ModuleList([
+            DenseWidenedCrossLayer(dim, self.hidden) for _ in range(3)
+        ])
+        self.dnn = nn.ModuleList([nn.Linear(dim, dim) for _ in range(2)])
+        self.head = nn.Linear(dim, 15)
+
+    def init_from_dense(self, dense: "DCNv2"):
+        """Copy pretrained embedding / DNN / head; Cross layers stay random.
+
+        (Equiv. to the ``--reinit-cross`` arm: both arms start their Cross
+        layers from scratch so the widened arm has real headroom to exploit.)
+        """
+        self.sparse.load_state_dict(dense.sparse.state_dict())
+        self.dnn[0].load_state_dict(dense.layers[3].state_dict())
+        self.dnn[1].load_state_dict(dense.layers[4].state_dict())
+        self.head.load_state_dict(dense.layers[5].state_dict())
+        return self
+
+    def embed(self, batch):
+        return self.sparse(batch)
+
+    def forward(self, batch):
+        x0 = self.embed(batch)
+        x = x0
+        for layer in self.cross_layers:
+            x = layer(x, x0)
+        for layer in self.dnn:
+            x = layer(x.relu())
+        batch["logit"] = self.head(x)[range(len(x)), batch["tab"]]
+
+    @staticmethod
+    def param_summary(model) -> str:
+        groups = {
+            "Sparse": ["sparse"],
+            "WidenedCross": ["cross_layers"],
+            "DNN": ["dnn"],
+            "Head": ["head"],
+        }
+        lines = ["Parameter Summary (DenseWidened DCNv2):"]
+        total = 0
+        for name, prefixes in groups.items():
+            count = 0
+            for n, p in model.named_parameters():
+                if any(n.startswith(px) for px in prefixes):
+                    count += p.numel()
+            total += count
+            pct = count / total * 100 if total > 0 else 0
+            lines.append(f"  {name:16s}: {count:>10,}  ({pct:5.1f}%)")
+        lines.append(f'  {"TOTAL":16s}: {total:>10,}')
+        return "\n".join(lines)
