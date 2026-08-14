@@ -101,6 +101,13 @@ def _parse_args(argv):
                          "slice batches device-side, instead of the pandas "
                          "per-row DataLoader. Verified bit-identical AUC and "
                          "~14× faster evaluation.")
+    ap.add_argument("--reinit-cross", action="store_true",
+                    help="randomly re-initialize the Cross layers in BOTH arms "
+                         "(dense layers.0-2 / every MoE expert) while keeping "
+                         "the pretrained frozen embeddings + DNN + head. This "
+                         "creates real learning headroom in exactly the "
+                         "component the MoE modifies, which is the only regime "
+                         "where extra Cross capacity can pay off.")
     ap.add_argument("--tag", default="", help="suffix for output artifacts")
     return ap.parse_args(argv)
 
@@ -170,6 +177,14 @@ moe = DCNv2CapacityMoE(
     noise_scale=ARGS.noise_scale, lb_alpha=ARGS.lb_alpha,
 ).to(DEVICE)
 moe.upcycle_from_dense(vanilla)
+if ARGS.reinit_cross:
+    # Independent random experts: no upcycled copies, so the symmetry-breaking
+    # noise is irrelevant and every expert must learn from scratch.
+    for _layer in moe.cross_layers:
+        for _e in _layer.experts:
+            _e.reset_parameters()
+    print("  [reinit-cross] MoE experts randomly re-initialized "
+          f"({len(moe.cross_layers)} layers × {ARGS.K} experts)")
 print(f"\n  {DCNv2CapacityMoE.param_summary(moe)}")
 
 
@@ -256,7 +271,8 @@ def routing_sentinel(model, source):
 
 def _train_dense_continued(vanilla, train_src, valid_src, test_src,
                            lr, beta2, batch_size, num_workers, max_epochs,
-                           device, result_csv, freeze="", full_batch=False):
+                           device, result_csv, freeze="", full_batch=False,
+                           reinit_cross=False):
     """Continue-train the vanilla dense checkpoint (arm A', dense-continued).
 
     Mirrors the MoE training loop exactly (same batch source/optimizer/epochs,
@@ -270,6 +286,12 @@ def _train_dense_continued(vanilla, train_src, valid_src, test_src,
     # Arm A' must train: the checkpoint was loaded read-only for arm A, so
     # re-enable grads and let `freeze` decide what actually updates.
     vanilla.requires_grad_(True)
+    if reinit_cross:
+        # Same treatment as the MoE arm: Cross layers start from scratch.
+        for _i in range(3):
+            vanilla.layers[_i].reset_parameters()
+        print("  [dense-cont] [reinit-cross] Cross layers 0-2 "
+              "randomly re-initialized")
     freeze_info = apply_freeze(vanilla, freeze)
     if freeze:
         print("  [dense-cont] " + freeze_summary(freeze_info).replace(
@@ -323,7 +345,9 @@ def _train_dense_continued(vanilla, train_src, valid_src, test_src,
             f.write(f"{epoch},{valid_auc:.4f},{wall:.1f}\n")
         hist.append({"epoch": epoch, "valid_auc": valid_auc,
                      "wall_clock_sec": wall})
-        if valid_auc > auc_best + 0.001:
+        if valid_auc > auc_best:
+            # Exact argmax: a 0.001 deadband here would silently keep epoch 1
+            # when the arm improves steadily in small steps.
             auc_best = valid_auc
             best_state = deepcopy(vanilla.state_dict())
             best_epoch = epoch
@@ -383,11 +407,13 @@ if ARGS.train_dense_ref:
         lr=ARGS.lr, beta2=ARGS.beta2, batch_size=ARGS.batch_size,
         num_workers=ARGS.num_workers, max_epochs=ARGS.max_epochs,
         device=device, result_csv=RESULT_DENSE_CONT_CSV,
-        freeze=ARGS.freeze, full_batch=ARGS.full_batch_loss)
+        freeze=ARGS.freeze, full_batch=ARGS.full_batch_loss,
+        reinit_cross=ARGS.reinit_cross)
     print(f"  [dense-cont] test AUC (all): {dense_cont_test_auc:.4f}")
 
 history = []
 auc_best = 0.0
+auc_stop_ref = 0.0
 best_state = None
 best_epoch = 0
 
@@ -492,18 +518,23 @@ for epoch in range(1, ARGS.max_epochs + 1):
                 f"{ent[1]:.4f},{ent[2]:.4f},{sentinel['entropy_mean']:.4f},"
                 f"{sentinel['divergence_ratio']:.2f},{lb_mean:.6f},{wall:.1f}\n")
 
-    if valid_auc > auc_best + 0.001:
+    if valid_auc > auc_best:
+        # Exact argmax for the reported best state ...
         auc_best = valid_auc
         best_state = deepcopy(moe.state_dict())
         best_epoch = epoch
+    if valid_auc > auc_stop_ref + 0.001:
+        # ... while early-stop keeps its historical 0.001 deadband.
+        auc_stop_ref = valid_auc
     elif epoch <= ARGS.min_epochs or epoch <= ARGS.warmup_epochs:
         # Protected phase: do not early-stop during warmup or before min_epochs,
         # so the MoE gets enough steps to recover from upcycle perturbation.
         print(f"  [no-early-stop] epoch {epoch} protected "
               f"(min_epochs={ARGS.min_epochs}, warmup_epochs={ARGS.warmup_epochs})")
     else:
-        print(f"  [early-stop] valid AUC no +0.001 gain over best "
-              f"({auc_best:.4f} @ epoch {best_epoch}); stop")
+        print(f"  [early-stop] valid AUC no +0.001 gain over "
+              f"{auc_stop_ref:.4f} (best {auc_best:.4f} @ epoch "
+              f"{best_epoch}); stop")
         break
 
 if best_state is not None:
@@ -558,6 +589,7 @@ with open(HISTORY_JSON, "w") as f:
             "warmup_epochs": ARGS.warmup_epochs, "min_epochs": ARGS.min_epochs,
             "freeze": ARGS.freeze, "full_batch_loss": ARGS.full_batch_loss,
             "gpu_resident_data": ARGS.gpu_resident_data,
+            "reinit_cross": ARGS.reinit_cross,
             "tag": ARGS.tag,
         },
         "log_k": LOG_K,
