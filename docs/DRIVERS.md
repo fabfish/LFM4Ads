@@ -22,6 +22,7 @@
 | Capacity-MoE 真实稀疏（full-rank + top-k dispatch） | `done` | **PASS**（哨兵） | 首个 full-rank 专家 + 真实 top-k 稀疏 dispatch；STE+warmup+lb 调优首次让 router 熵离开 log K，12/12 哨兵 PASS；test AUC Δ 微弱正向（+0.0002~+0.0025，top_k=2 优于 1），未达显著 | AUC 优势未证明，暂不扩 3-seed | [驱动](./20260813-1642-capacity-MoE-驱动.md)；[结论](./20260813-1812-capacity-MoE-smoke结论.md) |
 | Capacity-MoE 必要性验证（dense-continued 公平对照） | `done` | **INCONCLUSIVE**（方向为负） | 剥离"继续训练红利"后 Δ_necessity=[−0.0019,−0.0006] 2 seed 均为负；+0.0025 被证实为微调红利；router 特化 PASS 但稀疏化崩 AUC（特化与 AUC 反相关） | 不扩 3-seed；先诊断"稀疏化为何崩 AUC"再谈 scaling | [驱动](./20260814-1120-capacity-MoE-必要性验证驱动.md)；[结论](./20260814-1239-capacity-MoE-必要性结论与scaling迁移.md) |
 | AdaTask 三模式 × capacity MoE | `done` | **INCONCLUSIVE**（调制无益） | 三模式熵均离开 log K，但方向反直觉（suppress 最特化）；真实稀疏下未激活专家 AU 冻结；AUC 均低，encourage/suppress 相对 none 负向 | 单 seed 方向证据；修"专家饿死循环"后再议 | [结论](./20260814-1522-AdaTask-capacity-MoE-结论.md) |
+| 专家无收益根因定位 + 决定性容量实验 | `done` | **INCONCLUSIVE**（容量收益无效应）+ **FAIL**（稀疏净代价为负） | 修复 3 根因（84M embedding 解冻共因 / lb 8× 放大 bug / host-bound）后 Δ_necessity −0.0019→−0.0003；收益分解：4× 容量收益≈0（跨 seed 变号、噪声内），稀疏代价≈−0.001（4/4 同号）；瓶颈在 embedding(97.9% 参数)非 cross(0.46%) | cross 层 MoE 上限=打平 dense，不再调参；下一步做 dense-widened 4× 对照 | [结论](./20260814-2111-专家无收益根因定位与决定性容量实验.md) |
 | TCMR 静态任务条件路由 | `done` | **INCONCLUSIVE** | 15/15 完成；DATR 对 FUR、DOR 的同 seed pooled-AUC 差均跨 seed 变号且未越过噪声地板 | AdaTask、持续学习、BWT、稀疏扩展仍 `blocked` | [驱动](archive/drivers/20260812-1139-Task-Conditioned-Mixture-Routing-驱动.md)；[结论](archive/conclusions/20260812-1703-TCMR-结论.md)；[机器判定](../cache/task_conditioned_mixture_routing/gate_decision.json) |
 | 共享残差 G1：函数保持 upcycling | `done` | **PASS** | 3 seed 的 logits/loss/AUC 与 dense 在预注册阈值内一致 | 仅与 G2 一起授权既定 G3 | [正式驱动](archive/drivers/20260812-1807-共享残差混合专家-函数保持与持续学习-驱动.md)；[G1/G2 结论](archive/conclusions/20260812-1832-共享残差混合专家-G1G2不变量结论.md)；[不变量](../cache/audit/shared_residual_continual/shared_residual_experiment_invariants.json) |
 | 共享残差 G2：LR/冻结语义 | `done` | **PASS** | pre-Adam 常数缩放 update ratio≈1；parameter-group 10× LR update ratio≈9.9982；冻结与更新隔离通过 | 仅授权既定 G3 | 同上 |
@@ -98,6 +99,30 @@
   （mean ~0.69），encourage/suppress 相对 none 均负向（−0.0035 / −0.0008），调制无益。
 - 结论边界：机制（稀疏特化 + AU 冻结）成立；"encourage 促进/suppress 抑制特化"的旧叙事在 capacity 稀疏下**降级**；
   AdaTask 调制**未改善 AUC**。仅单 seed，方向证据。详见[结论](./20260814-1522-AdaTask-capacity-MoE-结论.md)。
+
+### 3.9 专家无收益：根因定位、三处修复与决定性容量实验
+
+- 代码：`model.py`（lb 向量化 + 去 host sync）、`dataset.py`（`GpuBatches` GPU 常驻数据表）、
+  `train.py`（`infer_gpu`/`evaluate_gpu`）、`main_moe_capacity.py`（`--freeze` / `--lr-router` /
+  `--full-batch-loss` / `--gpu-resident-data` / `--reinit-cross` / best-state 精确化）；
+  `scripts/run_moe_fix_matrix.sh`、`scripts/run_reinit_capacity_matrix.sh`。
+- **三个根因**：① 占总参数 **97.9%** 的 84M embedding 表在 `lr=1e-3` 下全程解冻 → dense 与 MoE 双双
+  从 epoch1 崩到 0.67（**共因**，原"稀疏化崩 AUC"结论被此污染）；② **真 bug**：`lb_loss` 未按
+  `|B_s|/|B|` 缩放，被 8 个 scenario 重复累加 ~8 倍（0.0807 → 修复后 0.0081）；③ 性能：`.item()`/
+  `.any()` 每专家 3 次 host sync + `Dataset.__getitem__` 逐样本 `iloc.to_dict()` → host-bound，
+  双卡 util 仅 13%/33%。
+- **修复效果**：Δ_smoke +0.0018 → **+0.0037**；Δ_necessity −0.0019 → **−0.0003**（进入噪声地板 =
+  统计平局）；wall 5–13× 加速（MoE 60s→10.9s/epoch）；双卡 util → **100%/100%**；
+  `GpuBatches` 等价性 |ΔAUC| = 0.00e+00。
+- **决定性收益分解**（reinit-cross 8 run，cross 层随机重置制造真实 headroom）：
+  `top_k=K=4`（零稀疏代价、纯 4× 容量）Δ = {+0.0002, +0.0002, +0.0003, −0.0004} → **跨 seed 变号、
+  噪声内 → 容量收益 ≈ 0**；`top_k=2`（真实稀疏）Δ = {−0.0010, −0.0008, −0.0009, −0.0015} → **4/4
+  一致为负 → 稀疏化代价 ≈ −0.001**。峰值永远在 soft/warmup 阶段，稀疏阶段从不产出最优模型。
+- 判定：**INCONCLUSIVE（容量收益无可测效应）+ FAIL（稀疏净代价一致为负）**。
+- 结论边界：cross 层 MoE 在本口径下**上限就是打平 dense**，继续调 K/lb/warmup/lr 不可能翻盘；瓶颈在
+  embedding（97.9% 参数）而非 cross（0.46%）。下一步性价比最高的单个实验是 **dense-widened 4× 对照**
+  （加宽不加路由）以独立证实"容量不是瓶颈"。不扩 3-seed。
+  详见[结论](./20260814-2111-专家无收益根因定位与决定性容量实验.md)。
 
 ## 4. 当前执行边界
 
