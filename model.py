@@ -1546,14 +1546,20 @@ class CapacityCrossExpertLayer(nn.Module):
 
         L_balance = K * Σ_i f_i * P_i, where f_i = fraction of tokens
         dispatched to expert i, P_i = mean clean softmax prob of expert i.
+
+        Vectorized via ``scatter_add_`` (equivalent to the historical
+        ``(topk_idx == i).any(-1).float().mean()`` because ``topk`` returns
+        distinct indices per token) so no per-expert Python loop / host sync
+        happens on the training hot path.
         """
         if self.lb_alpha <= 0:
-            return torch.tensor(0.0, device=clean_prob.device)
+            return torch.zeros((), device=clean_prob.device)
+        B = clean_prob.shape[0]
         P_i = clean_prob.mean(0)  # [K]
-        disp = torch.zeros(self.K, device=clean_prob.device)
-        for i in range(self.K):
-            disp[i] = (topk_idx == i).any(dim=-1).float().mean()
-        f_i = disp + 1e-8
+        flat = topk_idx.reshape(-1)
+        disp = torch.zeros(self.K, device=clean_prob.device, dtype=clean_prob.dtype)
+        disp.scatter_add_(0, flat, torch.ones_like(flat, dtype=clean_prob.dtype))
+        f_i = disp / max(B, 1)
         return self.lb_alpha * self.K * (f_i * P_i).sum()
 
     def forward(self, x, x0, tab=None):
@@ -1597,16 +1603,19 @@ class CapacityCrossExpertLayer(nn.Module):
             self.top_k)                            # [B*top_k]
 
         out = torch.zeros_like(x)
-        dispatch_counts = [0] * self.K
         for e in range(self.K):
-            mask = (flat_idx == e)
-            dispatch_counts[e] = int(mask.sum().item())
-            if not mask.any():
-                continue
-            sel_samples = sample_idx[mask]                       # [n]
+            # Empty selections are legal (Linear/index_add_ no-op on 0 rows), so
+            # the historical `.sum().item()` + `.any()` guards are dropped: they
+            # forced 2 extra host syncs per expert on the training hot path.
+            sel_samples = sample_idx[flat_idx == e]               # [n]
             sel_gates = gate[sel_samples, e].unsqueeze(-1)       # [n, 1] (STE)
             expert_out = self.experts[e](x[sel_samples])         # [n, dim]
             out.index_add_(0, sel_samples, sel_gates * expert_out)
+
+        # Dispatch counts need a device→host sync, so only materialize them off
+        # the training path (sentinel/analysis run under `infer`, i.e. eval).
+        dispatch_counts = ([] if self.training else
+                           torch.bincount(flat_idx, minlength=self.K).tolist())
 
         lb_loss = self._load_balance_loss(clean_prob, topk_idx)
         return out * x0 + x, clean_prob, lb_loss, dispatch_counts

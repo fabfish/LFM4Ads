@@ -29,7 +29,13 @@ from tqdm import tqdm
 
 import fields
 from dataset import Dataset, Split
-from model import DCNv2, DCNv2CapacityMoE, trainable_parameters
+from model import (
+    DCNv2,
+    DCNv2CapacityMoE,
+    apply_freeze,
+    freeze_summary,
+    trainable_parameters,
+)
 from train import evaluate, infer, scenario_loss
 
 LOG_K = math.log(4)  # 哨兵锚点 log K = log 4
@@ -59,6 +65,23 @@ def _parse_args(argv):
                     help="also continue-train the vanilla dense checkpoint for "
                          "max_epochs (dense-continued arm A') to strip the "
                          "'more training' confound from the necessity delta")
+    ap.add_argument("--freeze", default="",
+                    help="comma-separated param groups to freeze, applied "
+                         "IDENTICALLY to both arms (e.g. 'sparse' freezes the "
+                         "84M embedding table = 97.9%% of params, which is "
+                         "unrelated to the MoE change and is the dominant "
+                         "overfitting source)")
+    ap.add_argument("--lr-router", type=float, default=None,
+                    help="separate LR for the randomly-initialized routers "
+                         "(defaults to --lr). Upcycled experts carry pretrained "
+                         "weights and need a small LR, while a fresh router "
+                         "needs a larger one.")
+    ap.add_argument("--full-batch-loss", action="store_true",
+                    help="single full-batch forward/backward instead of the "
+                         "per-scenario sub-batch loop. Mathematically equivalent "
+                         "for 'sample' weighting (verified R_gain≈0.999, see "
+                         "DRIVERS.md §2) but 8× larger kernels and 8× fewer host "
+                         "syncs, so GPU utilization is far higher.")
     ap.add_argument("--tag", default="", help="suffix for output artifacts")
     return ap.parse_args(argv)
 
@@ -76,9 +99,11 @@ torch.manual_seed(ARGS.seed)
 os.makedirs(CACHE_DIR, exist_ok=True)
 
 print(f"[config] device={DEVICE} seed={ARGS.seed} K={ARGS.K} top_k={ARGS.top_k} "
-      f"lr={ARGS.lr} beta2={ARGS.beta2} noise_scale={ARGS.noise_scale} "
+      f"lr={ARGS.lr} lr_router={ARGS.lr_router or ARGS.lr} beta2={ARGS.beta2} "
+      f"noise_scale={ARGS.noise_scale} "
       f"lb_alpha={ARGS.lb_alpha} batch_size={ARGS.batch_size} "
-      f"max_epochs={ARGS.max_epochs} tag='{ARGS.tag or 'none'}'")
+      f"max_epochs={ARGS.max_epochs} freeze='{ARGS.freeze or 'none'}' "
+      f"full_batch_loss={ARGS.full_batch_loss} tag='{ARGS.tag or 'none'}'")
 print(f"[sentinel] log K = {LOG_K:.4f}; PASS threshold = {LOG_K - 0.15:.4f}")
 
 
@@ -199,23 +224,30 @@ def routing_sentinel(model, dataset):
 
 def _train_dense_continued(vanilla, train_set, valid_set, test_set,
                            lr, beta2, batch_size, num_workers, max_epochs,
-                           device, result_csv):
+                           device, result_csv, freeze="", full_batch=False):
     """Continue-train the vanilla dense checkpoint (arm A', dense-continued).
 
-    Mirrors the MoE training loop exactly (per-scenario sub-batch + sample
-    weighting + one optimizer.step per batch), minus the load-balance loss —
-    so the only difference from arm B is the architecture itself. Runs the full
-    ``max_epochs`` (no early-stop) to match a ``min_epochs=max_epochs`` MoE arm
-    and expose the complete valid-AUC trajectory.
+    Mirrors the MoE training loop exactly (same loader/optimizer/epochs, same
+    ``freeze`` groups, same loss weighting), minus the load-balance loss — so the
+    only difference from arm B is the architecture itself. Runs the full
+    ``max_epochs`` (no early-stop) to expose the complete valid-AUC trajectory.
 
-    Returns (test_auc, best_valid_auc, best_epoch).
+    Returns (test_auc, best_valid_auc, best_epoch, history).
     """
     criterion = torch.nn.BCEWithLogitsLoss()
+    # Arm A' must train: the checkpoint was loaded read-only for arm A, so
+    # re-enable grads and let `freeze` decide what actually updates.
+    vanilla.requires_grad_(True)
+    freeze_info = apply_freeze(vanilla, freeze)
+    if freeze:
+        print("  [dense-cont] " + freeze_summary(freeze_info).replace(
+            "\n", "\n  [dense-cont] "))
     optimizer = torch.optim.AdamW(
         trainable_parameters(vanilla), lr=lr, betas=(0.9, beta2))
     auc_best = 0.0
     best_state = None
     best_epoch = 0
+    hist = []
     with open(result_csv, "w") as f:
         f.write("epoch,valid_auc,wall_clock_sec\n")
     for epoch in range(1, max_epochs + 1):
@@ -229,14 +261,21 @@ def _train_dense_continued(vanilla, train_set, valid_set, test_set,
                 batch[field_name] = batch[field_name].to(
                     device, non_blocking=True).int()
             tab_batch = batch["tab"]
-            for s in tab_batch.unique():
-                mask = tab_batch == s
-                sub = {k: v[mask] for k, v in batch.items()}
-                vanilla(sub)
-                loss = scenario_loss(
-                    criterion, sub["logit"], sub["is_click"].float(),
-                    mask, tab_batch, "sample")
+            if full_batch:
+                # 'sample' weighting sums to the full-batch mean, so one big
+                # forward/backward is equivalent (DRIVERS.md §2) and much faster.
+                vanilla(batch)
+                loss = criterion(batch["logit"], batch["is_click"].float())
                 loss.backward()
+            else:
+                for s in tab_batch.unique():
+                    mask = tab_batch == s
+                    sub = {k: v[mask] for k, v in batch.items()}
+                    vanilla(sub)
+                    loss = scenario_loss(
+                        criterion, sub["logit"], sub["is_click"].float(),
+                        mask, tab_batch, "sample")
+                    loss.backward()
             optimizer.step()
             optimizer.zero_grad()
         valid_auc = float(evaluate(vanilla, valid_set))
@@ -245,6 +284,8 @@ def _train_dense_continued(vanilla, train_set, valid_set, test_set,
               f"wall={wall:.1f}s")
         with open(result_csv, "a") as f:
             f.write(f"{epoch},{valid_auc:.4f},{wall:.1f}\n")
+        hist.append({"epoch": epoch, "valid_auc": valid_auc,
+                     "wall_clock_sec": wall})
         if valid_auc > auc_best + 0.001:
             auc_best = valid_auc
             best_state = deepcopy(vanilla.state_dict())
@@ -254,7 +295,7 @@ def _train_dense_continued(vanilla, train_set, valid_set, test_set,
         print(f"  [dense-cont] restored best state "
               f"(valid AUC={auc_best:.4f} @ epoch {best_epoch})")
     test_auc = float(evaluate(vanilla, test_set))
-    return test_auc, auc_best, best_epoch
+    return test_auc, auc_best, best_epoch, hist
 
 
 # ===========================================================
@@ -267,8 +308,26 @@ print("=" * 60)
 
 train_set, valid_set, test_set = Split("all")
 criterion = torch.nn.BCEWithLogitsLoss()
-optimizer = torch.optim.AdamW(
-    trainable_parameters(moe), lr=ARGS.lr, betas=(0.9, ARGS.beta2))
+
+# Freeze identically to arm A' (fairness), then give the freshly initialized
+# routers their own LR: upcycled experts carry pretrained weights (small LR),
+# a random router needs a larger one to escape the uniform deadlock.
+freeze_info_moe = apply_freeze(moe, ARGS.freeze)
+if ARGS.freeze:
+    print(freeze_summary(freeze_info_moe))
+
+LR_ROUTER = ARGS.lr_router if ARGS.lr_router is not None else ARGS.lr
+_router_params, _other_params = [], []
+for _n, _p in moe.named_parameters():
+    if not _p.requires_grad:
+        continue
+    (_router_params if ".router." in _n else _other_params).append(_p)
+_param_groups = [{"params": _other_params, "lr": ARGS.lr}]
+if _router_params:
+    _param_groups.append({"params": _router_params, "lr": LR_ROUTER})
+optimizer = torch.optim.AdamW(_param_groups, lr=ARGS.lr, betas=(0.9, ARGS.beta2))
+print(f"  [optim] {len(_other_params)} tensors @ lr={ARGS.lr}, "
+      f"{len(_router_params)} router tensors @ lr={LR_ROUTER}")
 device = torch.device(DEVICE)
 
 # ===========================================================
@@ -276,16 +335,19 @@ device = torch.device(DEVICE)
 # ===========================================================
 dense_cont_test_auc = None
 dense_cont_best_valid = None
+dense_cont_history = []
 if ARGS.train_dense_ref:
     print()
     print("=" * 60)
     print(f"Arm A': continue-train dense ({ARGS.max_epochs} epochs)")
     print("=" * 60)
-    dense_cont_test_auc, dense_cont_best_valid, _ = _train_dense_continued(
+    (dense_cont_test_auc, dense_cont_best_valid, _,
+     dense_cont_history) = _train_dense_continued(
         vanilla, train_set, valid_set, test_set,
         lr=ARGS.lr, beta2=ARGS.beta2, batch_size=ARGS.batch_size,
         num_workers=ARGS.num_workers, max_epochs=ARGS.max_epochs,
-        device=device, result_csv=RESULT_DENSE_CONT_CSV)
+        device=device, result_csv=RESULT_DENSE_CONT_CSV,
+        freeze=ARGS.freeze, full_batch=ARGS.full_batch_loss)
     print(f"  [dense-cont] test AUC (all): {dense_cont_test_auc:.4f}")
 
 history = []
@@ -322,21 +384,40 @@ for epoch in range(1, ARGS.max_epochs + 1):
                 device, non_blocking=True).int()
         tab_batch = batch["tab"]
 
-        for s in tab_batch.unique():
-            mask = tab_batch == s
-            sub = {k: v[mask] for k, v in batch.items()}
-
-            moe(sub)
-            loss = scenario_loss(
-                criterion, sub["logit"], sub["is_click"].float(),
-                mask, tab_batch, "sample",
-            )
-            lb_loss = sub.get("_load_balance_loss",
-                              torch.tensor(0.0, device=device))
+        if ARGS.full_batch_loss:
+            # One full-batch forward/backward. For 'sample' weighting this is
+            # the same objective (DRIVERS.md §2, R_gain≈0.999) with 8× larger
+            # kernels, and the load-balance loss becomes a *global* statistic —
+            # which is what Switch Transformer's aux loss is defined on.
+            moe(batch)
+            loss = criterion(batch["logit"], batch["is_click"].float())
+            lb_loss = batch.get("_load_balance_loss",
+                                torch.zeros((), device=device))
             loss = loss + lb_loss
-            lb_total_epoch += float(lb_loss.item())
-
+            lb_total_epoch += float(lb_loss.detach())
             loss.backward()
+        else:
+            for s in tab_batch.unique():
+                mask = tab_batch == s
+                sub = {k: v[mask] for k, v in batch.items()}
+
+                moe(sub)
+                loss = scenario_loss(
+                    criterion, sub["logit"], sub["is_click"].float(),
+                    mask, tab_batch, "sample",
+                )
+                lb_loss = sub.get("_load_balance_loss",
+                                  torch.zeros((), device=device))
+                # BUGFIX: the per-scenario BCE is scaled by |B_s|/|B| so the
+                # sum equals the full-batch mean, but lb_loss used to be added
+                # UNSCALED once per scenario — i.e. amplified ~8× (one per
+                # scenario) relative to the intended lb_alpha. Scale it the
+                # same way so lb_alpha means what it says.
+                lb_w = mask.sum().to(loss.dtype) / tab_batch.numel()
+                loss = loss + lb_loss * lb_w
+                lb_total_epoch += float((lb_loss * lb_w).detach())
+
+                loss.backward()
 
         optimizer.step()
         optimizer.zero_grad()
@@ -430,10 +511,12 @@ with open(HISTORY_JSON, "w") as f:
     json.dump({
         "config": {
             "device": DEVICE, "seed": ARGS.seed, "K": ARGS.K,
-            "top_k": ARGS.top_k, "lr": ARGS.lr, "beta2": ARGS.beta2,
+            "top_k": ARGS.top_k, "lr": ARGS.lr, "lr_router": LR_ROUTER,
+            "beta2": ARGS.beta2,
             "noise_scale": ARGS.noise_scale, "lb_alpha": ARGS.lb_alpha,
             "batch_size": ARGS.batch_size, "max_epochs": ARGS.max_epochs,
             "warmup_epochs": ARGS.warmup_epochs, "min_epochs": ARGS.min_epochs,
+            "freeze": ARGS.freeze, "full_batch_loss": ARGS.full_batch_loss,
             "tag": ARGS.tag,
         },
         "log_k": LOG_K,
@@ -442,6 +525,7 @@ with open(HISTORY_JSON, "w") as f:
         "test_auc": test_auc,
         "dense_cont_test_auc": dense_cont_test_auc,
         "dense_cont_best_valid": dense_cont_best_valid,
+        "dense_cont_history": dense_cont_history,
         "delta_necessity": (test_auc - dense_cont_test_auc)
                            if dense_cont_test_auc is not None else None,
         "best_valid_auc": auc_best,
