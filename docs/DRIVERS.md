@@ -20,7 +20,7 @@
 | Stage B same-FLOPs MoE | `done` | **FAIL**（竞争性主张） | frozen/soft 相对 same-FLOPs dense 的同 seed 差均为 `[-,-,+]`；MoE wall-clock 更慢 | sparse scaling / same-latency 叙事关闭 | [驱动](archive/drivers/20260811-2310-StageB-MoE-九次训练驱动.md)；[结论](archive/conclusions/20260812-0103-StageB-MoE-九次训练结论.md) |
 | 下游留出域参数高效迁移 | `done` | **FAIL**（G1 可行性门控） | 12/12 trial 完成；validation 上 moe-router 仅 t2 胜 dense-adapter-r2（+0.0003），t5/t6 均败；G1 未过 → 按协议停止、未扩 seeds 123/456 | 停止，不扫描 LR/K/r/target | [驱动](archive/drivers/20260812-2303-MoE下游留出域参数高效迁移驱动.md)；[结论](archive/conclusions/20260813-1219-MoE下游留出域迁移G1结论.md)；[G1 判定](../cache/downstream_transfer/g1_decision.json) |
 | Capacity-MoE 真实稀疏（full-rank + top-k dispatch） | `done` | **PASS**（哨兵） | 首个 full-rank 专家 + 真实 top-k 稀疏 dispatch；STE+warmup+lb 调优首次让 router 熵离开 log K，12/12 哨兵 PASS；test AUC Δ 微弱正向（+0.0002~+0.0025，top_k=2 优于 1），未达显著 | AUC 优势未证明，暂不扩 3-seed | [驱动](./20260813-1642-capacity-MoE-驱动.md)；[结论](./20260813-1812-capacity-MoE-smoke结论.md) |
-| Capacity-MoE 必要性验证（dense-continued 公平对照） | `planned` | `NOT_EVALUATED` | 剥离"继续训练红利"：加 dense-continued 臂，Δ_necessity = MoE_best − dense_cont_best 逐 seed 配对差；smoke 已暴露 sparse 阶段 valid AUC 单调下降风险（+0.0025 实为 warmup 红利） | 待矩阵完成回填 verdict | [驱动](./20260814-1120-capacity-MoE-必要性验证驱动.md) |
+| Capacity-MoE 必要性验证（dense-continued 公平对照） | `done` | **INCONCLUSIVE**（方向为负） | 剥离"继续训练红利"后 Δ_necessity=[−0.0019,−0.0006] 2 seed 均为负；+0.0025 被证实为微调红利；router 特化 PASS 但稀疏化崩 AUC（特化与 AUC 反相关） | 不扩 3-seed；先诊断"稀疏化为何崩 AUC"再谈 scaling | [驱动](./20260814-1120-capacity-MoE-必要性验证驱动.md)；[结论](./20260814-1239-capacity-MoE-必要性结论与scaling迁移.md) |
 | TCMR 静态任务条件路由 | `done` | **INCONCLUSIVE** | 15/15 完成；DATR 对 FUR、DOR 的同 seed pooled-AUC 差均跨 seed 变号且未越过噪声地板 | AdaTask、持续学习、BWT、稀疏扩展仍 `blocked` | [驱动](archive/drivers/20260812-1139-Task-Conditioned-Mixture-Routing-驱动.md)；[结论](archive/conclusions/20260812-1703-TCMR-结论.md)；[机器判定](../cache/task_conditioned_mixture_routing/gate_decision.json) |
 | 共享残差 G1：函数保持 upcycling | `done` | **PASS** | 3 seed 的 logits/loss/AUC 与 dense 在预注册阈值内一致 | 仅与 G2 一起授权既定 G3 | [正式驱动](archive/drivers/20260812-1807-共享残差混合专家-函数保持与持续学习-驱动.md)；[G1/G2 结论](archive/conclusions/20260812-1832-共享残差混合专家-G1G2不变量结论.md)；[不变量](../cache/audit/shared_residual_continual/shared_residual_experiment_invariants.json) |
 | 共享残差 G2：LR/冻结语义 | `done` | **PASS** | pre-Adam 常数缩放 update ratio≈1；parameter-group 10× LR update ratio≈9.9982；冻结与更新隔离通过 | 仅授权既定 G3 | 同上 |
@@ -74,6 +74,18 @@
   （+0.0002~+0.0025，top_k=2 > top_k=1）。
 - 结论边界：PASS 只证明「router 特化机制成立」，**未证明 capacity MoE 显著跑赢 dense**；不得据此宣称
   AUC 优势。详见[结论](./20260813-1812-capacity-MoE-smoke结论.md)。
+
+### 3.7 Capacity-MoE 必要性验证（dense-continued 公平对照）
+
+- 代码：`main_moe_capacity.py` 加 `--train-dense-ref` 臂（dense 继续训练 16 epoch 剥离"继续训练红利"）；
+  `scripts/run_necessity_matrix.sh` 两卡并行调度（seed42 卡0 / seed123 卡1）。
+- 主指标：`Δ_necessity = MoE_best − dense_cont_best`（逐 seed 同卡配对）。结果 **Δ_necessity = [−0.0019, −0.0006]**，
+  2 seed 均为负；对照 `Δ_smoke = [+0.0018, +0.0017]`（对冻结 dense）。
+- 关键发现：① dense-continued 同样过拟合（valid 0.7791→0.6711，第 1 epoch 即 +0.0036）；② MoE sparse 段
+  valid AUC 单调崩溃（0.76→0.67），且 **router 越特化（熵 0.74）AUC 越差**——特化与 AUC 反相关。
+- 判定：**INCONCLUSIVE（方向为负）**——必要性不成立；机制哨兵（router 特化 + dispatch）单独 PASS。
+- 结论边界：原 "+0.0025" 是微调红利，不是 MoE 结构红利；当前规模下稀疏化代价 > 容量收益。不得据此宣称
+  AUC 优势，也不得扩 3-seed。详见[结论](./20260814-1239-capacity-MoE-必要性结论与scaling迁移.md)。
 
 ## 4. 当前执行边界
 
