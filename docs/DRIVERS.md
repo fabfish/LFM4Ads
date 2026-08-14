@@ -1,6 +1,6 @@
 # 实验驱动与证据索引
 
-> 当前状态唯一入口。综合分析见 [`ANALYSIS.md`](ANALYSIS.md)，后续授权边界见 [`NEXT.md`](NEXT.md)。
+> 当前状态唯一入口。交接速览见 [`HANDOFF.md`](HANDOFF.md)，综合分析见 [`ANALYSIS.md`](ANALYSIS.md)，后续授权边界见 [`NEXT.md`](NEXT.md)。
 > 历史驱动、结论、审计与运维记录均保存在 `archive/`；本表只登记当前有效状态，不以历史文档中的旧状态覆盖机器判定。
 
 ## 1. 状态约定
@@ -141,16 +141,22 @@
 
 ## 4. 当前执行边界
 
-当前没有已授权 GPU 实验。持续学习与稀疏扩展旧路线继续 `blocked`：
+**capacity-MoE（cross 层）路线已正式关闭**（`done / INCONCLUSIVE(容量收益无效应) + FAIL(稀疏净代价为负)`）：
+机制跑通但收益为负，dense-widened 4× 对照独立证伪"cross 层容量是瓶颈"。**不再调 K/lb/warmup/lr/top_k，
+不扩 3-seed。** 瓶颈在 embedding（97.9% 参数），不在 cross（0.46%）。详见
+[结论](./20260814-2111-专家无收益根因定位与决定性容量实验.md) §六.5。
+
+持续学习与稀疏扩展旧路线继续 `blocked`：
 
 1. shared-path necessity、shared LR 与 blockwise LR 分配；
 2. continual router LR、完整 continual baseline matrix 与 alignment-aware 消融；
-3. sparse scale-out 与 same-latency 叙事（真实 top-k dispatch 已由 Capacity-MoE 路线完成哨兵验证，见 §3.6）；
+3. sparse scale-out 与 same-latency 叙事；
 4. 将 TCMR 或 G3 的跨 seed 变号结果写成稳定收益。
 
 新下游路线已 `done / G1 FAIL`：`scripts/run_downstream_transfer_matrix.py` 完成 G1（seed 42 验证门控）后按协议停止，未续 seeds 123/456；正式结论见[G1 结论](archive/conclusions/20260813-1219-MoE下游留出域迁移G1结论.md)。
 
-Capacity-MoE 路线已 `done / 哨兵 PASS`：router 熵离开 log K 的机制验证完成（12/12 PASS），但 AUC 仅微弱正向、未达显著，暂不授权 3-seed 正式矩阵；详见[结论](./20260813-1812-capacity-MoE-smoke结论.md)。
+**下一阶段方向**：embedding / 特征交互侧（唯一有证据支持），且必须先做"容量缺口证伪"对照再加容量。
+见 [`NEXT.md`](NEXT.md) §7.2 与 [`HANDOFF.md`](HANDOFF.md)。
 
 ## 5. 统一测量口径
 

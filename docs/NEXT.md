@@ -1,7 +1,11 @@
 # 后续安排与授权边界
 
-> 当前决策：**接受共享残差 G3 `INCONCLUSIVE`，冻结持续学习路线；转向 MoE 下游留出域参数高效迁移。**
-> 新路线已 `done / G1 FAIL`：G0/G0-final 审计 PASS、authorization 已冻结（`formal_training_authorized=true`）；G1（seed 42 验证门控）失败，矩阵按协议停止、未扩 seeds 123/456。状态见 [`DRIVERS.md`](DRIVERS.md)，分析见 [`ANALYSIS.md`](ANALYSIS.md)，结论见 [G1 结论](archive/conclusions/20260813-1219-MoE下游留出域迁移G1结论.md)。
+> 当前决策（2026-08-14 更新）：**capacity-MoE（cross 层）路线已正式关闭**——机制跑通但收益为负
+> （容量收益≈0 + 稀疏代价≈−0.001），瓶颈在 embedding（97.9% 参数）而非 cross（0.46%）。
+> 下一阶段唯一有证据支持的方向是 **embedding / 特征交互侧**，且必须先做"容量缺口证伪"对照（类比
+> dense-widened）再决定是否加容量。旧路线（共享残差持续学习、下游迁移）维持冻结状态不变。
+> 状态见 [`DRIVERS.md`](DRIVERS.md)，已可靠结论见 [`ANALYSIS.md`](ANALYSIS.md)，
+> 交接一页纸见 [`HANDOFF.md`](HANDOFF.md)。
 
 ## 1. 已冻结的旧路线
 
@@ -15,85 +19,46 @@
 
 因此 shared-path necessity、shared/router LR、完整持续学习矩阵、alignment-aware 消融和 sparse scale-out 均继续 `blocked`。不再扫描 specialist LR，不用单 seed 或跨 seed 均值重解释旧结果。
 
-## 2. 新判断
+## 2. 已关闭的下游迁移路线（协议归档）
 
-旧 `main_moe.py` / `main_moe_v2.py` 没有完成真正的三级下游：
+下游留出域参数高效迁移路线已 `done / G1 FAIL`，完整预注册协议（P0 实现审计 / P1 seed-42 可行性门控 /
+P2 正式优势 gate / 禁止项）归档于[下游迁移驱动](archive/drivers/20260812-2303-MoE下游留出域参数高效迁移驱动.md)，
+结论见 [G1 结论](archive/conclusions/20260813-1219-MoE下游留出域迁移G1结论.md)。不再执行，仅保留其通用实验纪律：
+不更换判定阈值凑正结果、不按 arm 重采样、不给 MoE 额外参数而不给 dense 匹配对照、不以机制诊断替代 test AUC 主终点。
 
-- 已完成的是 FeatureUsage 探索；
-- `ModuleUsage(..., "Vanilla")` 不加载 backbone，只是随机初始化占位；
-- 没有 true MoE ModuleUsage；
-- 没有执行 ModelUsage；
-- 静态 `CRs` 由 train+validation 聚合，不是严格的逐样本留出域迁移。
+## 3. 当前可执行动作
 
-所以既有下游结果不足以建立或否定真正的 MoE transfer 优势。合适的优势定义应改为：**目标域完全留出、4096 总标注固定、下游可训练参数近似匹配时的参数高效迁移能力**；不声称冻结 backbone 总容量匹配。
+### 3.1 已关闭（不再执行）
 
-完整预注册协议见[下游迁移驱动](archive/drivers/20260812-2303-MoE下游留出域参数高效迁移驱动.md)。
+- 下游迁移路线：`done / G1 FAIL`，12/12 seed-42 trial 完成，G1 验证门控失败，按预注册协议停止、未扩 seeds 123/456；结论见 [G1 结论](archive/conclusions/20260813-1219-MoE下游留出域迁移G1结论.md)。
+- capacity-MoE（cross 层）路线：`done / 正式关闭`，容量收益≈0 + 稀疏代价≈−0.001，dense-widened 独立证伪"cross 层容量是瓶颈"。**不再调 K/lb/warmup/lr/top_k，不扩 3-seed。** 结论见 [根因定位与决定性容量实验](./20260814-2111-专家无收益根因定位与决定性容量实验.md)。
+- 共享残差持续学习 / sparse scale-out / same-latency 叙事：继续 `blocked`（§1）。
 
-## 3. P0：实现与 G0 审计
+### 3.2 下一阶段唯一有证据支持的方向：embedding / 特征交互侧
 
-下一逻辑单元只做以下工作：
+capacity-MoE 关闭给出一个**硬约束 + 一个可行动假设**：
 
-1. 新建隔离的 downstream transfer trial/matrix runner；
-2. source 固定为 `[0,1,3,4,8]`，held-out targets 固定为 `[2,5,6]`；
-3. 实现逐样本 frozen-backbone forward，不复用用户静态 `CRs`；
-4. 实现四 arm：`dense-head`、`dense-adapter-r2`、`moe-head`、`moe-router`；
-5. 固定每 `(target,seed)` 4096 条自然分布标注行，按稳定 hash 划分 3072 fit + 1024 validation，并保存索引 hash；
-6. 校验 source/target 互斥、样本守恒、冻结参数 bitwise 不变；
-7. 校验 dense adapter 初始函数保持；
-8. 校验 `dense-adapter-r2=4681`、`moe-router=4693`，参数差小于 1%；
-9. 冻结 source/driver/runner hash，产物目录禁止覆盖；
-10. 只做 CPU 或小批量 smoke，不产生正式测试结论。
+- 硬约束：**加容量前必须先证明存在容量缺口**（否则只会重演 cross 层的"容量收益=0"）。
+- 可行动假设：瓶颈在 84M embedding 表（97.9% 参数 + 全部过拟合压力），不是 cross 层。
 
-顺序固定为：技术 G0 PASS → 生成含 G0 report hash 的独立 authorization → G0-final 复核 auth/hash/设备映射。任一步失败，状态转为 `blocked`，不得启动预训练。
+建议的下一批实验（按顺序，均需预注册）：
 
-## 4. P1：seed 42 feasibility gate
+1. **embedding 瓶颈定位对照**（最高性价比，类比 dense-widened）：给 embedding/特征交互侧加容量
+   （如更高的 embedding dim、或特征交叉扩展），做一个"widened vs dense"对照。若加宽也不涨 → embedding
+   侧也不是容量瓶颈，需要转向数据/任务本身；若加宽涨 → 找到了真正的容量缺口，再考虑在其上引入条件化容量。
+2. **特征交互侧的表达能力**：DCNv2 的 cross 层只做 `x0⊙(W·x)` 的低阶交互，未覆盖高阶特征交叉
+   （如 FM/DeepFM 式二次项、attention 式交互）。可先测"加一层特征交叉是否涨"，定位交互侧是否缺表达。
+3. **数据/任务侧**：当前 AUC 天花板约 0.78，dense 已贴近；若模型侧全部证伪，则问题在数据/任务，
+   需更强的标签、负采样或更大的数据。
 
-G0 PASS 且独立 authorization 已完成，seed 42 已按计划先行运行：
+所有新实验必须：
+- 默认口径 `--freeze sparse --full-batch-loss --gpu-resident-data`（已固化的修复）；
+- 同 seed 同卡配对差 + 2–3 seed；
+- 先做"容量缺口证伪"对照，再谈"加容量/加专家"。
 
-- source models：same-FLOPs dense 与 `DCNv2MoE_LowRank(K=4,r=45)`；
-- target：2/5/6；
-- 每 target 四个 arm；
-- 同 seed 全部配对模型固定同卡；
-- test 不参与早停或筛选。
+### 3.3 交接给后续执行者
 
-只有三个 target 的 validation 同时满足：
-
-1. `moe-router - dense-adapter-r2 > 0`；
-2. `moe-router - moe-head > 0`；
-3. 无样本、冻结、设备或 hash 异常；
-
-才允许继续 seeds 123/456。失败立即停止，不扫描 LR/K/r/target。
-
-## 5. P2：正式优势 gate
-
-主比较：同 seed、同 target 的
-
-`Δ_primary = AUC(moe-router) - AUC(dense-adapter-r2)`。
-
-同时计算：
-
-`Δ_adaptation = (moe-router-moe-head) - (dense-adapter-r2-dense-head)`。
-
-判定：
-
-- **PASS**：9/9 `Δ_primary >0`；每 target 的 mean `Δ_primary >=0.001`；macro mean `Δ_primary >=0.0015`；9-pair mean `Δ_adaptation >=0.0005`，且每 target 的 mean `Δ_adaptation >0`。
-- **FAIL**：9/9 `Δ_primary <=0`，或三个 target 的 mean `Δ_primary` 全部 `<=0`。
-- **INCONCLUSIVE**：其余方向混合、未过实际显著性阈值或适配双重差分归因不成立。
-- **BLOCKED**：缺 trial、失败、泄漏、设备混杂、参数/冻结/hash/样本审计异常。
-
-PASS 也只能支持“该固定协议、固定测试集上跨训练 seed 方向一致的留出域参数高效迁移优势”，不能声称总体统计显著，也不能恢复静态 AUC、持续学习、same-latency 或 sparse scale-out 主张。
-
-## 6. 禁止项
-
-- 禁止继续把旧 112 对称为三级下游证据；准确口径是 104 个 FeatureUsage 对照 + 8 个随机初始化占位。
-- 禁止为获得正结果更换 target、标签预算、K、rank、LR 或判定阈值。
-- 禁止使用任何 target 行训练 source backbone；仓库原 target validation 也不得用于下游早停或 arm 选择。
-- 禁止按 arm 重采样 4096 条下游标注数据或改变 3072/1024 划分。
-- 禁止让 MoE 获得额外 projection、target embedding 或专家，而 dense 无参数匹配对照。
-- 禁止用 router entropy、MI、门控可视化替代 test AUC 主终点。
-- 禁止用 macro 均值掩盖某 target 的系统性退化。
-- 禁止从当前协议外推到其他数据集或生产推理效率。
-
-## 7. 当前可执行动作
-
-无需再扩展旧 G3。新下游路线已 `done / G1 FAIL`：12/12 seed-42 trial 完成，G1 验证门控失败，按预注册协议停止、未扩 seeds 123/456；正式结论见 [G1 结论](archive/conclusions/20260813-1219-MoE下游留出域迁移G1结论.md)。禁止项（§6）全程生效。
+- 一份纸版初级结论与路线图见 [`HANDOFF.md`](HANDOFF.md)。
+- 已可靠结论（"已知道什么"）见 [`ANALYSIS.md`](ANALYSIS.md) §2。
+- 实时证据索引见 [`DRIVERS.md`](DRIVERS.md) §2/§3。
+- 三处修复 + GpuBatches 高性能数据路径已固化到代码，直接复用。

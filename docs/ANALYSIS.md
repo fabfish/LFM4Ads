@@ -1,17 +1,18 @@
 # 现有探索综合分析
 
-> 本文回答“已经可靠地知道什么”。实时状态与证据入口见 [`DRIVERS.md`](DRIVERS.md)，允许执行的后续动作见 [`NEXT.md`](NEXT.md)。
+> 本文回答“已经可靠地知道什么”。交接速览见 [`HANDOFF.md`](HANDOFF.md)，实时状态与证据入口见 [`DRIVERS.md`](DRIVERS.md)，允许执行的后续动作见 [`NEXT.md`](NEXT.md)。
 
 ## 1. 探索主线
 
-现有工作经历了四次关键收敛：
+现有工作经历了五次关键收敛：
 
 1. **纠正比较基线**：旧预训练 checkpoint 与新协议不一致，改为各模型从零、同协议、3 seed 比较。
 2. **识别训练目标混淆**：按场景内均值等权优化与 pooled AUC 的样本加权目标不一致；sample weighting 修复后，旧 `-0.0140` 代价基本消失。
 3. **否定静态竞争性叙事**：同容量与 same-FLOPs 两套公平比较均未给出 MoE 跨 seed 稳定优势，且 Stage B 的 MoE wall-clock 更慢。
 4. **把持续学习拆成受控关卡**：TCMR 静态路由未晋级；shared-residual 虽通过函数保持和 LR 语义检查，但 specialist-only 持续适配 screen 仍为 `INCONCLUSIVE`，未解锁 shared path。
+5. **把 capacity-MoE 完整走完并关闭**：full-rank 专家 + 真实 top-k 稀疏 dispatch 的机制（router 特化、稀疏生效）**完全跑通**，但收益为负——经三处修复 + 决定性容量对照，把收益精确拆成"4× 容量收益 ≈ 0 + 稀疏化代价 ≈ −0.001"，净效应必为负。瓶颈在 embedding 表（97.9% 参数），不在 cross 层（0.46%）。
 
-因此，当前最稳健的结论不是“MoE 一定更差”，而是：**在现有 KuaiRand-1K、模型规模、预算和 3-seed 口径下，没有稳定证据支持 MoE 的静态 AUC、效率、任务条件路由或 specialist-only 持续适配收益。**
+因此，当前最稳健的结论不是“MoE 一定更差”，而是：**在现有 KuaiRand-1K、模型规模、预算和 3-seed 口径下，没有稳定证据支持 MoE 的静态 AUC、效率、任务条件路由、specialist-only 持续适配，或 cross 层容量扩展收益——且 capacity-MoE 已把"容量收益≈0 + 稀疏代价<0"钉死，瓶颈定位到 embedding 侧。**
 
 ## 2. 高置信结论
 
@@ -75,6 +76,26 @@ G3 已确认：
 
 合适的新问题不是继续扫描旧 CR 融合层，而是检验：目标场景完全留出、4096 总标注固定、下游可训练参数近似匹配时，预训练 MoE 专家能否通过 router-only 适配优于 dense adapter，并以双重差分确认增益来自适配而非仅来自冻结表示。该路线独立于已关闭的静态 pooled-AUC 与持续学习关卡，协议见[下游迁移驱动](archive/drivers/20260812-2303-MoE下游留出域参数高效迁移驱动.md)。该路线 G1（seed 42）可行性门控已 **FAIL** 并停止：validation 上 moe-router 仅 1/3 target 胜 dense-adapter-r2，test 差分方向混合（Δ_primary = t2 −0.0072 / t5 +0.0128 / t6 +0.0053），未建立稳定的留出域迁移优势；详见[G1 结论](archive/conclusions/20260813-1219-MoE下游留出域迁移G1结论.md)。
 
+## 2.6 capacity-MoE 路线：机制成立、收益为负、已正式关闭
+
+这是 2026-08-14 一整天的完整结论，也是"cross 层 MoE 有没有用"这一长期悬置问题的最终答案。三步到位：
+
+1. **机制完全跑通**（12/12 哨兵 PASS）：full-rank 专家 + 真实 top-k 稀疏 dispatch + STE + warmup + lb 首次让 router 熵离开 log K（1.386→0.74），dispatch 校验 True。router 特化机制是真的。
+2. **收益被实现缺陷污染后修正**：三个根因修复后（见下），Δ_necessity 从 −0.0019 收窄到 −0.0003（进入噪声地板 = 统计平局），Δ_smoke 从 +0.0018 翻倍到 +0.0037。
+3. **决定性收益分解把失败归因钉死**（reinit-cross 8 run + dense-widened 4 run）：
+
+| 分量 | 证据 | 数值 |
+|---|---|---|
+| 4× 容量收益 | `top_k=K` 零稀疏代价 / dense-widened 4× 加宽 | **≈ 0**（跨 seed 变号、噪声内） |
+| 稀疏化代价 | `top_k=2` 真实稀疏 | **≈ −0.001**（4/4 一致为负） |
+
+- **三处修复**（均已固化到代码）：① 占总参数 **97.9%** 的 84M embedding 表在 `lr=1e-3` 下全程解冻，是 dense 与 MoE 双双从 epoch1 崩到 0.67 的**共因**（原"稀疏化崩 AUC"结论被此污染）→ `--freeze sparse`；② `lb_loss` 未按 `|B_s|/|B|` 缩放、被 8 个 scenario 重复累加 ~8 倍 → 同乘缩放（lb 0.0807→0.0081）；③ `Dataset.__getitem__` 逐样本 `iloc.to_dict()` + forward 内每专家 3 次 host sync → host-bound → `GpuBatches` GPU 常驻数据表 + `--full-batch-loss`。
+- **性能**：训练吞吐 11×、评估 14×、双卡 util 13–33%→100%，`GpuBatches` 与 DataLoader 路径 AUC 等价（|Δ|=0.00e+00）。
+- **决定性收官**：`dense-widened 4×`（cross 层加宽 720 维 + ReLU，参数量精确 4.00×，零路由零稀疏）Δ_capacity = {+0.0005,−0.0003,+0.0001,−0.0005} 跨 seed/lr 变号、噪声内 → **独立证实"cross 层容量不是 AUC 瓶颈"**。
+- **最终结论**：capacity-MoE 失败 = 容量收益 0（非 MoE 独有）+ 稀疏代价 −0.001（MoE 独有）→ 净效应必为负，**路线正式关闭，且是结构上无利可图、非实现问题**。瓶颈在 embedding（97.9% 参数 + 全部过拟合压力），不在 cross（0.46%）。
+
+证据：[根因定位与决定性容量实验结论](./20260814-2111-专家无收益根因定位与决定性容量实验.md)（含 §六.5 dense-widened 收官）、[DRIVERS.md §3.6–3.10](DRIVERS.md)。
+
 ## 3. 已关闭或降格的主张
 
 | 主张 | 当前处理 | 原因 |
@@ -87,13 +108,19 @@ G3 已确认：
 | G1/G2 PASS 证明持续学习收益 | 关闭 | 它们只验证函数、优化器和冻结语义 |
 | G3 可继续 shared/router LR | 关闭 | 机器字段 `unlock_shared_path_necessity_gate=false` |
 | 单 seed 持续学习结果可作结论 | 降格为动机 | 已观察到高比例跨 seed 变号 |
+| capacity-MoE 有微弱正向 AUC（+0.0025） | 降格 | 实为"微调红利"（dense-cont 同样 +0.0036）；对公平基线后转负 |
+| "稀疏化崩 AUC（0.76→0.67）" | 关闭 | 共因是 84M embedding 在 lr=1e-3 下过拟合，dense 也崩，与稀疏化无关 |
+| "router 越特化 AUC 越差" | 降格 | 熵与 AUC 同为训练进度函数，不可读作因果 |
+| cross 层 MoE 可继续调 K/lb/warmup/lr 翻盘 | 关闭 | 容量收益≈0 + 稀疏代价≈−0.001 已钉死，dense-widened 独立证伪容量瓶颈 |
 
 ## 4. 未决问题
 
 1. G3 的方向不稳定来自真实异质性、seed 噪声，还是当前每 scenario 24 步预算过小？现有证据不能区分。
 2. shared path 是否对持续学习有必要性？G3 未 PASS，因此尚未获得测试授权，也没有结果。
-3. 更大数据、更多任务、更高容量或真正稀疏 dispatch 下是否不同？当前实验均不能外推。
-4. 任务条件路由需要更强任务信号还是不同归纳偏置？TCMR 仅说明当前实现没有稳定收益。
+3. **瓶颈在 embedding 侧，具体是哪种？** 84M embedding 表占 97.9% 参数 + 全部过拟合压力。候选：(a) 特征交互侧表达不足；(b) embedding 维度/字段级的条件化容量缺口；(c) 单纯需要更强的特征表示。**这是 capacity-MoE 关闭后唯一有证据支持的继续方向。**
+4. **embedding 侧容量是否也有缺口？** 需要一个"embedding-widened / 特征交互增强"的对照实验（类比 dense-widened 对 cross 层所做的证伪），先证明缺口存在再加容量。
+5. 更大数据、更多任务、真正稀疏 dispatch 下 cross 层是否仍无容量收益？当前实验在 KuaiRand-1K 口径内不能外推，但 dense-widened 已给出强先验：加容量前必须先证明存在缺口。
+6. 任务条件路由需要更强任务信号还是不同归纳偏置？TCMR 仅说明当前实现没有稳定收益。
 
 ## 5. 结论边界
 
@@ -104,6 +131,8 @@ G3 已确认：
 - 设备边界：允许跨卡并行，但同 seed 的全部配对模式必须在同一张卡。
 - 指标边界：跨 scenario 只看相对排序；pooled AUC 不能独自代表小场景表现。
 - 因果边界：路由熵、MI 或 churn 是机制诊断，不是收益证据。
+- **capacity-MoE 边界**：`容量收益≈0 + 稀疏代价≈−0.001` 严格限定在 **cross 层** + 当前 KuaiRand-1K 口径（dim=360、K=4、top_k=2、freeze sparse）。不推广到 embedding 侧、其他层或更大规模；也不代表"所有 MoE 都无益"——它只证明"改的地方不是瓶颈"。
+- **修复后口径**：`--freeze sparse --full-batch-loss --gpu-resident-data` 是后续所有公平对比的默认；`GpuBatches` 与 DataLoader 已验等价，但新实验引用旧产物时须注意旧产物可能含未冻结 embedding 的过拟合。
 
 ## 6. 统一复核规则
 
