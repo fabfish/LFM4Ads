@@ -1,0 +1,3 @@
+epoch,top_k,valid_auc,entropy_l0,entropy_l1,entropy_l2,entropy_mean,divergence_ratio,lb_loss,wall_clock_sec
+1,1,0.7776,1.3844,1.3833,1.3803,1.3827,1.00,0.390236,158.7
+2,1,0.7763,1.3849,1.3840,1.3812,1.3834,1.00,0.387853,158.1

@@ -1,0 +1,5 @@
+[2026-08-13 17:25:33] gpu1 seed=123 top_k=1 noise_scale=0.01 tag=s123_k1_ns001
+[2026-08-13 17:31:22] gpu1 DONE s123_k1_ns001 (exit 0)
+[2026-08-13 17:31:22] gpu1 seed=123 top_k=1 noise_scale=0.05 tag=s123_k1_ns005
+[2026-08-13 17:37:17] gpu1 DONE s123_k1_ns005 (exit 0)
+[2026-08-13 17:37:17] gpu1 seed=123 top_k=1 noise_scale=0.1 tag=s123_k1_ns010
