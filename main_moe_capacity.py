@@ -55,6 +55,10 @@ def _parse_args(argv):
                          "lets experts differentiate before sparse dispatch")
     ap.add_argument("--min-epochs", type=int, default=1,
                     help="minimum epochs before early-stop is allowed")
+    ap.add_argument("--train-dense-ref", action="store_true",
+                    help="also continue-train the vanilla dense checkpoint for "
+                         "max_epochs (dense-continued arm A') to strip the "
+                         "'more training' confound from the necessity delta")
     ap.add_argument("--tag", default="", help="suffix for output artifacts")
     return ap.parse_args(argv)
 
@@ -65,6 +69,7 @@ CACHE_DIR = "cache"
 SUF = f"_{ARGS.tag}" if ARGS.tag else ""
 VANILLA_PATH = f"{CACHE_DIR}/dcnv2_vanilla.pt"
 RESULT_CSV = f"result_capacity_moe{SUF}.csv"
+RESULT_DENSE_CONT_CSV = f"result_dense_cont{SUF}.csv"
 HISTORY_JSON = f"{CACHE_DIR}/capacity_moe_history{SUF}.json"
 
 torch.manual_seed(ARGS.seed)
@@ -192,6 +197,66 @@ def routing_sentinel(model, dataset):
     }
 
 
+def _train_dense_continued(vanilla, train_set, valid_set, test_set,
+                           lr, beta2, batch_size, num_workers, max_epochs,
+                           device, result_csv):
+    """Continue-train the vanilla dense checkpoint (arm A', dense-continued).
+
+    Mirrors the MoE training loop exactly (per-scenario sub-batch + sample
+    weighting + one optimizer.step per batch), minus the load-balance loss —
+    so the only difference from arm B is the architecture itself. Runs the full
+    ``max_epochs`` (no early-stop) to match a ``min_epochs=max_epochs`` MoE arm
+    and expose the complete valid-AUC trajectory.
+
+    Returns (test_auc, best_valid_auc, best_epoch).
+    """
+    criterion = torch.nn.BCEWithLogitsLoss()
+    optimizer = torch.optim.AdamW(
+        trainable_parameters(vanilla), lr=lr, betas=(0.9, beta2))
+    auc_best = 0.0
+    best_state = None
+    best_epoch = 0
+    with open(result_csv, "w") as f:
+        f.write("epoch,valid_auc,wall_clock_sec\n")
+    for epoch in range(1, max_epochs + 1):
+        t0 = time.time()
+        loader = torch.utils.data.DataLoader(
+            Dataset(train_set), batch_size=batch_size,
+            num_workers=num_workers, shuffle=True, pin_memory=True)
+        for batch in tqdm(loader, desc=f"[dense-cont] Epoch {epoch}"):
+            vanilla.train()
+            for field_name in fields.all:
+                batch[field_name] = batch[field_name].to(
+                    device, non_blocking=True).int()
+            tab_batch = batch["tab"]
+            for s in tab_batch.unique():
+                mask = tab_batch == s
+                sub = {k: v[mask] for k, v in batch.items()}
+                vanilla(sub)
+                loss = scenario_loss(
+                    criterion, sub["logit"], sub["is_click"].float(),
+                    mask, tab_batch, "sample")
+                loss.backward()
+            optimizer.step()
+            optimizer.zero_grad()
+        valid_auc = float(evaluate(vanilla, valid_set))
+        wall = time.time() - t0
+        print(f"  [dense-cont] Epoch {epoch} valid AUC={valid_auc:.4f} "
+              f"wall={wall:.1f}s")
+        with open(result_csv, "a") as f:
+            f.write(f"{epoch},{valid_auc:.4f},{wall:.1f}\n")
+        if valid_auc > auc_best + 0.001:
+            auc_best = valid_auc
+            best_state = deepcopy(vanilla.state_dict())
+            best_epoch = epoch
+    if best_state is not None:
+        vanilla.load_state_dict(best_state)
+        print(f"  [dense-cont] restored best state "
+              f"(valid AUC={auc_best:.4f} @ epoch {best_epoch})")
+    test_auc = float(evaluate(vanilla, test_set))
+    return test_auc, auc_best, best_epoch
+
+
 # ===========================================================
 #  Step 3: train with per-scenario sample weighting + lb loss
 # ===========================================================
@@ -205,6 +270,23 @@ criterion = torch.nn.BCEWithLogitsLoss()
 optimizer = torch.optim.AdamW(
     trainable_parameters(moe), lr=ARGS.lr, betas=(0.9, ARGS.beta2))
 device = torch.device(DEVICE)
+
+# ===========================================================
+#  Arm A' (optional): continue-train dense baseline
+# ===========================================================
+dense_cont_test_auc = None
+dense_cont_best_valid = None
+if ARGS.train_dense_ref:
+    print()
+    print("=" * 60)
+    print(f"Arm A': continue-train dense ({ARGS.max_epochs} epochs)")
+    print("=" * 60)
+    dense_cont_test_auc, dense_cont_best_valid, _ = _train_dense_continued(
+        vanilla, train_set, valid_set, test_set,
+        lr=ARGS.lr, beta2=ARGS.beta2, batch_size=ARGS.batch_size,
+        num_workers=ARGS.num_workers, max_epochs=ARGS.max_epochs,
+        device=device, result_csv=RESULT_DENSE_CONT_CSV)
+    print(f"  [dense-cont] test AUC (all): {dense_cont_test_auc:.4f}")
 
 history = []
 auc_best = 0.0
@@ -331,7 +413,10 @@ else:
 
 print(f"  dense test AUC (arm A)      : {dense_test_auc:.4f}")
 print(f"  capacity-MoE test AUC (arm) : {test_auc:.4f}  "
-      f"Δ={test_auc - dense_test_auc:+.4f}")
+      f"Δ_smoke={test_auc - dense_test_auc:+.4f}")
+if dense_cont_test_auc is not None:
+    print(f"  dense-cont test AUC (arm A'): {dense_cont_test_auc:.4f}  "
+          f"Δ_necessity={test_auc - dense_cont_test_auc:+.4f}")
 print(f"  entropy_mean = {ent_mean:.4f}  (log K = {LOG_K:.4f}, "
       f"threshold = {LOG_K - 0.15:.4f})")
 print(f"  divergence_ratio = {div:.2f}  dispatch_verified = "
@@ -355,6 +440,10 @@ with open(HISTORY_JSON, "w") as f:
         "entropy_pass_threshold": LOG_K - 0.15,
         "dense_test_auc": dense_test_auc,
         "test_auc": test_auc,
+        "dense_cont_test_auc": dense_cont_test_auc,
+        "dense_cont_best_valid": dense_cont_best_valid,
+        "delta_necessity": (test_auc - dense_cont_test_auc)
+                           if dense_cont_test_auc is not None else None,
         "best_valid_auc": auc_best,
         "best_epoch": best_epoch,
         "final_sentinel": final_sentinel,
