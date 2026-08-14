@@ -21,6 +21,7 @@
 | 下游留出域参数高效迁移 | `done` | **FAIL**（G1 可行性门控） | 12/12 trial 完成；validation 上 moe-router 仅 t2 胜 dense-adapter-r2（+0.0003），t5/t6 均败；G1 未过 → 按协议停止、未扩 seeds 123/456 | 停止，不扫描 LR/K/r/target | [驱动](archive/drivers/20260812-2303-MoE下游留出域参数高效迁移驱动.md)；[结论](archive/conclusions/20260813-1219-MoE下游留出域迁移G1结论.md)；[G1 判定](../cache/downstream_transfer/g1_decision.json) |
 | Capacity-MoE 真实稀疏（full-rank + top-k dispatch） | `done` | **PASS**（哨兵） | 首个 full-rank 专家 + 真实 top-k 稀疏 dispatch；STE+warmup+lb 调优首次让 router 熵离开 log K，12/12 哨兵 PASS；test AUC Δ 微弱正向（+0.0002~+0.0025，top_k=2 优于 1），未达显著 | AUC 优势未证明，暂不扩 3-seed | [驱动](./20260813-1642-capacity-MoE-驱动.md)；[结论](./20260813-1812-capacity-MoE-smoke结论.md) |
 | Capacity-MoE 必要性验证（dense-continued 公平对照） | `done` | **INCONCLUSIVE**（方向为负） | 剥离"继续训练红利"后 Δ_necessity=[−0.0019,−0.0006] 2 seed 均为负；+0.0025 被证实为微调红利；router 特化 PASS 但稀疏化崩 AUC（特化与 AUC 反相关） | 不扩 3-seed；先诊断"稀疏化为何崩 AUC"再谈 scaling | [驱动](./20260814-1120-capacity-MoE-必要性验证驱动.md)；[结论](./20260814-1239-capacity-MoE-必要性结论与scaling迁移.md) |
+| AdaTask 三模式 × capacity MoE | `done` | **INCONCLUSIVE**（调制无益） | 三模式熵均离开 log K，但方向反直觉（suppress 最特化）；真实稀疏下未激活专家 AU 冻结；AUC 均低，encourage/suppress 相对 none 负向 | 单 seed 方向证据；修"专家饿死循环"后再议 | [结论](./20260814-1522-AdaTask-capacity-MoE-结论.md) |
 | TCMR 静态任务条件路由 | `done` | **INCONCLUSIVE** | 15/15 完成；DATR 对 FUR、DOR 的同 seed pooled-AUC 差均跨 seed 变号且未越过噪声地板 | AdaTask、持续学习、BWT、稀疏扩展仍 `blocked` | [驱动](archive/drivers/20260812-1139-Task-Conditioned-Mixture-Routing-驱动.md)；[结论](archive/conclusions/20260812-1703-TCMR-结论.md)；[机器判定](../cache/task_conditioned_mixture_routing/gate_decision.json) |
 | 共享残差 G1：函数保持 upcycling | `done` | **PASS** | 3 seed 的 logits/loss/AUC 与 dense 在预注册阈值内一致 | 仅与 G2 一起授权既定 G3 | [正式驱动](archive/drivers/20260812-1807-共享残差混合专家-函数保持与持续学习-驱动.md)；[G1/G2 结论](archive/conclusions/20260812-1832-共享残差混合专家-G1G2不变量结论.md)；[不变量](../cache/audit/shared_residual_continual/shared_residual_experiment_invariants.json) |
 | 共享残差 G2：LR/冻结语义 | `done` | **PASS** | pre-Adam 常数缩放 update ratio≈1；parameter-group 10× LR update ratio≈9.9982；冻结与更新隔离通过 | 仅授权既定 G3 | 同上 |
@@ -86,6 +87,17 @@
 - 判定：**INCONCLUSIVE（方向为负）**——必要性不成立；机制哨兵（router 特化 + dispatch）单独 PASS。
 - 结论边界：原 "+0.0025" 是微调红利，不是 MoE 结构红利；当前规模下稀疏化代价 > 容量收益。不得据此宣称
   AUC 优势，也不得扩 3-seed。详见[结论](./20260814-1239-capacity-MoE-必要性结论与scaling迁移.md)。
+
+### 3.8 AdaTask 三模式 × capacity MoE（真实稀疏下的路由特化分析）
+
+- 代码：`main_adatask.py` 加 `--arch capacity` 分支（upcycle + warmup/sparse 调度 + `routing_snapshot` 记录熵/利用率）。
+- 三模式熵轨迹（seed 42，log K=1.3863）：`suppress(0.694~0.735) < encourage(0.750~0.773) < none(0.772~0.804)`，
+  三模式均离开 log K（特化成立），但**方向反直觉**——suppress 最特化、none 最不特化。
+- 关键发现：① 真实稀疏下**未激活专家无梯度 → AU 冻结**（弱专家 AU≈0.01、强专家≈0.06，与 dispatch 正相关），
+  旧全连接 MoE 无此现象；② 第一层专家坍缩（E2 dispatch 0.34~0.42），lb=0.001 未阻止；③ AUC 三模式均低
+  （mean ~0.69），encourage/suppress 相对 none 均负向（−0.0035 / −0.0008），调制无益。
+- 结论边界：机制（稀疏特化 + AU 冻结）成立；"encourage 促进/suppress 抑制特化"的旧叙事在 capacity 稀疏下**降级**；
+  AdaTask 调制**未改善 AUC**。仅单 seed，方向证据。详见[结论](./20260814-1522-AdaTask-capacity-MoE-结论.md)。
 
 ## 4. 当前执行边界
 
