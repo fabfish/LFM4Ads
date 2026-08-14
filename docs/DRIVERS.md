@@ -24,6 +24,8 @@
 | AdaTask 三模式 × capacity MoE | `done` | **INCONCLUSIVE**（调制无益） | 三模式熵均离开 log K，但方向反直觉（suppress 最特化）；真实稀疏下未激活专家 AU 冻结；AUC 均低，encourage/suppress 相对 none 负向 | 单 seed 方向证据；修"专家饿死循环"后再议 | [结论](./20260814-1522-AdaTask-capacity-MoE-结论.md) |
 | 专家无收益根因定位 + 决定性容量实验 | `done` | **INCONCLUSIVE**（容量收益无效应）+ **FAIL**（稀疏净代价为负） | 修复 3 根因（84M embedding 解冻共因 / lb 8× 放大 bug / host-bound）后 Δ_necessity −0.0019→−0.0003；收益分解：4× 容量收益≈0（跨 seed 变号、噪声内），稀疏代价≈−0.001（4/4 同号）；瓶颈在 embedding(97.9% 参数)非 cross(0.46%) | cross 层 MoE 上限=打平 dense，不再调参；下一步做 dense-widened 4× 对照 | [结论](./20260814-2111-专家无收益根因定位与决定性容量实验.md) |
 | dense-widened 4× 对照（容量瓶颈独立证伪） | `done` | **FAIL**（容量收益无可测效应） | 给 cross 层 4× 真实容量（加宽+非线性、零路由零稀疏）Δ_capacity={+0.0005,−0.0003,+0.0001,−0.0005} 跨 seed 变号、噪声内；独立证实容量非瓶颈 | capacity-MoE 路线正式关闭（结构上无利可图） | [结论](./20260814-2111-专家无收益根因定位与决定性容量实验.md) §六.5 |
+| **E0/E0b embedding 伪瓶颈证伪（零成本诊断）** | `done` | **FAIL**（"瓶颈在 embedding"被证伪） | 三张 ID 表 = embedding 的 99.96%（83,984,250 参数）；推理期全部清零 Δ=**−0.000193**（噪声内）；`upload_type`(320 参数) 单独清零 Δ=−0.0053；`video_id` 平均 2.6 次曝光、test **74.19% OOV**；**17.53% 参数无梯度** | 撤销 embedding-widened 实验；方向改特征信息侧；E1 已启动 | [预注册+审计](./20260814-2212-embedding伪瓶颈证伪与特征信息侧第一步实验预注册.md)；[E0 证据](../cache/embedding_capacity/diagnosis.json)；[E0b 证据](../cache/embedding_capacity/field_ablation.json) |
+| **E1 ID embedding 死重重训练确认** | `done` | **PASS**（死重成立） | 6 run（2 seed × 3 臂）0 失败、哨兵 10/10 PASS；Δ_id = idzero−full = **{+0.000688, +0.000220}** 2/2 seed 在噪声地板内 → 84M ID 表**无净贡献**；参数 **−99.31%**（84,672,605→584,255）、wall **1.48×** | 解锁特征信息侧（E2/E3/E4）；`iddrop` 成为后续默认轻量基线 | [E1 结论](./20260814-2225-E1结论-ID-embedding死重确认.md)；[机器判定](../cache/embedding_capacity/e1_decision.json)；[预注册 §5](./20260814-2212-embedding伪瓶颈证伪与特征信息侧第一步实验预注册.md) |
 | TCMR 静态任务条件路由 | `done` | **INCONCLUSIVE** | 15/15 完成；DATR 对 FUR、DOR 的同 seed pooled-AUC 差均跨 seed 变号且未越过噪声地板 | AdaTask、持续学习、BWT、稀疏扩展仍 `blocked` | [驱动](archive/drivers/20260812-1139-Task-Conditioned-Mixture-Routing-驱动.md)；[结论](archive/conclusions/20260812-1703-TCMR-结论.md)；[机器判定](../cache/task_conditioned_mixture_routing/gate_decision.json) |
 | 共享残差 G1：函数保持 upcycling | `done` | **PASS** | 3 seed 的 logits/loss/AUC 与 dense 在预注册阈值内一致 | 仅与 G2 一起授权既定 G3 | [正式驱动](archive/drivers/20260812-1807-共享残差混合专家-函数保持与持续学习-驱动.md)；[G1/G2 结论](archive/conclusions/20260812-1832-共享残差混合专家-G1G2不变量结论.md)；[不变量](../cache/audit/shared_residual_continual/shared_residual_experiment_invariants.json) |
 | 共享残差 G2：LR/冻结语义 | `done` | **PASS** | pre-Adam 常数缩放 update ratio≈1；parameter-group 10× LR update ratio≈9.9982；冻结与更新隔离通过 | 仅授权既定 G3 | 同上 |
@@ -139,12 +141,66 @@
   且是结构上无利可图，非实现问题。
   详见[结论](./20260814-2111-专家无收益根因定位与决定性容量实验.md) §六.5。
 
+### 3.11 E0/E0b embedding「伪瓶颈」证伪（零训练成本，修订 §3.9/§3.10 的末句推断）
+
+- 代码：`scripts/diagnose_embedding_capacity.py`、`scripts/diagnose_field_ablation.py`；
+  证据：`cache/embedding_capacity/diagnosis.json`、`cache/embedding_capacity/field_ablation.json`（均不可覆盖）。
+- **参数集中度**：`video_id`+`author_id`+`music_id` = **83,984,250 参数 = embedding 的 99.96%**；
+  其余 33 个字段合计仅 **33,140**。样本计数冻结基线：train 9,281,007 / valid 1,230,368 / test 1,201,670。
+- **监督稀薄 + OOV**：`video_id` 平均 **2.6** 次曝光/ID、79.83% 的 ID 曝光≤2 次、
+  **test 74.19% 样本的 video_id 在 train 从未出现**；`music_id` OOV 47.58%；
+  **17.53%（14,725,500）的 embedding 参数从未收到梯度**。
+- **推理期字段消融**（基线 `dcnv2_vanilla.pt`，test AUC 0.777490）：三张 ID 表**同时清零**
+  → 0.777297，**Δ = −0.000193（噪声地板 0.001 内）**；对照 `tag` −0.006555、
+  `upload_type`（**320 参数**）−0.005251、`user_id` −0.004879；top-8 依赖字段合计 29,500 参数
+  （embedding 的 0.035%）。
+- 判定：**"瓶颈在 embedding"被证伪**。84M ID 参数是**死重 + 过拟合负担**，不是瓶颈；
+  原证据"冻结 embedding 后 AUC 更高"的正确读法是 burden 而非 bottleneck。
+- 结论边界：消融测的是**推理期依赖度**，系统性**高估**重要性 → 只支持"Δ≈0 ⇒ 不可能是容量瓶颈"
+  这一个方向；"84M 可删"须由 E1 重训练确认。子群 AUC（video_id seen 0.776274 / OOV 0.777041）
+  不做跨子群比较。
+- 方法论产出：**禁止用参数占比推断瓶颈**；长跑前先跑零成本诊断（本轮据此撤销了一个已写进
+  路线图的 embedding-widened 长跑）。
+  详见[预注册+审计](./20260814-2212-embedding伪瓶颈证伪与特征信息侧第一步实验预注册.md)。
+
+### 3.12 E1：ID embedding 死重的重训练确认（PASS）
+
+- 代码：`main_field_ablation.py`（三臂 + 内置哨兵）、`scripts/run_field_ablation_matrix.sh`、
+  `scripts/summarize_field_ablation.py`（判定阈值硬编码）。
+- 设计：from-scratch 三臂，`full`(36 字段, dim=360) / **`idzero`**(三张 ID 表置零+冻结，与 full
+  **架构完全同构**、非 sparse 参数量同为 655,215) / `iddrop`(真移除, dim=330)。
+  一进程一 seed → 三臂同卡，配对由构造保证。口径 `lr=1e-3`、batch 10000、15 epoch、
+  best=精确 argmax(valid)、GpuBatches；**不使用 freeze sparse**（embedding 即被测对象）。
+- 哨兵 **10/10 PASS**：样本计数守恒（9,281,007/1,230,368/1,201,670）、置零与冻结（前后 maxabs=0）、
+  通道恒零、可训练参数差 = **83,984,250**（精确）、非 sparse 参数量相同。
+- 结果（同 seed 同卡配对 test AUC）：
+
+  | seed | full | idzero | iddrop | Δ_id | Δ_drop |
+  |---|---|---|---|---|---|
+  | 42 | 0.780961 | 0.781649 | 0.781523 | **+0.000688** | +0.000561 |
+  | 123 | 0.781830 | 0.782051 | 0.781753 | **+0.000220** | −0.000077 |
+
+  peak valid Δ(idzero−full) = {+0.001134, +0.000522}；参数 84,672,605 → **584,255（−99.31%）**；
+  wall/epoch 10.6s → 7.1s（**1.48×**）。
+- 判定：**PASS（死重成立）** —— 2/2 seed |Δ_id| < 噪声地板 0.001。机器字段
+  `verdict=PASS`、`unlock_feature_information_track=true`、`unlock_id_capacity_track=false`。
+- 结论边界：**"无可测差异"≠"更好"**（Δ 虽同为正但在地板内，不得写成提升）；预算限于
+  lr=1e-3/15 epoch/2 seed；`iddrop` 只是工程对照（dim 变化连带缩小 cross 层）不作主判定；
+  结论限于"裸 ID 查表"这一建模方式，不等于"ID 信息无用"（E2 待测）。
+  本轮 full 臂 test AUC（0.7810/0.7818）高于历史 `dcnv2_vanilla.pt`（0.777490），
+  原因是 best-state 精确 argmax 修复 + shuffle 训练，属口径改进，两者不可混用作对照。
+  详见[E1 结论](./20260814-2225-E1结论-ID-embedding死重确认.md)。
+
 ## 4. 当前执行边界
 
 **capacity-MoE（cross 层）路线已正式关闭**（`done / INCONCLUSIVE(容量收益无效应) + FAIL(稀疏净代价为负)`）：
 机制跑通但收益为负，dense-widened 4× 对照独立证伪"cross 层容量是瓶颈"。**不再调 K/lb/warmup/lr/top_k，
-不扩 3-seed。** 瓶颈在 embedding（97.9% 参数），不在 cross（0.46%）。详见
-[结论](./20260814-2111-专家无收益根因定位与决定性容量实验.md) §六.5。
+不扩 3-seed。** 详见[结论](./20260814-2111-专家无收益根因定位与决定性容量实验.md) §六.5。
+
+**"瓶颈在 embedding（97.9% 参数）"已于 2026-08-14 22:12 证伪并撤回**（§3.11–3.12）：那 84M 参数是
+**死重**（E1 重训练确认 PASS，Δ_id 2/2 seed 在噪声地板内），不是瓶颈。**embedding-widened 加宽对照
+实验撤销**（前提不存在）；**禁止再用"参数占比"推断瓶颈位置**。
+**后续实验默认基线改为 `iddrop`（0.58M 参数、7.1s/epoch）**，可负担 3 seed × 多配置。
 
 持续学习与稀疏扩展旧路线继续 `blocked`：
 
@@ -155,8 +211,8 @@
 
 新下游路线已 `done / G1 FAIL`：`scripts/run_downstream_transfer_matrix.py` 完成 G1（seed 42 验证门控）后按协议停止，未续 seeds 123/456；正式结论见[G1 结论](archive/conclusions/20260813-1219-MoE下游留出域迁移G1结论.md)。
 
-**下一阶段方向**：embedding / 特征交互侧（唯一有证据支持），且必须先做"容量缺口证伪"对照再加容量。
-见 [`NEXT.md`](NEXT.md) §7.2 与 [`HANDOFF.md`](HANDOFF.md)。
+**下一阶段方向**：**特征信息侧**（E1 PASS 已解锁）——E2 长尾 ID 的可泛化表示 / E3 交互表达 /
+E4 天花板定位。见 [`NEXT.md`](NEXT.md) §3.2 与 [`HANDOFF.md`](HANDOFF.md) §4。
 
 ## 5. 统一测量口径
 

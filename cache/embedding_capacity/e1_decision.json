@@ -1,0 +1,111 @@
+{
+  "stage": "E1_id_embedding_dead_weight",
+  "status": "done",
+  "verdict": "PASS",
+  "verdict_reason": {
+    "rule": "all seeds |delta_id| < noise_floor",
+    "deltas": [
+      0.0002204985557779926,
+      0.0006879168279081416
+    ]
+  },
+  "main_endpoint": "delta_id = test_AUC(idzero) - test_AUC(full), paired per seed (same card)",
+  "noise_floor": 0.001,
+  "n_seeds": 2,
+  "n_runs": 6,
+  "sentinels_all_pass": true,
+  "id_embedding_params_removed": 83984250,
+  "param_reduction_iddrop": 0.993099834356106,
+  "trainable_param_reduction_idzero": 0.9918703930273551,
+  "wall_speedup_iddrop": 1.4814394048852304,
+  "per_seed": {
+    "123": {
+      "device": "cuda:1",
+      "lr": 0.001,
+      "max_epochs": 15,
+      "test_auc": {
+        "full": 0.7818300509134593,
+        "idzero": 0.7820505494692372,
+        "iddrop": 0.781752856919503
+      },
+      "peak_valid_auc": {
+        "full": 0.7806343417100975,
+        "idzero": 0.7811563195325107,
+        "iddrop": 0.7805085883754672
+      },
+      "best_epoch": {
+        "full": 2,
+        "idzero": 4,
+        "iddrop": 4
+      },
+      "total_params": {
+        "full": 84672605,
+        "idzero": 84672605,
+        "iddrop": 584255
+      },
+      "trainable_params": {
+        "full": 84672605,
+        "idzero": 688355,
+        "iddrop": 584255
+      },
+      "mean_wall_sec": {
+        "full": 10.593916241327921,
+        "idzero": 7.475310611724853,
+        "iddrop": 7.1385682106018065
+      },
+      "delta_idzero_minus_full": 0.0002204985557779926,
+      "delta_iddrop_minus_full": -7.719399395622606e-05,
+      "delta_peak_valid_idzero_minus_full": 0.0005219778224132554
+    },
+    "42": {
+      "device": "cuda:0",
+      "lr": 0.001,
+      "max_epochs": 15,
+      "test_auc": {
+        "full": 0.780961409969486,
+        "idzero": 0.7816493267973942,
+        "iddrop": 0.7815225732277151
+      },
+      "peak_valid_auc": {
+        "full": 0.7793461162936098,
+        "idzero": 0.7804800886963748,
+        "iddrop": 0.7802668119052323
+      },
+      "best_epoch": {
+        "full": 2,
+        "idzero": 3,
+        "iddrop": 2
+      },
+      "total_params": {
+        "full": 84672605,
+        "idzero": 84672605,
+        "iddrop": 584255
+      },
+      "trainable_params": {
+        "full": 84672605,
+        "idzero": 688355,
+        "iddrop": 584255
+      },
+      "mean_wall_sec": {
+        "full": 10.564583253860473,
+        "idzero": 7.4587626457214355,
+        "iddrop": 7.1312962373097735
+      },
+      "delta_idzero_minus_full": 0.0006879168279081416,
+      "delta_iddrop_minus_full": 0.0005611632582290804,
+      "delta_peak_valid_idzero_minus_full": 0.0011339724027649156
+    }
+  },
+  "unlock_feature_information_track": true,
+  "unlock_id_capacity_track": false,
+  "boundary": [
+    "|delta| < noise floor means NO measurable difference; it does NOT license the claim that removing the ID tables IMPROVES AUC.",
+    "Budget bound: lr=1e-3, 15 epochs, batch=10000, from scratch, 2 seeds. No extrapolation to longer budgets or other datasets.",
+    "iddrop is an engineering control (params/wall-clock), never the main verdict."
+  ],
+  "preregistration": "docs/20260814-2212-embedding\u4f2a\u74f6\u9888\u8bc1\u4f2a\u4e0e\u7279\u5f81\u4fe1\u606f\u4fa7\u7b2c\u4e00\u6b65\u5b9e\u9a8c\u9884\u6ce8\u518c.md \u00a75",
+  "sources": [
+    "cache/embedding_capacity/e1_history_s123_lr1e-3.json",
+    "cache/embedding_capacity/e1_history_s42_lr1e-3.json"
+  ]
+}
