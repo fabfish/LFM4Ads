@@ -23,6 +23,7 @@
 | Capacity-MoE 必要性验证（dense-continued 公平对照） | `done` | **INCONCLUSIVE**（方向为负） | 剥离"继续训练红利"后 Δ_necessity=[−0.0019,−0.0006] 2 seed 均为负；+0.0025 被证实为微调红利；router 特化 PASS 但稀疏化崩 AUC（特化与 AUC 反相关） | 不扩 3-seed；先诊断"稀疏化为何崩 AUC"再谈 scaling | [驱动](./20260814-1120-capacity-MoE-必要性验证驱动.md)；[结论](./20260814-1239-capacity-MoE-必要性结论与scaling迁移.md) |
 | AdaTask 三模式 × capacity MoE | `done` | **INCONCLUSIVE**（调制无益） | 三模式熵均离开 log K，但方向反直觉（suppress 最特化）；真实稀疏下未激活专家 AU 冻结；AUC 均低，encourage/suppress 相对 none 负向 | 单 seed 方向证据；修"专家饿死循环"后再议 | [结论](./20260814-1522-AdaTask-capacity-MoE-结论.md) |
 | 专家无收益根因定位 + 决定性容量实验 | `done` | **INCONCLUSIVE**（容量收益无效应）+ **FAIL**（稀疏净代价为负） | 修复 3 根因（84M embedding 解冻共因 / lb 8× 放大 bug / host-bound）后 Δ_necessity −0.0019→−0.0003；收益分解：4× 容量收益≈0（跨 seed 变号、噪声内），稀疏代价≈−0.001（4/4 同号）；瓶颈在 embedding(97.9% 参数)非 cross(0.46%) | cross 层 MoE 上限=打平 dense，不再调参；下一步做 dense-widened 4× 对照 | [结论](./20260814-2111-专家无收益根因定位与决定性容量实验.md) |
+| dense-widened 4× 对照（容量瓶颈独立证伪） | `done` | **FAIL**（容量收益无可测效应） | 给 cross 层 4× 真实容量（加宽+非线性、零路由零稀疏）Δ_capacity={+0.0005,−0.0003,+0.0001,−0.0005} 跨 seed 变号、噪声内；独立证实容量非瓶颈 | capacity-MoE 路线正式关闭（结构上无利可图） | [结论](./20260814-2111-专家无收益根因定位与决定性容量实验.md) §六.5 |
 | TCMR 静态任务条件路由 | `done` | **INCONCLUSIVE** | 15/15 完成；DATR 对 FUR、DOR 的同 seed pooled-AUC 差均跨 seed 变号且未越过噪声地板 | AdaTask、持续学习、BWT、稀疏扩展仍 `blocked` | [驱动](archive/drivers/20260812-1139-Task-Conditioned-Mixture-Routing-驱动.md)；[结论](archive/conclusions/20260812-1703-TCMR-结论.md)；[机器判定](../cache/task_conditioned_mixture_routing/gate_decision.json) |
 | 共享残差 G1：函数保持 upcycling | `done` | **PASS** | 3 seed 的 logits/loss/AUC 与 dense 在预注册阈值内一致 | 仅与 G2 一起授权既定 G3 | [正式驱动](archive/drivers/20260812-1807-共享残差混合专家-函数保持与持续学习-驱动.md)；[G1/G2 结论](archive/conclusions/20260812-1832-共享残差混合专家-G1G2不变量结论.md)；[不变量](../cache/audit/shared_residual_continual/shared_residual_experiment_invariants.json) |
 | 共享残差 G2：LR/冻结语义 | `done` | **PASS** | pre-Adam 常数缩放 update ratio≈1；parameter-group 10× LR update ratio≈9.9982；冻结与更新隔离通过 | 仅授权既定 G3 | 同上 |
@@ -120,9 +121,23 @@
   一致为负 → 稀疏化代价 ≈ −0.001**。峰值永远在 soft/warmup 阶段，稀疏阶段从不产出最优模型。
 - 判定：**INCONCLUSIVE（容量收益无可测效应）+ FAIL（稀疏净代价一致为负）**。
 - 结论边界：cross 层 MoE 在本口径下**上限就是打平 dense**，继续调 K/lb/warmup/lr 不可能翻盘；瓶颈在
-  embedding（97.9% 参数）而非 cross（0.46%）。下一步性价比最高的单个实验是 **dense-widened 4× 对照**
-  （加宽不加路由）以独立证实"容量不是瓶颈"。不扩 3-seed。
+  embedding（97.9% 参数）而非 cross（0.46%）。不扩 3-seed。
   详见[结论](./20260814-2111-专家无收益根因定位与决定性容量实验.md)。
+
+### 3.10 dense-widened 4× 对照：容量瓶颈的独立证伪（收官）
+
+- 代码：`model.py`（`DenseWidenedCrossLayer`/`DenseWidenedDCNv2`）、`main_dense_widened.py`、
+  `scripts/run_widen_matrix.sh`。
+- 设计：cross 层改 `x0⊙(W2·ReLU(W1·x))+x`，W1:[360,720] W2:[720,360]，参数量 1,558,440 =
+  **精确 4.00×** 单层 cross；无路由/无稀疏/无 lb。关键：不能简单平均 4 个 Linear（会线性坍缩回 1 个）。
+- 结果（2 seed × 2 lr × 30 epoch，同 seed 同卡，freeze sparse）：
+  Δ_capacity = B(widened 4×) − A′(dense 1×) = **{+0.0005, −0.0003, +0.0001, −0.0005}**，
+  峰值 valid 差 = {−0.0001, +0.0007, +0.0006, −0.0000}——**跨 seed/lr 变号、|Δ| ≤ 0.0007 < 噪声地板**。
+- 判定：**给 cross 层 4× 真实容量（加宽+非线性、零路由零稀疏）换不到可测 AUC 收益**，独立证实
+  "cross 层容量不是瓶颈"。据此把 capacity-MoE 失败钉死为：**容量收益 = 0（非 MoE 独有）+
+  稀疏代价 ≈ −0.001（MoE 独有）→ 净效应必为负**。capacity-MoE 路线在本口径下**正式关闭**，
+  且是结构上无利可图，非实现问题。
+  详见[结论](./20260814-2111-专家无收益根因定位与决定性容量实验.md) §六.5。
 
 ## 4. 当前执行边界
 
