@@ -46,6 +46,29 @@ def evaluate(model, dataset, batch_size=10000, num_workers=None):
     return AUC.compute()
 
 
+def infer_gpu(model, batches, train=False):
+    """``infer`` for a :class:`dataset.GpuBatches` source (no DataLoader).
+
+    Batches already live on the device as int32 tensors, so the per-field
+    ``.to(device).int()`` loop is unnecessary. Yields the same mutated batch
+    dict (including ``_gate`` / ``_dispatch_counts`` for MoE models), so
+    sentinel/analysis code can be reused verbatim.
+    """
+    model.train(train)
+    for batch in batches:
+        with torch.inference_mode(not train):
+            model(batch)
+            yield batch
+
+
+def evaluate_gpu(model, batches):
+    """AUC over a GPU-resident batch source (see :func:`infer_gpu`)."""
+    AUC = BinaryAUROC()
+    for batch in infer_gpu(model, batches):
+        AUC.update(batch["logit"], batch["is_click"].float())
+    return AUC.compute()
+
+
 def _trainable(model):
     """Only optimize parameters with requires_grad=True.
 

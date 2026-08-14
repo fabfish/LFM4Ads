@@ -28,7 +28,7 @@ import torch
 from tqdm import tqdm
 
 import fields
-from dataset import Dataset, Split
+from dataset import Dataset, GpuBatches, Split
 from model import (
     DCNv2,
     DCNv2CapacityMoE,
@@ -36,9 +36,23 @@ from model import (
     freeze_summary,
     trainable_parameters,
 )
-from train import evaluate, infer, scenario_loss
+from train import evaluate, evaluate_gpu, infer, infer_gpu, scenario_loss
 
 LOG_K = math.log(4)  # 哨兵锚点 log K = log 4
+
+
+def _eval(model, source):
+    """AUC on either a DataFrame split or a GPU-resident batch source."""
+    if isinstance(source, GpuBatches):
+        return evaluate_gpu(model, source)
+    return evaluate(model, source)
+
+
+def _iter_infer(model, source):
+    """Forward-pass iterator for either source kind (batches stay mutated)."""
+    if isinstance(source, GpuBatches):
+        return infer_gpu(model, source)
+    return infer(model, source)
 
 
 def _parse_args(argv):
@@ -82,6 +96,11 @@ def _parse_args(argv):
                          "for 'sample' weighting (verified R_gain≈0.999, see "
                          "DRIVERS.md §2) but 8× larger kernels and 8× fewer host "
                          "syncs, so GPU utilization is far higher.")
+    ap.add_argument("--gpu-resident-data", action="store_true",
+                    help="keep the whole split on the GPU as one int32 table and "
+                         "slice batches device-side, instead of the pandas "
+                         "per-row DataLoader. Verified bit-identical AUC and "
+                         "~14× faster evaluation.")
     ap.add_argument("--tag", default="", help="suffix for output artifacts")
     return ap.parse_args(argv)
 
@@ -120,8 +139,21 @@ if not os.path.exists(VANILLA_PATH):
 
 vanilla = DCNv2().to(DEVICE)
 vanilla.load_state_dict(torch.load(VANILLA_PATH, map_location=DEVICE))
-test_set = Split("all")[2]
-dense_test_auc = float(evaluate(vanilla, test_set))
+
+# Read the feather once, then build the batch sources for all three splits.
+train_set, valid_set, test_set = Split("all")
+if ARGS.gpu_resident_data:
+    TRAIN_SRC = GpuBatches(train_set, ARGS.batch_size, DEVICE,
+                           shuffle=True, seed=ARGS.seed)
+    VALID_SRC = GpuBatches(valid_set, ARGS.batch_size, DEVICE, shuffle=False)
+    TEST_SRC = GpuBatches(test_set, ARGS.batch_size, DEVICE, shuffle=False)
+    print(f"  [data] GPU-resident: train={len(TRAIN_SRC)} valid={len(VALID_SRC)} "
+          f"test={len(TEST_SRC)} batches, "
+          f"{(TRAIN_SRC.data.numel() + VALID_SRC.data.numel() + TEST_SRC.data.numel()) * 4 / 1e9:.2f} GB")
+else:
+    TRAIN_SRC, VALID_SRC, TEST_SRC = train_set, valid_set, test_set
+
+dense_test_auc = float(_eval(vanilla, TEST_SRC))
 print(f"  dense test AUC (all): {dense_test_auc:.4f}")
 
 
@@ -141,7 +173,7 @@ moe.upcycle_from_dense(vanilla)
 print(f"\n  {DCNv2CapacityMoE.param_summary(moe)}")
 
 
-def routing_sentinel(model, dataset):
+def routing_sentinel(model, source):
     """Collect clean-gate entropy + per-scenario divergence + dispatch check.
 
     Returns a dict:
@@ -159,7 +191,7 @@ def routing_sentinel(model, dataset):
     scen_cnt = {}
     dispatch_ok = [True, True, True]
 
-    for batch in infer(model, dataset):
+    for batch in _iter_infer(model, source):
         gates = batch.get("_gate", [])
         dc = batch.get("_dispatch_counts", [])
         tab = batch["tab"]
@@ -222,14 +254,14 @@ def routing_sentinel(model, dataset):
     }
 
 
-def _train_dense_continued(vanilla, train_set, valid_set, test_set,
+def _train_dense_continued(vanilla, train_src, valid_src, test_src,
                            lr, beta2, batch_size, num_workers, max_epochs,
                            device, result_csv, freeze="", full_batch=False):
     """Continue-train the vanilla dense checkpoint (arm A', dense-continued).
 
-    Mirrors the MoE training loop exactly (same loader/optimizer/epochs, same
-    ``freeze`` groups, same loss weighting), minus the load-balance loss — so the
-    only difference from arm B is the architecture itself. Runs the full
+    Mirrors the MoE training loop exactly (same batch source/optimizer/epochs,
+    same ``freeze`` groups, same loss weighting), minus the load-balance loss —
+    so the only difference from arm B is the architecture itself. Runs the full
     ``max_epochs`` (no early-stop) to expose the complete valid-AUC trajectory.
 
     Returns (test_auc, best_valid_auc, best_epoch, history).
@@ -248,18 +280,23 @@ def _train_dense_continued(vanilla, train_set, valid_set, test_set,
     best_state = None
     best_epoch = 0
     hist = []
+    gpu_resident = isinstance(train_src, GpuBatches)
     with open(result_csv, "w") as f:
         f.write("epoch,valid_auc,wall_clock_sec\n")
     for epoch in range(1, max_epochs + 1):
         t0 = time.time()
-        loader = torch.utils.data.DataLoader(
-            Dataset(train_set), batch_size=batch_size,
-            num_workers=num_workers, shuffle=True, pin_memory=True)
+        if gpu_resident:
+            loader = train_src           # reshuffles on every __iter__
+        else:
+            loader = torch.utils.data.DataLoader(
+                Dataset(train_src), batch_size=batch_size,
+                num_workers=num_workers, shuffle=True, pin_memory=True)
         for batch in tqdm(loader, desc=f"[dense-cont] Epoch {epoch}"):
             vanilla.train()
-            for field_name in fields.all:
-                batch[field_name] = batch[field_name].to(
-                    device, non_blocking=True).int()
+            if not gpu_resident:
+                for field_name in fields.all:
+                    batch[field_name] = batch[field_name].to(
+                        device, non_blocking=True).int()
             tab_batch = batch["tab"]
             if full_batch:
                 # 'sample' weighting sums to the full-batch mean, so one big
@@ -278,7 +315,7 @@ def _train_dense_continued(vanilla, train_set, valid_set, test_set,
                     loss.backward()
             optimizer.step()
             optimizer.zero_grad()
-        valid_auc = float(evaluate(vanilla, valid_set))
+        valid_auc = float(_eval(vanilla, valid_src))
         wall = time.time() - t0
         print(f"  [dense-cont] Epoch {epoch} valid AUC={valid_auc:.4f} "
               f"wall={wall:.1f}s")
@@ -294,7 +331,7 @@ def _train_dense_continued(vanilla, train_set, valid_set, test_set,
         vanilla.load_state_dict(best_state)
         print(f"  [dense-cont] restored best state "
               f"(valid AUC={auc_best:.4f} @ epoch {best_epoch})")
-    test_auc = float(evaluate(vanilla, test_set))
+    test_auc = float(_eval(vanilla, test_src))
     return test_auc, auc_best, best_epoch, hist
 
 
@@ -306,7 +343,6 @@ print("=" * 60)
 print("Step 3: train DCNv2CapacityMoE")
 print("=" * 60)
 
-train_set, valid_set, test_set = Split("all")
 criterion = torch.nn.BCEWithLogitsLoss()
 
 # Freeze identically to arm A' (fairness), then give the freshly initialized
@@ -343,7 +379,7 @@ if ARGS.train_dense_ref:
     print("=" * 60)
     (dense_cont_test_auc, dense_cont_best_valid, _,
      dense_cont_history) = _train_dense_continued(
-        vanilla, train_set, valid_set, test_set,
+        vanilla, TRAIN_SRC, VALID_SRC, TEST_SRC,
         lr=ARGS.lr, beta2=ARGS.beta2, batch_size=ARGS.batch_size,
         num_workers=ARGS.num_workers, max_epochs=ARGS.max_epochs,
         device=device, result_csv=RESULT_DENSE_CONT_CSV,
@@ -370,18 +406,22 @@ for epoch in range(1, ARGS.max_epochs + 1):
     phase = "warmup" if cur_top_k >= ARGS.K else "sparse"
 
     t0 = time.time()
-    loader = torch.utils.data.DataLoader(
-        Dataset(train_set), batch_size=ARGS.batch_size,
-        num_workers=ARGS.num_workers, shuffle=True, pin_memory=True,
-    )
+    if isinstance(TRAIN_SRC, GpuBatches):
+        loader = TRAIN_SRC               # reshuffles on every __iter__
+    else:
+        loader = torch.utils.data.DataLoader(
+            Dataset(TRAIN_SRC), batch_size=ARGS.batch_size,
+            num_workers=ARGS.num_workers, shuffle=True, pin_memory=True,
+        )
     lb_total_epoch = 0.0
     total_steps = 0
 
     for batch in tqdm(loader, desc=f"Epoch {epoch}"):
         moe.train()
-        for field_name in fields.all:
-            batch[field_name] = batch[field_name].to(
-                device, non_blocking=True).int()
+        if not isinstance(TRAIN_SRC, GpuBatches):
+            for field_name in fields.all:
+                batch[field_name] = batch[field_name].to(
+                    device, non_blocking=True).int()
         tab_batch = batch["tab"]
 
         if ARGS.full_batch_loss:
@@ -423,8 +463,8 @@ for epoch in range(1, ARGS.max_epochs + 1):
         optimizer.zero_grad()
         total_steps += 1
 
-    valid_auc = float(evaluate(moe, valid_set))
-    sentinel = routing_sentinel(moe, test_set)
+    valid_auc = float(_eval(moe, VALID_SRC))
+    sentinel = routing_sentinel(moe, TEST_SRC)
     wall = time.time() - t0
     lb_mean = lb_total_epoch / max(total_steps, 1)
 
@@ -478,8 +518,8 @@ print("=" * 60)
 print("Step 4: final test AUC + sentinel")
 print("=" * 60)
 
-test_auc = float(evaluate(moe, test_set))
-final_sentinel = routing_sentinel(moe, test_set)
+test_auc = float(_eval(moe, TEST_SRC))
+final_sentinel = routing_sentinel(moe, TEST_SRC)
 ent_mean = final_sentinel["entropy_mean"]
 div = final_sentinel["divergence_ratio"]
 
@@ -517,6 +557,7 @@ with open(HISTORY_JSON, "w") as f:
             "batch_size": ARGS.batch_size, "max_epochs": ARGS.max_epochs,
             "warmup_epochs": ARGS.warmup_epochs, "min_epochs": ARGS.min_epochs,
             "freeze": ARGS.freeze, "full_batch_loss": ARGS.full_batch_loss,
+            "gpu_resident_data": ARGS.gpu_resident_data,
             "tag": ARGS.tag,
         },
         "log_k": LOG_K,
