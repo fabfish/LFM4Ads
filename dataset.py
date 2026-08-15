@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 import numpy as np
@@ -7,7 +8,13 @@ import torch
 import fields
 
 
-DATASET_PATH = Path(__file__).resolve().with_name("dataset.feather")
+#: Default is the KuaiRand-1K feather in the repo root. Set ``LFM_DATASET`` to
+#: point at another dataset (e.g. ``dataset_27k.feather``) — the split dates in
+#: :func:`Split` are identical for 1K and 27K (both span 20220408..20220508).
+DATASET_PATH = Path(
+    os.environ.get("LFM_DATASET",
+                   str(Path(__file__).resolve().with_name("dataset.feather")))
+)
 
 
 class GpuBatches:

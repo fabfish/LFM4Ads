@@ -27,8 +27,9 @@ import os
 import statistics as st
 
 #: overridable so the report logic can be verified end-to-end on synthetic runs
-#: in a scratch directory without ever touching the real evidence bundles
-OUT_DIR = os.environ.get("MACRO_OUT_DIR", "cache/macro_auc")
+#: in a scratch directory without ever touching the real evidence bundles, and
+#: so 1K vs 27K evidence stay separated (same var as main_macro_auc.py)
+OUT_DIR = os.environ.get("LFM_MACRO_OUT", "cache/macro_auc")
 DECISION = f"{OUT_DIR}/e5_decision.json"
 REPORT = f"{OUT_DIR}/e5_report.md"
 SEEDS = (42, 123, 456, 789)

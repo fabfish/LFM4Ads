@@ -29,8 +29,10 @@ import threading
 import time
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUT_DIR = os.path.join(ROOT, "cache", "macro_auc")
-LOG_DIR = os.path.join(ROOT, "logs", "macro_auc")
+#: 1K and 27K evidence MUST stay in separate dirs (identical tags otherwise
+#: collide with the resume guard). Controlled by LFM_MACRO_OUT; LOG_DIR follows.
+OUT_DIR = os.environ.get("LFM_MACRO_OUT", os.path.join(ROOT, "cache", "macro_auc"))
+LOG_DIR = OUT_DIR.replace("cache", "logs", 1)
 STATE = os.path.join(OUT_DIR, "matrix_state.json")
 
 SEEDS = (42, 123, 456, 789)
@@ -41,17 +43,23 @@ K_SWEEP = (2, 3, 6, 10, 11)
 LR_SWEEP = (2e-4, 3e-3)   # 1e-3 is covered by stage 1
 EPOCHS = 80
 PATIENCE = 12
+#: Stage1 primary is 2 arch x 2 loss; on 27K (27x data, ~200s/epoch) a run is
+#: far more expensive, so we drop the exploratory sweeps and keep only the
+#: primary 2x2 + the function-preservation sentinel. Stages are additive and
+#: each experiment may override via --stages.
+PRIMARY_STAGES = ("s1", "s2sent")
 
 
-def _task(stage, seed, arch, loss, K=MAIN_K, lr=1e-3, extra=(), tag=None):
+def _task(stage, seed, arch, loss, K=MAIN_K, lr=1e-3, extra=(), tag=None,
+          epochs=EPOCHS, patience=PATIENCE):
     tag = tag or (f"{stage}_{arch}_{loss}"
                   + (f"_K{K}" if arch == "moe" else "")
                   + (f"_lr{lr:g}" if lr != 1e-3 else "")
                   + f"_s{seed}")
     cmd = ["python", "main_macro_auc.py", SEED_DEVICE[seed],
            "--arch", arch, "--loss", loss, "--seed", str(seed),
-           "--lr", str(lr), "--max-epochs", str(EPOCHS),
-           "--patience", str(PATIENCE), "--tag", tag]
+           "--lr", str(lr), "--max-epochs", str(epochs),
+           "--patience", str(patience), "--tag", tag]
     if arch == "moe":
         cmd += ["--K", str(K)]
     cmd += list(extra)
@@ -60,46 +68,60 @@ def _task(stage, seed, arch, loss, K=MAIN_K, lr=1e-3, extra=(), tag=None):
             "device": SEED_DEVICE[seed], "cmd": cmd}
 
 
-def build_tasks():
-    """The frozen task list, ordered so the primary evidence lands first."""
+def build_tasks(stages=PRIMARY_STAGES, epochs=EPOCHS, patience=PATIENCE):
+    """The frozen task list, ordered so the primary evidence lands first.
+
+    ``stages`` selects which pre-registered stages to run. The stage set and
+    each stage's inner loop are the pre-registration; only the *selection* of
+    which stages to materialize varies per dataset/budget.
+    """
     tasks = []
 
     # --- Stage 1 (PRIMARY): 2 arch x 2 loss x 4 seeds = 16 runs -------------
     # Isolates two mechanisms at once:
     #   arch  dense->moe   = parameter isolation (capacity held constant)
     #   loss  pooled->balanced = gradient rebalancing toward small scenarios
-    for seed in SEEDS:
-        for loss in ("balanced", "pooled"):
-            for arch in ("dense", "moe"):
-                tasks.append(_task("s1", seed, arch, loss))
+    if "s1" in stages:
+        for seed in SEEDS:
+            for loss in ("balanced", "pooled"):
+                for arch in ("dense", "moe"):
+                    tasks.append(_task("s1", seed, arch, loss,
+                                       epochs=epochs, patience=patience))
 
     # --- Stage 2 sentinel: frozen-uniform router must match dense -----------
     # gates pinned at 1.0 make the K experts algebraically one Linear(dim,dim).
-    for seed in (42, 123):
-        tasks.append(_task("s2sent", seed, "moe", "balanced",
-                           extra=["--freeze-router"],
-                           tag=f"s2sent_moe_frozen_s{seed}"))
+    if "s2sent" in stages:
+        for seed in (42, 123):
+            tasks.append(_task("s2sent", seed, "moe", "balanced",
+                               extra=["--freeze-router"],
+                               tag=f"s2sent_moe_frozen_s{seed}",
+                               epochs=epochs, patience=patience))
 
     # --- Stage 3: isolation granularity at CONSTANT capacity ---------------
     # K only changes how Linear(dim,dim) is partitioned; total params are
     # conserved, so this is a pure granularity sweep with no capacity confound.
-    for seed in SEEDS:
-        for K in K_SWEEP:
-            tasks.append(_task("s3", seed, "moe", "balanced", K=K))
+    if "s3" in stages:
+        for seed in SEEDS:
+            for K in K_SWEEP:
+                tasks.append(_task("s3", seed, "moe", "balanced", K=K,
+                                   epochs=epochs, patience=patience))
 
     # --- Stage 4: lr robustness of the primary contrast --------------------
-    for seed in SEEDS:
-        for lr in LR_SWEEP:
-            for arch in ("dense", "moe"):
-                tasks.append(_task("s4", seed, arch, "balanced", lr=lr))
+    if "s4" in stages:
+        for seed in SEEDS:
+            for lr in LR_SWEEP:
+                for arch in ("dense", "moe"):
+                    tasks.append(_task("s4", seed, arch, "balanced", lr=lr,
+                                       epochs=epochs, patience=patience))
 
-    # --- Stage 5: does the conclusion survive the full 84M embeddings? -----
-    # Guards against "this only holds on the lightweight model".
-    for seed in (42, 123):
-        for arch in ("dense", "moe"):
-            tasks.append(_task("s5full", seed, arch, "balanced",
-                               extra=["--full-embeddings"],
-                               tag=f"s5full_{arch}_balanced_s{seed}"))
+    # --- Stage 5: does the conclusion survive the full embeddings? ---------
+    if "s5full" in stages:
+        for seed in (42, 123):
+            for arch in ("dense", "moe"):
+                tasks.append(_task("s5full", seed, arch, "balanced",
+                                   extra=["--full-embeddings"],
+                                   tag=f"s5full_{arch}_balanced_s{seed}",
+                                   epochs=epochs, patience=patience))
     return tasks
 
 
@@ -206,10 +228,16 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--budget-hours", type=float, default=11.0,
                     help="stop dispatching new runs after this many hours")
+    ap.add_argument("--stages", default=",".join(PRIMARY_STAGES),
+                    help="comma-separated stages to run (s1,s2sent,s3,s4,s5full)")
+    ap.add_argument("--epochs", type=int, default=EPOCHS)
+    ap.add_argument("--patience", type=int, default=PATIENCE)
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
 
-    tasks = build_tasks()
+    stages = tuple(s for s in args.stages.split(",") if s)
+    tasks = build_tasks(stages=stages, epochs=args.epochs,
+                        patience=args.patience)
     if args.dry_run:
         by_dev = {}
         for t in tasks:

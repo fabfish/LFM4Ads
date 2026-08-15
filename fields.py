@@ -1,3 +1,21 @@
+"""Feature field definitions.
+
+``user`` / ``video`` map each field name to its embedding vocabulary size.
+The hard-coded values below are the **KuaiRand-1K** vocabularies (the default).
+
+For other datasets (e.g. KuaiRand-27K), set the ``LFM_VOCAB_JSON`` environment
+variable to a JSON file of the form::
+
+    {"user": {"user_id": 27000, ...}, "video": {"video_id": 4000000, ...}}
+
+Only the *vocabulary sizes* are overridden — the field names (keys) are fixed
+and shared by every dataset, so ``fields.all`` (the column order) never changes.
+The override is applied before ``all`` is computed.
+"""
+
+import json
+import os
+
 user = {
     "user_id": 1000,
     "user_active_degree": 7,
@@ -38,4 +56,13 @@ video = {
     "music_type": 7,
     "tag": 1189,
 }
+
+# ---- optional dataset override (e.g. KuaiRand-27K) ---------------------
+_override = os.environ.get("LFM_VOCAB_JSON")
+if _override and os.path.exists(_override):
+    with open(_override, "r", encoding="utf-8") as _f:
+        _v = json.load(_f)
+    user.update(_v.get("user", {}))
+    video.update(_v.get("video", {}))
+
 all = list(user | video) + ["date", "is_click", "tab"]

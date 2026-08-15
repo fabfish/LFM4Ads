@@ -68,7 +68,8 @@ from model import (
 )
 
 CACHE_DIR = "cache"
-OUT_DIR = f"{CACHE_DIR}/macro_auc"
+#: overridable via LFM_MACRO_OUT so 1K and 27K evidence never mix
+OUT_DIR = os.environ.get("LFM_MACRO_OUT", f"{CACHE_DIR}/macro_auc")
 NUM_TABS = 15
 
 #: Scenarios entering the macro endpoint. Frozen before launch.
@@ -80,7 +81,15 @@ MACRO_SCENARIOS = (0, 1, 2, 3, 4, 5, 6, 8)
 #: Reported for completeness, never part of the verdict.
 AUX_SCENARIOS = (7, 12)
 
-EXPECTED_COUNTS = {"train": 9_281_007, "valid": 1_230_368, "test": 1_201_670}
+#: Frozen sample counts for the split-conservation sentinel. Default = 1K;
+#: override with ``LFM_SAMPLE_COUNTS_JSON`` pointing at a ``{"train": ..,
+#: "valid": .., "test": ..}`` file (e.g. ``cache/sample_counts_27k.json``).
+_COUNTS_OVERRIDE = os.environ.get("LFM_SAMPLE_COUNTS_JSON")
+if _COUNTS_OVERRIDE and os.path.exists(_COUNTS_OVERRIDE):
+    with open(_COUNTS_OVERRIDE) as _f:
+        EXPECTED_COUNTS = {k: int(v) for k, v in json.load(_f).items()}
+else:
+    EXPECTED_COUNTS = {"train": 9_281_007, "valid": 1_230_368, "test": 1_201_670}
 
 
 # ----------------------------------------------------------------------------
