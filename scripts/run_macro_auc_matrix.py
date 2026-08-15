@@ -1,0 +1,231 @@
+"""E5 long-run matrix driver — unattended, resume-safe, ~8h of 12h budget.
+
+Pre-registered in docs/20260815-0018-场景内泛化MoE长程矩阵预注册.md.
+The task list below IS the pre-registration: it is fixed before launch so no
+configuration can be added afterwards to manufacture a positive result.
+
+Design guarantees
+-----------------
+* **Pairing**: seed -> device is a fixed map, so *every* configuration of a
+  given seed runs on the same card (AGENTS.md rule). Different seeds run
+  concurrently on different cards.
+* **Resume-safe**: a run whose ``cache/macro_auc/run_<tag>.json`` exists is
+  skipped, so the matrix can be killed and restarted at any time.
+* **Failure isolation**: a crashing run is recorded and the worker moves on;
+  it never takes the matrix down.
+* **Wall-clock guard**: stops dispatching new runs once ``--budget-hours`` is
+  exhausted (in-flight runs are allowed to finish), so it cannot overrun.
+* **Auto-summary**: on completion the verdict + markdown tables are produced
+  by ``scripts/summarize_macro_auc.py`` — nothing waits on a human.
+
+Usage:  nohup python scripts/run_macro_auc_matrix.py > logs/macro_matrix.log 2>&1 &
+"""
+
+import argparse
+import json
+import os
+import subprocess
+import threading
+import time
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+OUT_DIR = os.path.join(ROOT, "cache", "macro_auc")
+LOG_DIR = os.path.join(ROOT, "logs", "macro_auc")
+STATE = os.path.join(OUT_DIR, "matrix_state.json")
+
+SEEDS = (42, 123, 456, 789)
+#: fixed so that all configs of one seed share one card (paired-difference rule)
+SEED_DEVICE = {42: "cuda:0", 456: "cuda:0", 123: "cuda:1", 789: "cuda:1"}
+MAIN_K = 5           # 330 = 2*3*5*11, so K must divide 330
+K_SWEEP = (2, 3, 6, 10, 11)
+LR_SWEEP = (2e-4, 3e-3)   # 1e-3 is covered by stage 1
+EPOCHS = 80
+PATIENCE = 12
+
+
+def _task(stage, seed, arch, loss, K=MAIN_K, lr=1e-3, extra=(), tag=None):
+    tag = tag or (f"{stage}_{arch}_{loss}"
+                  + (f"_K{K}" if arch == "moe" else "")
+                  + (f"_lr{lr:g}" if lr != 1e-3 else "")
+                  + f"_s{seed}")
+    cmd = ["python", "main_macro_auc.py", SEED_DEVICE[seed],
+           "--arch", arch, "--loss", loss, "--seed", str(seed),
+           "--lr", str(lr), "--max-epochs", str(EPOCHS),
+           "--patience", str(PATIENCE), "--tag", tag]
+    if arch == "moe":
+        cmd += ["--K", str(K)]
+    cmd += list(extra)
+    return {"stage": stage, "tag": tag, "seed": seed, "arch": arch,
+            "loss": loss, "K": K if arch == "moe" else None, "lr": lr,
+            "device": SEED_DEVICE[seed], "cmd": cmd}
+
+
+def build_tasks():
+    """The frozen task list, ordered so the primary evidence lands first."""
+    tasks = []
+
+    # --- Stage 1 (PRIMARY): 2 arch x 2 loss x 4 seeds = 16 runs -------------
+    # Isolates two mechanisms at once:
+    #   arch  dense->moe   = parameter isolation (capacity held constant)
+    #   loss  pooled->balanced = gradient rebalancing toward small scenarios
+    for seed in SEEDS:
+        for loss in ("balanced", "pooled"):
+            for arch in ("dense", "moe"):
+                tasks.append(_task("s1", seed, arch, loss))
+
+    # --- Stage 2 sentinel: frozen-uniform router must match dense -----------
+    # gates pinned at 1.0 make the K experts algebraically one Linear(dim,dim).
+    for seed in (42, 123):
+        tasks.append(_task("s2sent", seed, "moe", "balanced",
+                           extra=["--freeze-router"],
+                           tag=f"s2sent_moe_frozen_s{seed}"))
+
+    # --- Stage 3: isolation granularity at CONSTANT capacity ---------------
+    # K only changes how Linear(dim,dim) is partitioned; total params are
+    # conserved, so this is a pure granularity sweep with no capacity confound.
+    for seed in SEEDS:
+        for K in K_SWEEP:
+            tasks.append(_task("s3", seed, "moe", "balanced", K=K))
+
+    # --- Stage 4: lr robustness of the primary contrast --------------------
+    for seed in SEEDS:
+        for lr in LR_SWEEP:
+            for arch in ("dense", "moe"):
+                tasks.append(_task("s4", seed, arch, "balanced", lr=lr))
+
+    # --- Stage 5: does the conclusion survive the full 84M embeddings? -----
+    # Guards against "this only holds on the lightweight model".
+    for seed in (42, 123):
+        for arch in ("dense", "moe"):
+            tasks.append(_task("s5full", seed, arch, "balanced",
+                               extra=["--full-embeddings"],
+                               tag=f"s5full_{arch}_balanced_s{seed}"))
+    return tasks
+
+
+def load_state():
+    if os.path.exists(STATE):
+        with open(STATE) as f:
+            return json.load(f)
+    return {"started_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+            "completed": [], "failed": [], "skipped": []}
+
+
+class Matrix:
+    def __init__(self, tasks, budget_hours):
+        self.lock = threading.Lock()
+        self.state = load_state()
+        self.deadline = time.time() + budget_hours * 3600
+        self.budget_hours = budget_hours
+        self.tasks = tasks
+        self.done_tags = {r["tag"] for r in self.state["completed"]}
+
+    def save(self):
+        with self.lock:
+            self.state["updated_at"] = time.strftime("%Y-%m-%d %H:%M:%S")
+            self.state["n_completed"] = len(self.state["completed"])
+            self.state["n_failed"] = len(self.state["failed"])
+            tmp = STATE + ".tmp"
+            with open(tmp, "w") as f:
+                json.dump(self.state, f, indent=2)
+            os.replace(tmp, STATE)
+
+    def worker(self, device, my_tasks):
+        for idx, task in enumerate(my_tasks, 1):
+            out_json = os.path.join(OUT_DIR, f"run_{task['tag']}.json")
+            if os.path.exists(out_json):
+                with self.lock:
+                    self.state["skipped"].append(task["tag"])
+                print(f"[{device}] ({idx}/{len(my_tasks)}) skip {task['tag']} "
+                      f"(already done)", flush=True)
+                continue
+            if time.time() > self.deadline:
+                print(f"[{device}] budget exhausted, not starting "
+                      f"{task['tag']}", flush=True)
+                with self.lock:
+                    self.state.setdefault("not_started", []).append(task["tag"])
+                continue
+            log = os.path.join(LOG_DIR, f"{task['tag']}.log")
+            t0 = time.time()
+            print(f"[{device}] ({idx}/{len(my_tasks)}) RUN {task['tag']}",
+                  flush=True)
+            try:
+                with open(log, "w") as lf:
+                    rc = subprocess.call(task["cmd"], cwd=ROOT, stdout=lf,
+                                         stderr=subprocess.STDOUT)
+            except Exception as exc:  # never let one run kill the matrix
+                rc, exc_txt = -99, repr(exc)
+            else:
+                exc_txt = None
+            wall = time.time() - t0
+            rec = {**{k: v for k, v in task.items() if k != "cmd"},
+                   "returncode": rc, "wall_sec": round(wall, 1), "log": log}
+            if exc_txt:
+                rec["exception"] = exc_txt
+            with self.lock:
+                if rc == 0 and os.path.exists(out_json):
+                    self.state["completed"].append(rec)
+                    status = "OK"
+                else:
+                    self.state["failed"].append(rec)
+                    status = f"FAIL rc={rc}"
+            self.save()
+            print(f"[{device}] ({idx}/{len(my_tasks)}) {status} "
+                  f"{task['tag']} {wall / 60:.1f}min", flush=True)
+
+    def run(self):
+        os.makedirs(OUT_DIR, exist_ok=True)
+        os.makedirs(LOG_DIR, exist_ok=True)
+        by_device = {}
+        for t in self.tasks:
+            by_device.setdefault(t["device"], []).append(t)
+        self.state["plan"] = {d: [t["tag"] for t in ts]
+                              for d, ts in by_device.items()}
+        self.state["budget_hours"] = self.budget_hours
+        self.save()
+        print(f"[matrix] {len(self.tasks)} runs, budget {self.budget_hours}h, "
+              f"devices={list(by_device)}", flush=True)
+        for d, ts in by_device.items():
+            print(f"  {d}: {len(ts)} runs (seeds "
+                  f"{sorted({t['seed'] for t in ts})})", flush=True)
+        threads = [threading.Thread(target=self.worker, args=(d, ts),
+                                   daemon=False)
+                   for d, ts in by_device.items()]
+        for th in threads:
+            th.start()
+        for th in threads:
+            th.join()
+        self.state["finished_at"] = time.strftime("%Y-%m-%d %H:%M:%S")
+        self.save()
+        print(f"\n[matrix] done: {len(self.state['completed'])} ok, "
+              f"{len(self.state['failed'])} failed, "
+              f"{len(self.state['skipped'])} skipped", flush=True)
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--budget-hours", type=float, default=11.0,
+                    help="stop dispatching new runs after this many hours")
+    ap.add_argument("--dry-run", action="store_true")
+    args = ap.parse_args()
+
+    tasks = build_tasks()
+    if args.dry_run:
+        by_dev = {}
+        for t in tasks:
+            by_dev.setdefault(t["device"], []).append(t["tag"])
+        print(f"{len(tasks)} runs total")
+        for d, tags in by_dev.items():
+            print(f"\n{d} ({len(tags)} runs):")
+            for tg in tags:
+                print(f"  {tg}")
+        return
+
+    Matrix(tasks, args.budget_hours).run()
+
+    print("\n[matrix] summarizing ...", flush=True)
+    subprocess.call(["python", "scripts/summarize_macro_auc.py"], cwd=ROOT)
+
+
+if __name__ == "__main__":
+    main()

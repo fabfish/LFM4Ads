@@ -1,0 +1,242 @@
+{
+  "provenance": {
+    "script": "scripts/diagnose_isolation_ceiling.py",
+    "device": "cuda:0",
+    "seeds": [
+      42,
+      123
+    ],
+    "scenarios": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      8
+    ],
+    "max_epochs": 60,
+    "patience": 10,
+    "lr": 0.001,
+    "model": "iddrop DCNv2 (dim=330), one fully independent model per scenario, zero parameter sharing",
+    "baseline": "shared dense model from E5 stage 1 (seed-averaged per-scenario test AUC)",
+    "bias": "every setting favours the isolated arm (own batch size, own early stopping, own valid criterion), so a loss is conclusive",
+    "interpretation": "isolated = the K=n_scenarios hard-routed zero-sharing limit; it upper-bounds what any MoE parameter isolation can achieve"
+  },
+  "runs": [
+    {
+      "scenario": 0,
+      "seed": 42,
+      "test_auc": 0.7166278416483203,
+      "best_valid_auc": 0.7147103194891505,
+      "best_epoch": 4,
+      "batch_size": 10000,
+      "n_train": 1929564
+    },
+    {
+      "scenario": 0,
+      "seed": 123,
+      "test_auc": 0.7171306273717386,
+      "best_valid_auc": 0.716533997914114,
+      "best_epoch": 3,
+      "batch_size": 10000,
+      "n_train": 1929564
+    },
+    {
+      "scenario": 1,
+      "seed": 42,
+      "test_auc": 0.7349052877650125,
+      "best_valid_auc": 0.7329244471132884,
+      "best_epoch": 3,
+      "batch_size": 10000,
+      "n_train": 6091260
+    },
+    {
+      "scenario": 1,
+      "seed": 123,
+      "test_auc": 0.73435807976662,
+      "best_valid_auc": 0.732657782702659,
+      "best_epoch": 3,
+      "batch_size": 10000,
+      "n_train": 6091260
+    },
+    {
+      "scenario": 2,
+      "seed": 42,
+      "test_auc": 0.8017241964716503,
+      "best_valid_auc": 0.8063033669791108,
+      "best_epoch": 4,
+      "batch_size": 6496,
+      "n_train": 324817
+    },
+    {
+      "scenario": 2,
+      "seed": 123,
+      "test_auc": 0.7981643063900782,
+      "best_valid_auc": 0.8043572043038093,
+      "best_epoch": 6,
+      "batch_size": 6496,
+      "n_train": 324817
+    },
+    {
+      "scenario": 3,
+      "seed": 42,
+      "test_auc": 0.7434077470220242,
+      "best_valid_auc": 0.8185625892432176,
+      "best_epoch": 2,
+      "batch_size": 629,
+      "n_train": 31476
+    },
+    {
+      "scenario": 3,
+      "seed": 123,
+      "test_auc": 0.7371347159139601,
+      "best_valid_auc": 0.8014425365210706,
+      "best_epoch": 1,
+      "batch_size": 629,
+      "n_train": 31476
+    },
+    {
+      "scenario": 4,
+      "seed": 42,
+      "test_auc": 0.7075668109427822,
+      "best_valid_auc": 0.7240147562488622,
+      "best_epoch": 6,
+      "batch_size": 10000,
+      "n_train": 704966
+    },
+    {
+      "scenario": 4,
+      "seed": 123,
+      "test_auc": 0.7077333932968296,
+      "best_valid_auc": 0.7235003951533073,
+      "best_epoch": 3,
+      "batch_size": 10000,
+      "n_train": 704966
+    },
+    {
+      "scenario": 5,
+      "seed": 42,
+      "test_auc": 0.6406792550823565,
+      "best_valid_auc": 0.6508718266721523,
+      "best_epoch": 1,
+      "batch_size": 258,
+      "n_train": 12931
+    },
+    {
+      "scenario": 5,
+      "seed": 123,
+      "test_auc": 0.6847640599495474,
+      "best_valid_auc": 0.6718302496924309,
+      "best_epoch": 1,
+      "batch_size": 258,
+      "n_train": 12931
+    },
+    {
+      "scenario": 6,
+      "seed": 42,
+      "test_auc": 0.7267674131643567,
+      "best_valid_auc": 0.7221033369500959,
+      "best_epoch": 2,
+      "batch_size": 2830,
+      "n_train": 141545
+    },
+    {
+      "scenario": 6,
+      "seed": 123,
+      "test_auc": 0.7186442555650818,
+      "best_valid_auc": 0.7152003782371678,
+      "best_epoch": 1,
+      "batch_size": 2830,
+      "n_train": 141545
+    },
+    {
+      "scenario": 8,
+      "seed": 42,
+      "test_auc": 0.7810191136790654,
+      "best_valid_auc": 0.8829044282762957,
+      "best_epoch": 2,
+      "batch_size": 281,
+      "n_train": 14092
+    },
+    {
+      "scenario": 8,
+      "seed": 123,
+      "test_auc": 0.7629472925819712,
+      "best_valid_auc": 0.868150992544687,
+      "best_epoch": 3,
+      "batch_size": 281,
+      "n_train": 14092
+    }
+  ],
+  "comparison": [
+    {
+      "scenario": 0,
+      "isolated_mean": 0.7168792345100294,
+      "shared_pooled": 0.7138806140002153,
+      "shared_balanced": 0.6879096159181711,
+      "delta_isolated_minus_shared": 0.0029986205098141427,
+      "n_train": 1929564
+    },
+    {
+      "scenario": 1,
+      "isolated_mean": 0.7346316837658162,
+      "shared_pooled": 0.7346721791525009,
+      "shared_balanced": 0.7179562298498242,
+      "delta_isolated_minus_shared": -4.049538668471353e-05,
+      "n_train": 6091260
+    },
+    {
+      "scenario": 2,
+      "isolated_mean": 0.7999442514308642,
+      "shared_pooled": 0.797728965760921,
+      "shared_balanced": 0.7922779086904925,
+      "delta_isolated_minus_shared": 0.0022152856699432233,
+      "n_train": 324817
+    },
+    {
+      "scenario": 3,
+      "isolated_mean": 0.7402712314679921,
+      "shared_pooled": 0.737465721141486,
+      "shared_balanced": 0.7397131288028109,
+      "delta_isolated_minus_shared": 0.002805510326506111,
+      "n_train": 31476
+    },
+    {
+      "scenario": 4,
+      "isolated_mean": 0.7076501021198058,
+      "shared_pooled": 0.7189368637844864,
+      "shared_balanced": 0.7136206751895601,
+      "delta_isolated_minus_shared": -0.011286761664680567,
+      "n_train": 704966
+    },
+    {
+      "scenario": 5,
+      "isolated_mean": 0.6627216575159519,
+      "shared_pooled": 0.6814976257604985,
+      "shared_balanced": 0.6538270700400654,
+      "delta_isolated_minus_shared": -0.018775968244546637,
+      "n_train": 12931
+    },
+    {
+      "scenario": 6,
+      "isolated_mean": 0.7227058343647192,
+      "shared_pooled": 0.7321607157038752,
+      "shared_balanced": 0.7263922785716826,
+      "delta_isolated_minus_shared": -0.009454881339155952,
+      "n_train": 141545
+    },
+    {
+      "scenario": 8,
+      "isolated_mean": 0.7719832031305183,
+      "shared_pooled": 0.7565336855637335,
+      "shared_balanced": 0.7715099523923885,
+      "delta_isolated_minus_shared": 0.01544951756678481,
+      "n_train": 14092
+    }
+  ],
+  "n_scenarios_where_isolation_wins": 4,
+  "n_scenarios_compared": 8,
+  "wall_sec": 255.7
+}

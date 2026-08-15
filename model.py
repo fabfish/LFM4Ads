@@ -17,6 +17,35 @@ class Sparse(nn.Module):
         return torch.cat(embeddings, -1)
 
 
+#: The three high-cardinality ID tables = 83,984,250 params = 99.96% of the
+#: embedding table, proven to be dead weight by E1 (verdict PASS, 2026-08-14:
+#: cache/embedding_capacity/e1_decision.json). Dropping them costs no measurable
+#: AUC and makes the model 145x smaller, which is what makes multi-seed matrices
+#: affordable. See docs/20260814-2225-E1结论-ID-embedding死重确认.md.
+BIG_ID_FIELDS = ("video_id", "author_id", "music_id")
+
+
+class SubsetSparse(nn.Module):
+    """:class:`Sparse` minus a set of fields (the E1 ``iddrop`` regime)."""
+
+    def __init__(self, drop=()):
+        super().__init__()
+        self.drop = tuple(drop)
+        self.tables = nn.ModuleDict()
+        for field, size in (fields.user | fields.video).items():
+            if field in self.drop:
+                continue
+            self.tables[field] = nn.Embedding(size, 10)
+
+    def forward(self, batch):
+        return torch.cat([t(batch[f]) for f, t in self.tables.items()], -1)
+
+
+def lightweight_dim(drop=BIG_ID_FIELDS):
+    """Input dim after dropping ``drop`` fields (10 dims per field)."""
+    return (len(fields.user | fields.video) - len(drop)) * 10
+
+
 class DCNv2(nn.Module):
     def __init__(self, dim=360):
         super().__init__()
