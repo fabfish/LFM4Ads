@@ -18,7 +18,7 @@
 - 跨变体对比必须**控制变量**：除被测项外，seed / batch_size / lr 完全一致。
 - 默认口径：`device=cuda:0 / seed=42 / DCNv2 5层 360维 / embed_dim=10`。
 - **并行规则（用户 2026-08-12 放宽）**：允许跨设备并行，但必须保证**同一配对 seed 的全部路由模式跑在同一张卡上**（同 seed 的 pooled-AUC 配对差不引入设备混杂因子）；不同 seed 组可分布到不同设备并发。矩阵 runner 通过 `seed_device_map` 固定分配，未满足该约束的并行一律禁止。
-- 精度指标：用 AUC（`torcheval.metrics.BinaryAUROC`），单次 trial 即写入 `result.csv`。
+- 精度指标：用 AUC（`torcheval.metrics.BinaryAUROC`），单次 trial 即写入 `results/<实验>/` 下的结果 CSV。
 - 论文口径基于 100 次 trial 取平均；探索阶段可用 3-5 seed 快速验证。
 - 跨 scenario 对比仅看**相对排序**（不同 scenario 的数据分布不同，绝对 AUC 不可跨 scenario 比较）。
 
@@ -26,18 +26,24 @@
 
 ```
 LFM4Ads/
-├── main.py        # 入口，调度预训练或下游评估
-├── model.py       # 模型定义（DCNv2 / FeatureUsage / ModuleUsage / ModelUsage）
-├── train.py       # 训练/评估循环
-├── fields.py      # 特征字段定义（user 27 + video 9）
-├── dataset.py     # 数据预处理（加载 → 切分 → 预训练/下游）
-├── plot.py        # 画图脚本
-├── result.csv     # 所有 trial 的 AUC 输出（不入库）
-├── Feature/       # 下游 Feature 级图片输出（不入库）
-├── Module/        # 下游 Module 级图片输出（不入库）
-├── Model/         # 下游 Model 级图片输出（不入库）
-└── docs/          # 所有文档和交互页面
+├── model.py        # 模型定义（DCNv2 / MoE / FeatureUsage 等）
+├── train.py        # 训练/评估循环
+├── dataset.py      # 数据预处理（加载 → 切分）
+├── fields.py       # 特征字段定义（user 27 + video 9）
+├── plot.py         # 画图脚本
+├── *_protocol.py   # 3 个实验协议（train.py 模块级依赖其一，勿移出根目录）
+├── main_macro_auc.py  # 活跃实验入口（27K MoE，勿动）
+├── experiments/    # 历史实验入口脚本（main_*.py / run_*.py）
+├── scripts/        # 工具脚本（矩阵调度/汇总/验证/诊断；整理中）
+├── results/        # 所有 result CSV 按实验分组 + INDEX.md 大清单
+├── cache/          # 中间产物与证据（按实验分子目录；*.pt 权重不入库）
+├── logs/           # 运行日志
+└── docs/           # 所有文档和结论文档（近期）+ docs/archive/（历史）
 ```
+
+- **结果大清单**：`results/INDEX.md` 是「结果文件 → 实验 → 判定 → 结论」的集中索引，新增结果后须同步登记。
+- **核心库不动**：`model.py/train.py/dataset.py/fields.py/plot.py` 留在根目录；experiments/ 下脚本通过顶部 `sys.path` 注入指向仓库根。
+- **protocol 不动**：`task_conditioned_mixture_routing_protocol.py` 被 `train.py` 模块级 import，移出根目录会断整个训练链路。
 
 ## 4. 模型与实验层次
 
@@ -47,7 +53,7 @@ LFM4Ads 是 DCNv2 架构（360 维，5 层 Cross Network + 1 层 DNN head），�
 - **Module Usage（模块级）**：加载预训练权重的前 k 层 Cross Network，其余随机初始化重新训练
 - **Model Usage（模型级）**：用预训练 backbone 的输出作为 item representation（IR），与新训练的 user representation（UR）做内积
 
-实验入口：`python main.py <device>`。默认先预训练，再跑三级下游评估，AUC 追加写入 `result.csv`。
+实验入口：`python experiments/main.py <device>`。默认先预训练，再跑三级下游评估，AUC 追加写入 `results/main_pretrain/`。
 
 ## 5. 编码与改动约束
 
