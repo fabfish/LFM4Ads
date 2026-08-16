@@ -28,7 +28,8 @@ import subprocess
 import threading
 import time
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+#: scripts/matrix/ -> repo root (three levels up)
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 #: 1K and 27K evidence MUST stay in separate dirs (identical tags otherwise
 #: collide with the resume guard). Controlled by LFM_MACRO_OUT; LOG_DIR follows.
 OUT_DIR = os.environ.get("LFM_MACRO_OUT", os.path.join(ROOT, "cache", "macro_auc"))
