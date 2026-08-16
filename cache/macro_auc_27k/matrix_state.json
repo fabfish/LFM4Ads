@@ -234,37 +234,138 @@
       "returncode": 0,
       "wall_sec": 3855.2,
       "log": "logs/macro_auc_27k/s2sent_moe_frozen_s42.log"
+    },
+    {
+      "stage": "s7pool",
+      "tag": "s7pool_dense_pooled_s202",
+      "seed": 202,
+      "arch": "dense",
+      "loss": "pooled",
+      "K": null,
+      "top_k": null,
+      "lr": 0.001,
+      "device": "cuda:1",
+      "returncode": 0,
+      "wall_sec": 4048.2,
+      "log": "logs/macro_auc_27k/s7pool_dense_pooled_s202.log"
+    },
+    {
+      "stage": "s7pool",
+      "tag": "s7pool_dense_pooled_s101",
+      "seed": 101,
+      "arch": "dense",
+      "loss": "pooled",
+      "K": null,
+      "top_k": null,
+      "lr": 0.001,
+      "device": "cuda:0",
+      "returncode": 0,
+      "wall_sec": 4088.4,
+      "log": "logs/macro_auc_27k/s7pool_dense_pooled_s101.log"
+    },
+    {
+      "stage": "s7pool",
+      "tag": "s7pool_moe_pooled_K5_s202",
+      "seed": 202,
+      "arch": "moe",
+      "loss": "pooled",
+      "K": 5,
+      "top_k": null,
+      "lr": 0.001,
+      "device": "cuda:1",
+      "returncode": 0,
+      "wall_sec": 5547.7,
+      "log": "logs/macro_auc_27k/s7pool_moe_pooled_K5_s202.log"
+    },
+    {
+      "stage": "s7pool",
+      "tag": "s7pool_moe_pooled_K5_s101",
+      "seed": 101,
+      "arch": "moe",
+      "loss": "pooled",
+      "K": 5,
+      "top_k": null,
+      "lr": 0.001,
+      "device": "cuda:0",
+      "returncode": 0,
+      "wall_sec": 5646.5,
+      "log": "logs/macro_auc_27k/s7pool_moe_pooled_K5_s101.log"
+    },
+    {
+      "stage": "s6sparse",
+      "tag": "s6sparse_moe_balanced_K5_tk2_s123",
+      "seed": 123,
+      "arch": "moe",
+      "loss": "balanced",
+      "K": 5,
+      "top_k": 2,
+      "lr": 0.001,
+      "device": "cuda:1",
+      "returncode": 0,
+      "wall_sec": 4956.4,
+      "log": "logs/macro_auc_27k/s6sparse_moe_balanced_K5_tk2_s123.log"
+    },
+    {
+      "stage": "s6sparse",
+      "tag": "s6sparse_moe_balanced_K5_tk2_s42",
+      "seed": 42,
+      "arch": "moe",
+      "loss": "balanced",
+      "K": 5,
+      "top_k": 2,
+      "lr": 0.001,
+      "device": "cuda:0",
+      "returncode": 0,
+      "wall_sec": 5099.1,
+      "log": "logs/macro_auc_27k/s6sparse_moe_balanced_K5_tk2_s42.log"
+    },
+    {
+      "stage": "s6sparse",
+      "tag": "s6sparse_moe_balanced_K5_tk2_s456",
+      "seed": 456,
+      "arch": "moe",
+      "loss": "balanced",
+      "K": 5,
+      "top_k": 2,
+      "lr": 0.001,
+      "device": "cuda:0",
+      "returncode": 0,
+      "wall_sec": 4400.8,
+      "log": "logs/macro_auc_27k/s6sparse_moe_balanced_K5_tk2_s456.log"
+    },
+    {
+      "stage": "s6sparse",
+      "tag": "s6sparse_moe_balanced_K5_tk2_s789",
+      "seed": 789,
+      "arch": "moe",
+      "loss": "balanced",
+      "K": 5,
+      "top_k": 2,
+      "lr": 0.001,
+      "device": "cuda:1",
+      "returncode": 0,
+      "wall_sec": 4819.8,
+      "log": "logs/macro_auc_27k/s6sparse_moe_balanced_K5_tk2_s789.log"
     }
   ],
   "failed": [],
-  "skipped": [],
+  "skipped": [
+    "s6sparse_moe_balanced_K5_tk2_s42",
+    "s6sparse_moe_balanced_K5_tk2_s123"
+  ],
   "plan": {
     "cuda:0": [
-      "s1_dense_balanced_s42",
-      "s1_moe_balanced_K5_s42",
-      "s1_dense_pooled_s42",
-      "s1_moe_pooled_K5_s42",
-      "s1_dense_balanced_s456",
-      "s1_moe_balanced_K5_s456",
-      "s1_dense_pooled_s456",
-      "s1_moe_pooled_K5_s456",
-      "s2sent_moe_frozen_s42"
+      "s6sparse_moe_balanced_K5_tk2_s42",
+      "s6sparse_moe_balanced_K5_tk2_s456"
     ],
     "cuda:1": [
-      "s1_dense_balanced_s123",
-      "s1_moe_balanced_K5_s123",
-      "s1_dense_pooled_s123",
-      "s1_moe_pooled_K5_s123",
-      "s1_dense_balanced_s789",
-      "s1_moe_balanced_K5_s789",
-      "s1_dense_pooled_s789",
-      "s1_moe_pooled_K5_s789",
-      "s2sent_moe_frozen_s123"
+      "s6sparse_moe_balanced_K5_tk2_s123",
+      "s6sparse_moe_balanced_K5_tk2_s789"
     ]
   },
-  "budget_hours": 11.0,
-  "updated_at": "2026-08-16 03:07:52",
-  "n_completed": 18,
+  "budget_hours": 5.0,
+  "updated_at": "2026-08-16 18:33:52",
+  "n_completed": 26,
   "n_failed": 0,
-  "finished_at": "2026-08-16 03:07:52"
+  "finished_at": "2026-08-16 18:33:52"
 }

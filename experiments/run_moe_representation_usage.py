@@ -84,11 +84,11 @@ def resolve_backbone(args):
     if args.backbone == "pretrain":
         stem = ("moe_fully_routed" if args.model == "fully-routed"
                 else "moe_partial_shared")
-        return cls, f"{CACHE_DIR}/{stem}_seed{args.seed}.pt", \
+        return cls, f"{CACHE_DIR}/checkpoints/{stem}_seed{args.seed}.pt", \
             f"{args.model}_pretrain_seed{args.seed}"
     tag = (f"{args.model}_r{args.router_mode}_e{args.expert_mode}_"
            f"s{args.shared_mode}_seed{args.seed}")
-    return cls, f"{CACHE_DIR}/subtask_backbone_{tag}.pt", tag
+    return cls, f"{CACHE_DIR}/checkpoints/subtask_backbone_{tag}.pt", tag
 
 
 def build_backbone(args):
@@ -166,7 +166,7 @@ def main():
             m: (sum(d.values()) / len(d) if d else None)
             for m, d in results.items()},
     }
-    json_path = f"{CACHE_DIR}/representation_usage_{tag}.json"
+    json_path = f"{CACHE_DIR}/archives/moe_exploration/representation_usage_{tag}.json"
     with open(json_path, "w") as f:
         json.dump(summary, f, indent=2)
     print("[mean AUC by method] " + "  ".join(

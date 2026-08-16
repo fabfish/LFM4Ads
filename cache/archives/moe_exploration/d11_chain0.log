@@ -1,0 +1,8 @@
+[23:22:45] job1 finished on cuda:0
+[23:22:45] START d11_topk_K8 on cuda:0
+[23:22:45] d11_topk_K8 PID=2343097
+[23:32:45] DONE  d11_topk_K8
+[23:32:45] START d11_K8_sparse2 on cuda:0
+[23:32:45] d11_K8_sparse2 PID=2349474
+[23:49:16] DONE  d11_K8_sparse2
+[23:49:16] CHAIN COMPLETE on cuda:0

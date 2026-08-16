@@ -33,7 +33,7 @@ def resolve_recorded_path(recorded_path, artifact_label, run_identifier):
             f"moe_pretrain_summary_{run_identifier}.json"
         ),
         "log": REPOSITORY / "logs" / f"sample_weighting_{run_identifier}.log",
-        "csv": REPOSITORY / f"result_{run_identifier}.csv",
+        "csv": REPOSITORY / "results" / "sample_weighting" / f"result_{run_identifier}.csv",
     }.get(artifact_label)
     if expected is None:
         return {"status": "unsupported-artifact-label", "resolved": None}

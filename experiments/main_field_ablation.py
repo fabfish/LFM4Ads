@@ -124,7 +124,7 @@ def train_arm(model, srcs, args, label, max_batches=None):
         [p for p in model.parameters() if p.requires_grad], lr=args.lr)
     criterion = torch.nn.BCEWithLogitsLoss()
     best_auc, best_state, best_epoch, hist = -1.0, None, 0, []
-    csv = f"result_fieldabl_{label}{'_' + args.tag if args.tag else ''}.csv"
+    csv = f"results/field_ablation/result_fieldabl_{label}{'_' + args.tag if args.tag else ''}.csv"
     with open(csv, "w") as f:
         f.write("epoch,valid_auc,wall_clock_sec\n")
     for epoch in range(1, args.max_epochs + 1):

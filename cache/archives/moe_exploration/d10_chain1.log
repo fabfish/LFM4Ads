@@ -1,0 +1,6 @@
+[chain1] waiting job1 PID=2308525 ...
+[22:37:14] START d10_lbalpha_10 on cuda:1 -> cache/lfm4ads_d10_lbalpha_10.log
+[22:49:08] DONE  d10_lbalpha_10 (exit=0)
+[22:49:08] START d10_topk_4 on cuda:1 -> cache/lfm4ads_d10_topk_4.log
+[22:58:46] DONE  d10_topk_4 (exit=0)
+[22:58:46] CHAIN cuda:1 COMPLETE

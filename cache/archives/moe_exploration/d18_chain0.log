@@ -1,0 +1,4 @@
+[03:01:11] START d18_v1_rx_downstream on cuda:0
+[03:01:11] d18_v1_rx_downstream PID=2465348
+[07:11:16] DONE  d18_v1_rx_downstream
+[07:11:16] D18 CHAIN COMPLETE on cuda:0

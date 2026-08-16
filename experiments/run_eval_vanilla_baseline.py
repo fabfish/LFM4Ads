@@ -3,15 +3,15 @@ _sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 """复评现有 vanilla DCNv2 基准基线（不重新训练）。
 
 用于「混合专家是否改进上游」的对照。直接加载仓库已有的
-cache/dcnv2_vanilla.pt（若存在），以与从零预训练 MoE 完全相同的方式
+cache/checkpoints/dcnv2_vanilla.pt（若存在），以与从零预训练 MoE 完全相同的方式
 （按场景 + pooled 测试集）评估，得到可比的 AUC。
 
 若给定 checkpoint 与当前 DCNv2 架构不兼容（键不匹配），脚本会报错退出，
-此时需向用户确认是否改用 cache/vanilla_pretrain.pt 或重新评估。
+此时需向用户确认是否改用 cache/checkpoints/vanilla_pretrain.pt 或重新评估。
 
 产物：
   result_vanilla_baseline_eval.csv
-  cache/vanilla_baseline_eval_summary.json
+  cache/archives/vanilla_baseline/vanilla_baseline_eval_summary.json
 """
 
 import argparse
@@ -34,7 +34,7 @@ RESULT_DIR = "."
 def _parse_args(argv):
     ap = argparse.ArgumentParser(description="复评现有 vanilla DCNv2 基线")
     ap.add_argument("--device", default="cuda:0")
-    ap.add_argument("--ckpt", default=f"{CACHE_DIR}/dcnv2_vanilla.pt",
+    ap.add_argument("--ckpt", default=f"{CACHE_DIR}/checkpoints/dcnv2_vanilla.pt",
                     help="现有 vanilla 权重路径")
     return ap.parse_args(argv)
 
@@ -80,7 +80,7 @@ def main():
         "mean_per_scenario_auc": mean_sc,
         "per_scenario_auc": {str(s): per[s] for s in SCENARIOS},
     }
-    json_path = f"{CACHE_DIR}/vanilla_baseline_eval_summary.json"
+    json_path = f"{CACHE_DIR}/archives/vanilla_baseline/vanilla_baseline_eval_summary.json"
     with open(json_path, "w") as f:
         json.dump(summary, f, indent=2)
     print(f"  summary → {json_path}")

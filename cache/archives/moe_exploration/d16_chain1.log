@@ -1,0 +1,10 @@
+[01:41:41] START d16_v2_tk2_s42 on cuda:1
+[01:41:41] d16_v2_tk2_s42 PID=2422492
+[01:59:42] DONE  d16_v2_tk2_s42
+[01:59:42] START d16_v2_tk2_s1 on cuda:1
+[01:59:42] d16_v2_tk2_s1 PID=2433467
+[02:15:12] DONE  d16_v2_tk2_s1
+[02:15:12] START d16_v2_tk2_s7 on cuda:1
+[02:15:12] d16_v2_tk2_s7 PID=2441261
+[02:27:42] DONE  d16_v2_tk2_s7
+[02:27:42] D16 CHAIN COMPLETE on cuda:1

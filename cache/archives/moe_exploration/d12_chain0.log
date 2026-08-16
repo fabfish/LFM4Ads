@@ -1,0 +1,7 @@
+[23:49:10] START d12_v2soft_lr5e4 on cuda:0
+[23:49:10] d12_v2soft_lr5e4 PID=2357866
+[23:59:10] DONE  d12_v2soft_lr5e4
+[23:59:10] START d12_v2soft_b95 on cuda:0
+[23:59:10] d12_v2soft_b95 PID=2364611
+[00:08:10] DONE  d12_v2soft_b95
+[00:08:10] D12 CHAIN COMPLETE on cuda:0

@@ -41,7 +41,7 @@ from model import (
 from train import evaluate, evaluate_gpu
 
 CACHE_DIR = "cache"
-VANILLA_PATH = f"{CACHE_DIR}/dcnv2_vanilla.pt"
+VANILLA_PATH = f"{CACHE_DIR}/checkpoints/dcnv2_vanilla.pt"
 
 
 def _parse_args(argv):
@@ -65,9 +65,9 @@ def _parse_args(argv):
 ARGS = _parse_args(sys.argv[1:])
 DEVICE = ARGS.device
 SUF = f"_{ARGS.tag}" if ARGS.tag else ""
-RESULT_DENSE_CSV = f"result_widen_dense{SUF}.csv"
-RESULT_WIDE_CSV = f"result_widen_wide{SUF}.csv"
-HISTORY_JSON = f"{CACHE_DIR}/widen_history{SUF}.json"
+RESULT_DENSE_CSV = f"results/dense_widened/result_widen_dense{SUF}.csv"
+RESULT_WIDE_CSV = f"results/dense_widened/result_widen_wide{SUF}.csv"
+HISTORY_JSON = f"{CACHE_DIR}/archives/dense_widened/widen_history{SUF}.json"
 
 torch.manual_seed(ARGS.seed)
 os.makedirs(CACHE_DIR, exist_ok=True)

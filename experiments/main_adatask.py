@@ -47,8 +47,8 @@ def _parse_args(argv):
     ap.add_argument("--batch-size", type=int, default=16384)
     ap.add_argument("--epochs", type=int, default=1,
                     help="the frozen (rx-only) setting needs several epochs")
-    ap.add_argument("--vanilla-ckpt", default="cache/vanilla_pretrain.pt",
-                    help="use cache/dcnv2_vanilla.pt to share the base with the "
+    ap.add_argument("--vanilla-ckpt", default="cache/checkpoints/vanilla_pretrain.pt",
+                    help="use cache/checkpoints/dcnv2_vanilla.pt to share the base with the "
                          "MoE V1/V2 experiments")
     ap.add_argument("--arch", default="dcnv2moe",
                     choices=["dcnv2moe", "capacity"],

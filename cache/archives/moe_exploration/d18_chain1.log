@@ -1,0 +1,4 @@
+[03:17:04] START d18_v2_soft_downstream on cuda:1
+[03:17:04] d18_v2_soft_downstream PID=2472785
+[07:53:10] DONE  d18_v2_soft_downstream
+[07:53:10] D18 CHAIN COMPLETE on cuda:1

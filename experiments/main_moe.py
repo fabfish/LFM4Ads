@@ -84,14 +84,16 @@ USE_SPEC_LOSS = ARGS.spec_loss and K > 1
 torch.manual_seed(ARGS.seed)
 
 os.makedirs(CACHE_DIR, exist_ok=True)
-VANILLA_PATH = f"{CACHE_DIR}/dcnv2_vanilla.pt"
-MOE_PATH = f"{CACHE_DIR}/dcnv2_moe_k{K}{SUF}.pt"
-RESULT_CSV = f"result_moe_k{K}{SUF}.csv" if (K != 4 or SUF) else "result_moe.csv"
-DOWNSTREAM_CSV = (f"result_moe_k{K}{SUF}_downstream.csv"
-                  if (K != 4 or SUF) else "result_moe_downstream.csv")
-DOMINANCE_JSON = f"{CACHE_DIR}/dominance_matrix_k{K}{SUF}.json" \
-    if (K != 4 or SUF) else f"{CACHE_DIR}/dominance_matrix.json"
-SUMMARY_JSON = f"{CACHE_DIR}/moe_v1_summary_k{K}{SUF}.json"
+VANILLA_PATH = f"{CACHE_DIR}/checkpoints/dcnv2_vanilla.pt"
+MOE_PATH = f"{CACHE_DIR}/checkpoints/dcnv2_moe_k{K}{SUF}.pt"
+RESULT_CSV = f"results/moe_exploration/result_moe_k{K}{SUF}.csv" \
+    if (K != 4 or SUF) else "results/moe_exploration/result_moe.csv"
+DOWNSTREAM_CSV = (f"results/downstream/result_moe_k{K}{SUF}_downstream.csv"
+                  if (K != 4 or SUF)
+                  else "results/downstream/result_moe_downstream.csv")
+DOMINANCE_JSON = f"{CACHE_DIR}/archives/moe_exploration/dominance_matrix_k{K}{SUF}.json" \
+    if (K != 4 or SUF) else f"{CACHE_DIR}/archives/moe_exploration/dominance_matrix.json"
+SUMMARY_JSON = f"{CACHE_DIR}/archives/moe_exploration/moe_v1_summary_k{K}{SUF}.json"
 
 print(f"[config] device={DEVICE} seed={ARGS.seed} K={K} "
       f"freeze='{ARGS.freeze or 'none'}' tag='{ARGS.tag}' "

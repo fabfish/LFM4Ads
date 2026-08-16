@@ -1,0 +1,4 @@
+[12:04:51] START d20_rx_ds_s7 on cuda:1
+[12:04:51] d20_rx_ds_s7 PID=2951347
+[16:05:57] DONE  d20_rx_ds_s7
+[16:05:57] D20 CHAIN COMPLETE on cuda:1

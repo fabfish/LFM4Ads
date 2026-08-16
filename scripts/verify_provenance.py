@@ -65,7 +65,7 @@ print("\n" + "=" * 70)
 print("Source: result_moe.csv  (main_moe.py Step 4, 行 139-144)")
 print("=" * 70)
 
-moe_csv = pd.read_csv(p("result_moe.csv"))
+moe_csv = pd.read_csv(p("results/moe_exploration/result_moe.csv"))
 rows = {str(r["Scenario"]): r for _, r in moe_csv.iterrows()}
 
 # main_moe.py 用全精度算 Delta 再格式化为 %+.4f，而 AUC 列本身已 round(,4)；
@@ -124,7 +124,7 @@ check("C2", "result_moe.csv 与 continual_results.json.pre_continual 一致",
 # C3 / C4  dominance_matrix.json
 # ============================================================
 print("\n" + "=" * 70)
-print("Source: cache/dominance_matrix.json  (main_moe.py 行 100-108)")
+print("Source: cache/archives/moe_exploration/dominance_matrix.json  (main_moe.py 行 100-108)")
 print("=" * 70)
 
 dom = json.load(open(p("cache", "dominance_matrix.json")))
@@ -155,7 +155,7 @@ check("C4", "dominance >0.3 的格子（SpecializationLoss threshold=0.3 触发�
 # C5  adatask_results.csv
 # ============================================================
 print("\n" + "=" * 70)
-print("Source: cache/adatask_results.csv  (main_adatask.py)")
+print("Source: cache/archives/adatask/adatask_results.csv  (main_adatask.py)")
 print("=" * 70)
 
 ada = pd.read_csv(p("cache", "adatask_results.csv")).set_index("scenario")
@@ -226,7 +226,7 @@ check("C6", "AU 原始条目结构完整（3 层 × 4 专家 × 场景）且可�
 # C7 / C8  continual_results.json
 # ============================================================
 print("\n" + "=" * 70)
-print("Source: cache/continual_results.json  (main_continual.py + train.compute_forgetting)")
+print("Source: cache/archives/continual/continual_results.json  (main_continual.py + train.compute_forgetting)")
 print("=" * 70)
 
 recheck = {}
@@ -305,7 +305,7 @@ print("\n" + "=" * 70)
 print("Source: result_moe_downstream.csv  (main_moe.py Step 5, 行 187-219)")
 print("=" * 70)
 
-ds = pd.read_csv(p("result_moe_downstream.csv"))
+ds = pd.read_csv(p("results/downstream/result_moe_downstream.csv"))
 expected_order = [1, 0, 4, 2, 6, 3, 8, 5]
 present = list(dict.fromkeys(ds["Scenario"].tolist()))
 missing = [s for s in expected_order if s not in present]

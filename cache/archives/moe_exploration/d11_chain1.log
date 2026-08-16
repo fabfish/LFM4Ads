@@ -1,0 +1,8 @@
+[23:20:15] job1 finished on cuda:1
+[23:20:15] START d11_topk4_lr3e3_b95 on cuda:1
+[23:20:15] d11_topk4_lr3e3_b95 PID=2341119
+[23:29:15] DONE  d11_topk4_lr3e3_b95
+[23:29:15] START d11_v1_rx_lr3e3_b95 on cuda:1
+[23:29:15] d11_v1_rx_lr3e3_b95 PID=2347127
+[23:37:16] DONE  d11_v1_rx_lr3e3_b95
+[23:37:16] CHAIN COMPLETE on cuda:1

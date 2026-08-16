@@ -9,9 +9,9 @@
   3. 标准 BWT    : mean_{i<T-1} ( a[T-1][i] - a[i][i] )   （学完全部任务后，回看旧任务掉了多少）
      配套 LA（Learning Accuracy）: mean_i a[i][i]
 
-来源: cache/continual_results.json
+来源: cache/archives/continual/continual_results.json
 用法: python scripts/analyze_continual.py
-输出: stdout + cache/continual_analysis.json
+输出: stdout + cache/archives/continual/continual_analysis.json
 """
 
 from __future__ import annotations
@@ -124,4 +124,4 @@ for s in report["vanilla"]["task_order"][:-1]:
 
 with open(os.path.join(ROOT, "cache", "continual_analysis.json"), "w") as fh:
     json.dump(report, fh, ensure_ascii=False, indent=2)
-print("\n已写入 cache/continual_analysis.json")
+print("\n已写入 cache/archives/continual/continual_analysis.json")

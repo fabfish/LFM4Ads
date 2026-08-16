@@ -9,7 +9,7 @@
 #   - GPU 1: seed=123 的 6 个变体（串行）
 #
 # 每个 run 独立写日志 logs/capacity_moe_<tag>.log 与
-# result_capacity_moe_<tag>.csv / cache/capacity_moe_history_<tag>.json。
+# result_capacity_moe_<tag>.csv / cache/archives/capacity_moe/capacity_moe_history_<tag>.json。
 set -u
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"

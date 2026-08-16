@@ -1,0 +1,4 @@
+[07:55:46] START d19_v1_fdh_downstream on cuda:1
+[07:55:46] d19_v1_fdh_downstream PID=2720745
+[11:57:51] DONE  d19_v1_fdh_downstream
+[11:57:51] D19 CHAIN COMPLETE on cuda:1

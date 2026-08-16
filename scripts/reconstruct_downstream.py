@@ -8,7 +8,7 @@ reconstruct it directly from the authoritative log record — real experimental
 output, no fabrication.
 
 NOTE on provenance (D14): `cache/moe_pretrain.log` is the 05:16 run, whereas the
-Phase-1 `result_moe.csv` / `cache/dominance_matrix.json` / cached checkpoints are
+Phase-1 `result_moe.csv` / `cache/archives/moe_exploration/dominance_matrix.json` / cached checkpoints are
 the 13:40 run. They are different runs; cross-comparison between the two must be
 labeled explicitly (see docs/DRIVERS.md).
 """
@@ -21,7 +21,7 @@ import pandas as pd
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LOG = os.path.join(ROOT, "cache", "moe_pretrain.log")
-OUT = os.path.join(ROOT, "result_moe_downstream.csv")
+OUT = os.path.join(ROOT, "results", "downstream", "result_moe_downstream.csv")
 
 PAT = re.compile(r"\[(\w+)\]\s+scenario=(\d+)\s+method=(.+?)\s+AUC=([\d.]+)")
 

@@ -10,9 +10,9 @@ ScenarioRouter 的 gate 只依赖 tab（`model.py:59-60`）：
 
 用法:
     python scripts/analyze_gate.py                    # 分析 cache/ 下全部 MoE checkpoint
-    python scripts/analyze_gate.py cache/xxx.pt       # 指定 checkpoint
+    python scripts/analyze_gate.py cache/checkpoints/xxx.pt       # 指定 checkpoint
 
-输出: stdout 表格 + cache/gate_analysis.json
+输出: stdout 表格 + cache/archives/moe_exploration/gate_analysis.json
 """
 
 from __future__ import annotations
@@ -113,4 +113,4 @@ for t in targets:
 if report:
     with open(os.path.join(CACHE, "gate_analysis.json"), "w") as fh:
         json.dump(report, fh, ensure_ascii=False, indent=2)
-    print("\n机读报告已写入 cache/gate_analysis.json")
+    print("\n机读报告已写入 cache/archives/moe_exploration/gate_analysis.json")

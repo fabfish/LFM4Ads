@@ -7,7 +7,7 @@
     python scripts/weighted_auc.py                 # 读 dataset.feather 统计 test 样本数
     python scripts/weighted_auc.py --cached        # 用 cache/provenance_report.json 里的 C9 结果
 
-输出: stdout + cache/weighted_auc.json
+输出: stdout + cache/archives/sample_weighting/weighted_auc.json
 """
 
 from __future__ import annotations
@@ -36,7 +36,8 @@ def test_counts() -> dict[int, int]:
 
 counts = test_counts()
 total = sum(counts.values())
-moe = pd.read_csv(os.path.join(ROOT, "result_moe.csv"))
+moe = pd.read_csv(os.path.join(ROOT, "results", "moe_exploration",
+                               "result_moe.csv"))
 rows = {str(r["Scenario"]): r for _, r in moe.iterrows()}
 
 print(f"test 样本总数: {total:,}\n")
@@ -68,4 +69,4 @@ if (um - uv) * (wm - wv) < 0:
 
 with open(os.path.join(ROOT, "cache", "weighted_auc.json"), "w") as fh:
     json.dump(out, fh, ensure_ascii=False, indent=2)
-print("\n已写入 cache/weighted_auc.json")
+print("\n已写入 cache/archives/sample_weighting/weighted_auc.json")

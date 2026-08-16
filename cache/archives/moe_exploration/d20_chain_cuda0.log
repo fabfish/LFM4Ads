@@ -1,0 +1,8 @@
+[12:04:49] START d20_rx_ds_s1 on cuda:0
+[12:04:49] d20_rx_ds_s1 PID=2951272
+[16:07:25] DONE  d20_rx_ds_s1
+[16:07:25] START d20_rx_ds_s2024 on cuda:0
+[16:07:25] d20_rx_ds_s2024 PID=3170389
+cache/d20_chain.sh: line 27: 3170389 Terminated              setsid nohup python "$script" "$DEV" "$@" --tag "$tag" > "cache/lfm4ads_${tag}.log" 2>&1 < /dev/null
+[21:03:00] DONE  d20_rx_ds_s2024
+[21:03:00] D20 CHAIN COMPLETE on cuda:0

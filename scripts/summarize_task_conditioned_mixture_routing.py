@@ -396,7 +396,7 @@ def write_aggregate_csv(path, summaries):
 
 
 def write_results_transactionally(summaries, decision):
-    csv_path = REPOSITORY / "result_task_conditioned_mixture_routing.csv"
+    csv_path = REPOSITORY / "results" / "tcmr" / "result_task_conditioned_mixture_routing.csv"
     decision_path = RUN_ROOT / "gate_decision.json"
     result_manifest_path = RUN_ROOT / "aggregate_result_manifest.json"
     if any(path.exists() for path in (

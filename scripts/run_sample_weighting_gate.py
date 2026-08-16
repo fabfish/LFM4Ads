@@ -61,7 +61,8 @@ def paths(code):
         "checkpoint": os.path.join(CACHE, f"{code}.pt"),
         "summary": os.path.join(CACHE, f"moe_pretrain_summary_{code}.json"),
         "log": os.path.join(LOGS, f"sample_weighting_{code}.log"),
-        "csv": os.path.join(REPO, f"result_{code}.csv"),
+        "csv": os.path.join(REPO, "results", "sample_weighting",
+                            f"result_{code}.csv"),
     }
 
 

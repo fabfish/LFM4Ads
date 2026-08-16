@@ -38,7 +38,7 @@ def run_name(arm, learning_rate, order, seed):
     )
 
 
-RESULT_CSV = REPOSITORY / "result_shared_residual_specialist_screen.csv"
+RESULT_CSV = REPOSITORY / "results" / "shared_residual" / "result_shared_residual_specialist_screen.csv"
 DECISION_PATH = RUN_ROOT / "specialist_screen_gate_decision.json"
 RESULT_MANIFEST = RUN_ROOT / "specialist_screen_result_manifest.json"
 

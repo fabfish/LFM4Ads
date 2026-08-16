@@ -14,7 +14,7 @@ _sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
   cache/moe_partial_shared_seed{seed}.pt
   cache/vanilla_from_scratch_seed{seed}.pt
   result_moe_fully_routed.csv / result_moe_partial_shared.csv / result_moe_vanilla.csv
-  cache/moe_pretrain_summary_{model}_seed{seed}.json
+  cache/archives/moe_exploration/moe_pretrain_summary_{model}_seed{seed}.json
 
 用法：
   python run_moe_pretrain_from_scratch.py --model fully-routed --device cuda:0 --seed 42
@@ -39,7 +39,7 @@ from train import evaluate, infer, train, train_moe, scenario_loss
 
 SCENARIOS = [0, 1, 2, 3, 4, 5, 6, 8]
 CACHE_DIR = "cache"
-RESULT_DIR = "."
+RESULT_DIR = "results/moe_exploration"
 
 
 def _parse_args(argv):

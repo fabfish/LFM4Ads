@@ -1,7 +1,7 @@
 """E0b — inference-time field ablation: what does the 84M table actually buy?
 
 Zero training cost. Loads the frozen pretrained dense checkpoint
-(`cache/dcnv2_vanilla.pt`, the same Arm-A model whose test AUC is 0.7775 in
+(`cache/checkpoints/dcnv2_vanilla.pt`, the same Arm-A model whose test AUC is 0.7775 in
 docs/20260814-2111) and, one field at a time, zeroes that field's embedding
 table so its contribution to the concatenated 360-d input becomes the zero
 vector. The drop in pooled test AUC is that field's *dependence* score.
@@ -38,7 +38,7 @@ from dataset import GpuBatches, Split  # noqa: E402
 from model import DCNv2  # noqa: E402
 
 CACHE_DIR = "cache"
-VANILLA_PATH = f"{CACHE_DIR}/dcnv2_vanilla.pt"
+VANILLA_PATH = f"{CACHE_DIR}/checkpoints/dcnv2_vanilla.pt"
 OUT_DIR = f"{CACHE_DIR}/embedding_capacity"
 OUT_JSON = f"{OUT_DIR}/field_ablation.json"
 BATCH_SIZE = 10000

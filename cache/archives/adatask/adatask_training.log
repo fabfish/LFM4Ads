@@ -1,0 +1,207 @@
+Phase 0: Loading cached vanilla pretrain...
+
+============================================================
+Training AdaTask MoE: mode = none
+============================================================
+  [none] Batch 20, AU entries: 156, loss: 0.6151
+  [none] Batch 40, AU entries: 156, loss: 0.3131
+  [none] Batch 60, AU entries: 156, loss: 0.1542
+  [none] Batch 80, AU entries: 156, loss: 0.3671
+  [none] Batch 100, AU entries: 156, loss: 0.4811
+  [none] Batch 120, AU entries: 168, loss: 0.5501
+  [none] Batch 140, AU entries: 168, loss: 0.2731
+  [none] Batch 160, AU entries: 168, loss: 0.1855
+  [none] Batch 180, AU entries: 168, loss: 0.7065
+  [none] Batch 200, AU entries: 168, loss: 0.5464
+  [none] Batch 220, AU entries: 168, loss: 0.1102
+  [none] Batch 240, AU entries: 168, loss: 0.2754
+  [none] Batch 260, AU entries: 168, loss: 0.5548
+  [none] Batch 280, AU entries: 168, loss: 0.3974
+  [none] Batch 300, AU entries: 168, loss: 0.7526
+  [none] Batch 320, AU entries: 168, loss: 0.4542
+  [none] Batch 340, AU entries: 168, loss: 0.5499
+  [none] Batch 360, AU entries: 168, loss: 0.2914
+  [none] Batch 380, AU entries: 168, loss: 0.1011
+  [none] Batch 400, AU entries: 168, loss: 0.6908
+  [none] Batch 420, AU entries: 168, loss: 0.4313
+  [none] Batch 440, AU entries: 168, loss: 0.1446
+  [none] Batch 460, AU entries: 168, loss: 0.3820
+  [none] Batch 480, AU entries: 168, loss: 0.0675
+  [none] Batch 500, AU entries: 168, loss: 0.6353
+  [none] Batch 520, AU entries: 168, loss: 0.6612
+  [none] Batch 540, AU entries: 168, loss: 0.7642
+  [none] Batch 560, AU entries: 168, loss: 0.3591
+  [none] Batch 580, AU entries: 168, loss: 0.6010
+  [none] Batch 600, AU entries: 168, loss: 0.5014
+  [none] Batch 620, AU entries: 168, loss: 0.1050
+  [none] Batch 640, AU entries: 168, loss: 0.8889
+
+Evaluating none...
+  Scenario 0: AUC = 0.6850
+  Scenario 1: AUC = 0.7169
+  Scenario 2: AUC = 0.7855
+  Scenario 3: AUC = 0.7415
+  Scenario 4: AUC = 0.7110
+  Scenario 5: AUC = 0.6411
+  Scenario 6: AUC = 0.7222
+  Scenario 8: AUC = 0.6663
+--- Cross Layer 0 Dominance (none) ---
+  E0: 0.006 0.004 0.026 0.115 ... 0.480 0.063 0.275
+  E1: 0.002 0.002 0.027 0.107 ... 0.480 0.067 0.303
+  E2: 0.002 0.002 0.024 0.095 ... 0.575 0.075 0.213
+  E3: 0.001 0.000 0.006 0.051 ... 0.772 0.031 0.137
+--- Cross Layer 1 Dominance (none) ---
+  E0: 0.004 0.002 0.010 0.107 ... 0.506 0.056 0.301
+  E1: 0.005 0.003 0.027 0.100 ... 0.525 0.063 0.253
+  E2: 0.003 0.003 0.036 0.092 ... 0.604 0.059 0.186
+  E3: 0.000 0.000 0.008 0.056 ... 0.776 0.042 0.114
+--- Cross Layer 2 Dominance (none) ---
+  E0: 0.004 0.002 0.014 0.090 ... 0.558 0.056 0.261
+  E1: 0.004 0.002 0.023 0.098 ... 0.586 0.050 0.224
+  E2: 0.003 0.003 0.034 0.094 ... 0.571 0.058 0.219
+  E3: 0.001 0.001 0.009 0.054 ... 0.758 0.043 0.131
+
+============================================================
+Training AdaTask MoE: mode = encourage
+============================================================
+  [encourage] Batch 20, AU entries: 168, loss: 0.2000
+  [encourage] Batch 40, AU entries: 168, loss: 0.1468
+  [encourage] Batch 60, AU entries: 168, loss: 0.3227
+  [encourage] Batch 80, AU entries: 168, loss: 0.4487
+  [encourage] Batch 100, AU entries: 168, loss: 0.4616
+  [encourage] Batch 120, AU entries: 168, loss: 0.4678
+  [encourage] Batch 140, AU entries: 168, loss: 0.5610
+  [encourage] Batch 160, AU entries: 168, loss: 0.2191
+  [encourage] Batch 180, AU entries: 168, loss: 0.1888
+  [encourage] Batch 200, AU entries: 168, loss: 0.1020
+  [encourage] Batch 220, AU entries: 168, loss: 0.5995
+  [encourage] Batch 240, AU entries: 168, loss: 0.5361
+  [encourage] Batch 260, AU entries: 168, loss: 0.1967
+  [encourage] Batch 280, AU entries: 168, loss: 0.3654
+  [encourage] Batch 300, AU entries: 168, loss: 0.1365
+  [encourage] Batch 320, AU entries: 168, loss: 0.3182
+  [encourage] Batch 340, AU entries: 168, loss: 0.6310
+  [encourage] Batch 360, AU entries: 168, loss: 0.4372
+  [encourage] Batch 380, AU entries: 168, loss: 0.3571
+  [encourage] Batch 400, AU entries: 168, loss: 0.1208
+  [encourage] Batch 420, AU entries: 168, loss: 0.1005
+  [encourage] Batch 440, AU entries: 168, loss: 0.0932
+  [encourage] Batch 460, AU entries: 168, loss: 0.2076
+  [encourage] Batch 480, AU entries: 168, loss: 0.4542
+  [encourage] Batch 500, AU entries: 168, loss: 0.4333
+  [encourage] Batch 520, AU entries: 168, loss: 0.5109
+  [encourage] Batch 540, AU entries: 168, loss: 0.4183
+  [encourage] Batch 560, AU entries: 168, loss: 0.0964
+  [encourage] Batch 580, AU entries: 168, loss: 0.5547
+  [encourage] Batch 600, AU entries: 168, loss: 0.2810
+  [encourage] Batch 620, AU entries: 168, loss: 0.3821
+  [encourage] Batch 640, AU entries: 168, loss: 0.2320
+
+Evaluating encourage...
+  Scenario 0: AUC = 0.6880
+  Scenario 1: AUC = 0.7238
+  Scenario 2: AUC = 0.7917
+  Scenario 3: AUC = 0.7281
+  Scenario 4: AUC = 0.7156
+  Scenario 5: AUC = 0.6870
+  Scenario 6: AUC = 0.7306
+  Scenario 8: AUC = 0.7030
+--- Cross Layer 0 Dominance (encourage) ---
+  E0: 0.010 0.005 0.029 0.108 ... 0.446 0.087 0.286
+  E1: 0.003 0.002 0.032 0.103 ... 0.528 0.067 0.246
+  E2: 0.002 0.002 0.020 0.092 ... 0.520 0.077 0.273
+  E3: 0.000 0.000 0.007 0.076 ... 0.710 0.033 0.171
+--- Cross Layer 1 Dominance (encourage) ---
+  E0: 0.007 0.002 0.015 0.128 ... 0.458 0.064 0.305
+  E1: 0.004 0.002 0.020 0.104 ... 0.530 0.071 0.252
+  E2: 0.003 0.004 0.039 0.078 ... 0.595 0.070 0.195
+  E3: 0.000 0.001 0.008 0.060 ... 0.747 0.037 0.143
+--- Cross Layer 2 Dominance (encourage) ---
+  E0: 0.006 0.002 0.017 0.135 ... 0.514 0.062 0.247
+  E1: 0.003 0.001 0.025 0.082 ... 0.603 0.048 0.227
+  E2: 0.002 0.002 0.026 0.076 ... 0.560 0.056 0.256
+  E3: 0.001 0.001 0.010 0.060 ... 0.739 0.052 0.133
+
+============================================================
+Training AdaTask MoE: mode = suppress
+============================================================
+  [suppress] Batch 20, AU entries: 156, loss: 0.3147
+  [suppress] Batch 40, AU entries: 156, loss: 0.3556
+  [suppress] Batch 60, AU entries: 156, loss: 0.9978
+  [suppress] Batch 80, AU entries: 156, loss: 0.5393
+  [suppress] Batch 100, AU entries: 156, loss: 0.1342
+  [suppress] Batch 120, AU entries: 156, loss: 0.3787
+  [suppress] Batch 140, AU entries: 156, loss: 0.4542
+  [suppress] Batch 160, AU entries: 156, loss: 0.6817
+  [suppress] Batch 180, AU entries: 156, loss: 0.1862
+  [suppress] Batch 200, AU entries: 156, loss: 0.4831
+  [suppress] Batch 220, AU entries: 156, loss: 0.2853
+  [suppress] Batch 240, AU entries: 156, loss: 0.2863
+  [suppress] Batch 260, AU entries: 156, loss: 0.1185
+  [suppress] Batch 280, AU entries: 156, loss: 0.6707
+  [suppress] Batch 300, AU entries: 156, loss: 0.1512
+  [suppress] Batch 320, AU entries: 156, loss: 0.5392
+  [suppress] Batch 340, AU entries: 156, loss: 0.4089
+  [suppress] Batch 360, AU entries: 156, loss: 0.4664
+  [suppress] Batch 380, AU entries: 156, loss: 0.2428
+  [suppress] Batch 400, AU entries: 156, loss: 0.6571
+  [suppress] Batch 420, AU entries: 156, loss: 0.4752
+  [suppress] Batch 440, AU entries: 156, loss: 0.5472
+  [suppress] Batch 460, AU entries: 156, loss: 0.2656
+  [suppress] Batch 480, AU entries: 156, loss: 0.3314
+  [suppress] Batch 500, AU entries: 156, loss: 0.4189
+  [suppress] Batch 520, AU entries: 156, loss: 0.2160
+  [suppress] Batch 540, AU entries: 156, loss: 0.2025
+  [suppress] Batch 560, AU entries: 156, loss: 0.4208
+  [suppress] Batch 580, AU entries: 156, loss: 0.3709
+  [suppress] Batch 600, AU entries: 156, loss: 0.0692
+  [suppress] Batch 620, AU entries: 156, loss: 0.4189
+  [suppress] Batch 640, AU entries: 156, loss: 0.4198
+
+Evaluating suppress...
+  Scenario 0: AUC = 0.6857
+  Scenario 1: AUC = 0.7209
+  Scenario 2: AUC = 0.7866
+  Scenario 3: AUC = 0.7192
+  Scenario 4: AUC = 0.7149
+  Scenario 5: AUC = 0.6648
+  Scenario 6: AUC = 0.7292
+  Scenario 8: AUC = 0.7382
+--- Cross Layer 0 Dominance (suppress) ---
+  E0: 0.007 0.003 0.033 0.131 ... 0.410 0.068 0.325
+  E1: 0.003 0.003 0.021 0.143 ... 0.465 0.082 0.264
+  E2: 0.003 0.004 0.021 0.112 ... 0.488 0.089 0.269
+  E3: 0.001 0.001 0.009 0.068 ... 0.635 0.036 0.250
+--- Cross Layer 1 Dominance (suppress) ---
+  E0: 0.006 0.003 0.019 0.127 ... 0.407 0.066 0.356
+  E1: 0.006 0.003 0.024 0.132 ... 0.469 0.096 0.245
+  E2: 0.003 0.002 0.036 0.140 ... 0.471 0.065 0.266
+  E3: 0.000 0.001 0.008 0.063 ... 0.702 0.041 0.181
+--- Cross Layer 2 Dominance (suppress) ---
+  E0: 0.003 0.002 0.018 0.093 ... 0.548 0.054 0.268
+  E1: 0.005 0.002 0.027 0.140 ... 0.499 0.079 0.231
+  E2: 0.003 0.002 0.024 0.104 ... 0.434 0.047 0.370
+  E3: 0.001 0.001 0.013 0.083 ... 0.640 0.054 0.202
+
+============================================================
+AdaTask MoE Results: Encourage vs Suppress Expert Specialization
+============================================================
+ scenario     none  encourage  suppress
+        0 0.685038   0.687958  0.685662
+        1 0.716920   0.723846  0.720939
+        2 0.785550   0.791717  0.786642
+        3 0.741473   0.728143  0.719226
+        4 0.711012   0.715602  0.714927
+        5 0.641149   0.686971  0.664774
+        6 0.722156   0.730616  0.729204
+        8 0.666266   0.702996  0.738250
+
+--- Mean AUC ---
+  none      : 0.7087
+  encourage : 0.7210
+  suppress  : 0.7200
+  encourage  Δ vs none: +0.0123
+  suppress   Δ vs none: +0.0113
+
+Results: /apdcephfs/private_xavieryu/projects/LFM4Ads/cache/adatask_results.csv
+AU data:  /apdcephfs/private_xavieryu/projects/LFM4Ads/cache/adatask_au_*.json

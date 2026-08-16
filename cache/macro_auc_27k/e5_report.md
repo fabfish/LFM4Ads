@@ -1,6 +1,6 @@
 # E5 报告：场景内泛化（macro-AUC）下的 scenario-routed MoE
 
-- 生成时间：自动汇总（18 个 run 已完成）
+- 生成时间：自动汇总（26 个 run 已完成）
 - 主终点：macro AUC over scenarios [0, 1, 2, 3, 4, 5, 6, 8]（test，等权）
 - 预注册：`docs/20260815-0018-场景内泛化MoE长程矩阵预注册.md`
 

@@ -6,11 +6,11 @@ _sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 稀疏 dispatch + Switch Transformer load-balancing + dense checkpoint upcycling。
 
 流程:
-  1. 加载 dense checkpoint (cache/dcnv2_vanilla.pt)，evaluate 作为臂 A 参照
+  1. 加载 dense checkpoint (cache/checkpoints/dcnv2_vanilla.pt)，evaluate 作为臂 A 参照
   2. upcycle 到 DCNv2CapacityMoE（专家 = dense 副本 + 乘法扰动打破对称性）
   3. per-scenario forward+backward（sample 加权）+ load-balance loss
   4. 每 epoch 记录 valid AUC + clean gate 熵（哨兵）+ per-scenario 分化度
-  5. 输出 result_capacity_moe.csv + cache/capacity_moe_history.json
+  5. 输出 result_capacity_moe.csv + cache/archives/capacity_moe/capacity_moe_history.json
 
 哨兵判定见 docs/20260813-1642-capacity-MoE-驱动.md §六：
   - PASS        : 不崩 + 稀疏生效 + 三层熵均值 ≤ log K - 0.15 + 分化度 ≥ 1/3
@@ -118,10 +118,10 @@ ARGS = _parse_args(sys.argv[1:])
 DEVICE = ARGS.device
 CACHE_DIR = "cache"
 SUF = f"_{ARGS.tag}" if ARGS.tag else ""
-VANILLA_PATH = f"{CACHE_DIR}/dcnv2_vanilla.pt"
-RESULT_CSV = f"result_capacity_moe{SUF}.csv"
-RESULT_DENSE_CONT_CSV = f"result_dense_cont{SUF}.csv"
-HISTORY_JSON = f"{CACHE_DIR}/capacity_moe_history{SUF}.json"
+VANILLA_PATH = f"{CACHE_DIR}/checkpoints/dcnv2_vanilla.pt"
+RESULT_CSV = f"results/capacity_moe/result_capacity_moe{SUF}.csv"
+RESULT_DENSE_CONT_CSV = f"results/capacity_moe/result_dense_cont{SUF}.csv"
+HISTORY_JSON = f"{CACHE_DIR}/archives/capacity_moe/capacity_moe_history{SUF}.json"
 
 torch.manual_seed(ARGS.seed)
 os.makedirs(CACHE_DIR, exist_ok=True)
@@ -578,7 +578,7 @@ print(f"  divergence_ratio = {div:.2f}  dispatch_verified = "
 print(f"  SENTINEL VERDICT = {verdict}")
 
 torch.save(moe.state_dict(),
-           f"{CACHE_DIR}/dcnv2_capacity_moe{SUF}.pt")
+           f"{CACHE_DIR}/checkpoints/dcnv2_capacity_moe{SUF}.pt")
 
 with open(HISTORY_JSON, "w") as f:
     json.dump({

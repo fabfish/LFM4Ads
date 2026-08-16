@@ -91,8 +91,8 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 VANILLA_PATH = f"{CACHE_DIR}/dcnv2_vanilla.pt"
 MOE_V2_PATH = f"{CACHE_DIR}/dcnv2_moe_v2_k{K}{SUF}.pt"
 MOE_V1_PATH = f"{CACHE_DIR}/dcnv2_moe_k{K}.pt"
-RESULT_CSV = f"result_moe_v2{SUF}.csv"
-DOWNSTREAM_CSV = f"result_moe_v2_downstream{SUF}.csv"
+RESULT_CSV = f"results/moe_v2/result_moe_v2{SUF}.csv"
+DOWNSTREAM_CSV = f"results/downstream/result_moe_v2_downstream{SUF}.csv"
 GATE_JSON = f"{CACHE_DIR}/gate_stats_v2{SUF}.json"
 HISTORY_JSON = f"{CACHE_DIR}/moe_v2_train_history{SUF}.json"
 

@@ -1,0 +1,10 @@
+[23:48:07] START d12_v1_lr5e4 on cuda:1
+[23:48:07] d12_v1_lr5e4 PID=2356613
+[23:57:37] DONE  d12_v1_lr5e4
+[23:57:37] START d12_v1_lr2e3 on cuda:1
+[23:57:37] d12_v1_lr2e3 PID=2363125
+[00:03:07] DONE  d12_v1_lr2e3
+[00:03:07] START d12_v1_lr1e3_b95 on cuda:1
+[00:03:07] d12_v1_lr1e3_b95 PID=2367059
+[00:10:07] DONE  d12_v1_lr1e3_b95
+[00:10:07] D12 CHAIN COMPLETE on cuda:1

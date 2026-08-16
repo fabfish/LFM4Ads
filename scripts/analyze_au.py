@@ -13,7 +13,7 @@ AU 实际累计的场景集**（`all_scn`），使"累计场景数"与"归一化
 
 来源: cache/adatask_au_{none,encourage,suppress}.json
 用法: python scripts/analyze_au.py
-输出: stdout + cache/au_analysis.json
+输出: stdout + cache/archives/adatask/au_analysis.json
 """
 
 from __future__ import annotations
@@ -128,4 +128,4 @@ print(f"\nargmax 场景集合: {argmax_all}")
 
 with open(os.path.join(CACHE, "au_analysis.json"), "w") as fh:
     json.dump(report, fh, ensure_ascii=False, indent=2)
-print("\n已写入 cache/au_analysis.json")
+print("\n已写入 cache/archives/adatask/au_analysis.json")

@@ -201,7 +201,7 @@ def matrix_paths(commands):
             REPOSITORY / "logs" / f"{name}.log",
         ))
     output_paths = (
-        REPOSITORY / "result_task_conditioned_mixture_routing.csv",
+        REPOSITORY / "results" / "tcmr" / "result_task_conditioned_mixture_routing.csv",
         run_root / "gate_decision.json",
         run_root / "aggregate_result_manifest.json",
     )

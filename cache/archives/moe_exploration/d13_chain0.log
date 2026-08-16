@@ -1,0 +1,7 @@
+[00:08:21] START d13_v1_lr3e4 on cuda:0
+[00:08:21] d13_v1_lr3e4 PID=2370396
+[00:19:21] DONE  d13_v1_lr3e4
+[00:19:21] START d13_v1_lr5e5 on cuda:0
+[00:19:21] d13_v1_lr5e5 PID=2376565
+[00:24:21] DONE  d13_v1_lr5e5
+[00:24:21] D13 CHAIN COMPLETE on cuda:0

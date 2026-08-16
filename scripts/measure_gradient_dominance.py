@@ -19,15 +19,15 @@
 Usage:
     # 训练后的 MoE V2 (稀疏模式 top_k=2)
     python scripts/measure_gradient_dominance.py --device cuda:0 --arch v2 \
-        --ckpt cache/dcnv2_moe_v2_k4.pt --top-k 2 --tag v2
+        --ckpt cache/checkpoints/dcnv2_moe_v2_k4.pt --top-k 2 --tag v2
 
     # MoE V1
     python scripts/measure_gradient_dominance.py --device cuda:0 --arch v1 \
-        --ckpt cache/dcnv2_moe_k4.pt --tag v1
+        --ckpt cache/checkpoints/dcnv2_moe_k4.pt --tag v1
 
     # 初始化时刻 (从 vanilla split 而来, 尚未训练)
     python scripts/measure_gradient_dominance.py --device cuda:0 --arch v2 \
-        --from-vanilla cache/dcnv2_vanilla.pt --top-k 2 --tag v2_init
+        --from-vanilla cache/checkpoints/dcnv2_vanilla.pt --top-k 2 --tag v2_init
 
 Output: cache/grad_dominance_<tag>.json
 """
