@@ -32,14 +32,28 @@ LFM4Ads/
 ├── fields.py       # 特征字段定义（user 27 + video 9）
 ├── plot.py         # 画图脚本
 ├── *_protocol.py   # 3 个实验协议（train.py 模块级依赖其一，勿移出根目录）
-├── main_macro_auc.py  # 活跃实验入口（27K MoE，勿动）
-├── experiments/    # 历史实验入口脚本（main_*.py / run_*.py）
-├── scripts/        # 工具脚本（矩阵调度/汇总/验证/诊断；整理中）
+├── experiments/    # 实验入口脚本（main_*.py / run_*.py，含 main_macro_auc.py）
+├── scripts/        # 工具脚本按职责分子目录（见下）
 ├── results/        # 所有 result CSV 按实验分组 + INDEX.md 大清单
-├── cache/          # 中间产物与证据（按实验分子目录；*.pt 权重不入库）
-├── logs/           # 运行日志
+├── cache/          # checkpoints/*.pt 权重 + archives/<实验>/ 历史产物 +
+│                   # macro_auc(1K)/macro_auc_27k(27K) 证据
+├── logs/           # archives/<实验>/ 历史日志 + macro_auc*/ 活跃日志
 └── docs/           # 所有文档和结论文档（近期）+ docs/archive/（历史）
 ```
+
+**scripts/ 布局**（2026-08-16 整理后）：
+
+```
+scripts/
+├── matrix/     # 实验矩阵调度（run_*_matrix.py、run_*.sh、swg_config*.py）
+├── summarize/  # 结果汇总与判定（summarize_*.py，阈值硬编码防漂移）
+├── verify/     # 证据校验（verify_*.py、audit_experiment_bundle.py）
+├── diagnose/   # 诊断/分析（diagnose_*、analyze_*、measure_*、weighted_auc 等）
+├── gpu_keeper*.py / start|stop_gpu_keeper.sh / gpu-keeper.service  ← 常驻服务，勿动
+├── build_27k_dataset.py / launch_pack.py / *_authorization.json   ← 构建与授权配置
+```
+
+> 旧文档中的 `scripts/xxx.py` 路径对应 `scripts/<类>/xxx.py`（历史文档未回溯修改）。
 
 - **结果大清单**：`results/INDEX.md` 是「结果文件 → 实验 → 判定 → 结论」的集中索引，新增结果后须同步登记。
 - **核心库不动**：`model.py/train.py/dataset.py/fields.py/plot.py` 留在根目录；experiments/ 下脚本通过顶部 `sys.path` 注入指向仓库根。

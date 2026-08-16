@@ -1,0 +1,7 @@
+[2026-08-13 17:25:33] gpu0 seed=42 top_k=1 noise_scale=0.01 tag=s42_k1_ns001
+[2026-08-13 17:31:21] gpu0 DONE s42_k1_ns001 (exit 0)
+[2026-08-13 17:31:21] gpu0 seed=42 top_k=1 noise_scale=0.05 tag=s42_k1_ns005
+[2026-08-13 17:37:09] gpu0 DONE s42_k1_ns005 (exit 0)
+[2026-08-13 17:37:09] gpu0 seed=42 top_k=1 noise_scale=0.1 tag=s42_k1_ns010
+[2026-08-13 17:42:52] gpu0 DONE s42_k1_ns010 (exit 0)
+[2026-08-13 17:42:52] gpu0 seed=42 top_k=2 noise_scale=0.01 tag=s42_k2_ns001

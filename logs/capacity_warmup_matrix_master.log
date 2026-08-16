@@ -1,3 +1,0 @@
-warmup+lb matrix launched: gpu0 seed42 (6 runs), gpu1 seed123 (6 runs)
-12 runs total; per-run log in logs/capacity_moe_<tag>.log
-warmup+lb matrix done

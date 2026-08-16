@@ -1,0 +1,28 @@
+[1/4] loading logs ...
+  read log_standard_4_08_to_4_21_27k_part1.csv: 68,148,288 rows  [22s]
+  read log_standard_4_08_to_4_21_27k_part2.csv: 68,148,288 rows  [45s]
+  read log_standard_4_22_to_5_08_27k_part1.csv: 93,062,020 rows  [74s]
+  read log_standard_4_22_to_5_08_27k_part2.csv: 92,919,789 rows  [104s]
+log total: 322,278,385 rows  [108s]
+[2/4] merging features ...
+  user_features: 27,285 rows  [0s]
+  video_features: 32,038,725 rows  [18s]
+  after user merge: 322,278,385 rows  [209s]
+  after video merge: 322,278,385 rows  [359s]
+[3/4] factorizing feature columns ...
+  factorized 36 fields  [655s]
+[4/4] writing feather + vocab ...
+  wrote /root/Documents/Lfm4ads/dataset_27k.feather (6.0 GB)  [703s]
+  wrote /root/Documents/Lfm4ads/cache/fields_27k.json
+
+=== summary ===
+rows        : 322,278,385
+tab values  : [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+user_id vocab : 27,285
+video_id vocab: 32,038,693
+author_id vocab: 8,839,735
+music_id vocab : 14,155,957
+train      : 255,474,457
+valid      : 34,034,748
+ test      : 32,769,180
+total wall : 761s

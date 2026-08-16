@@ -1,0 +1,186 @@
+[matrix] 58 runs, budget 11.0h, devices=['cuda:0', 'cuda:1']
+  cuda:0: 29 runs (seeds [42, 456])
+  cuda:1: 29 runs (seeds [123, 789])
+[cuda:0] (1/29) RUN s1_dense_balanced_s42
+[cuda:1] (1/29) RUN s1_dense_balanced_s123
+[cuda:0] (1/29) OK s1_dense_balanced_s42 2.1min
+[cuda:0] (2/29) RUN s1_moe_balanced_K5_s42
+[cuda:1] (1/29) OK s1_dense_balanced_s123 2.1min
+[cuda:1] (2/29) RUN s1_moe_balanced_K5_s123
+[cuda:0] (2/29) OK s1_moe_balanced_K5_s42 2.6min
+[cuda:0] (3/29) RUN s1_dense_pooled_s42
+[cuda:1] (2/29) OK s1_moe_balanced_K5_s123 2.9min
+[cuda:1] (3/29) RUN s1_dense_pooled_s123
+[cuda:0] (3/29) OK s1_dense_pooled_s42 2.1min
+[cuda:0] (4/29) RUN s1_moe_pooled_K5_s42
+[cuda:1] (3/29) OK s1_dense_pooled_s123 2.1min
+[cuda:1] (4/29) RUN s1_moe_pooled_K5_s123
+[cuda:0] (4/29) OK s1_moe_pooled_K5_s42 2.4min
+[cuda:0] (5/29) RUN s1_dense_balanced_s456
+[cuda:1] (4/29) OK s1_moe_pooled_K5_s123 2.7min
+[cuda:1] (5/29) RUN s1_dense_balanced_s789
+[cuda:0] (5/29) OK s1_dense_balanced_s456 2.0min
+[cuda:0] (6/29) RUN s1_moe_balanced_K5_s456
+[cuda:1] (5/29) OK s1_dense_balanced_s789 2.0min
+[cuda:1] (6/29) RUN s1_moe_balanced_K5_s789
+[cuda:0] (6/29) OK s1_moe_balanced_K5_s456 3.2min
+[cuda:0] (7/29) RUN s1_dense_pooled_s456
+[cuda:1] (6/29) OK s1_moe_balanced_K5_s789 2.7min
+[cuda:1] (7/29) RUN s1_dense_pooled_s789
+[cuda:1] (7/29) OK s1_dense_pooled_s789 2.0min
+[cuda:1] (8/29) RUN s1_moe_pooled_K5_s789
+[cuda:0] (7/29) OK s1_dense_pooled_s456 2.2min
+[cuda:0] (8/29) RUN s1_moe_pooled_K5_s456
+[cuda:0] (8/29) OK s1_moe_pooled_K5_s456 2.7min
+[cuda:0] (9/29) RUN s2sent_moe_frozen_s42
+[cuda:1] (8/29) OK s1_moe_pooled_K5_s789 2.8min
+[cuda:1] (9/29) RUN s2sent_moe_frozen_s123
+[cuda:0] (9/29) OK s2sent_moe_frozen_s42 2.9min
+[cuda:0] (10/29) RUN s3_moe_balanced_K2_s42
+[cuda:1] (9/29) OK s2sent_moe_frozen_s123 2.7min
+[cuda:1] (10/29) RUN s3_moe_balanced_K2_s123
+[cuda:0] (10/29) OK s3_moe_balanced_K2_s42 2.3min
+[cuda:0] (11/29) RUN s3_moe_balanced_K3_s42
+[cuda:1] (10/29) OK s3_moe_balanced_K2_s123 2.5min
+[cuda:1] (11/29) RUN s3_moe_balanced_K3_s123
+[cuda:0] (11/29) OK s3_moe_balanced_K3_s42 2.3min
+[cuda:0] (12/29) RUN s3_moe_balanced_K6_s42
+[cuda:1] (11/29) OK s3_moe_balanced_K3_s123 2.6min
+[cuda:1] (12/29) RUN s3_moe_balanced_K6_s123
+[cuda:0] (12/29) OK s3_moe_balanced_K6_s42 2.4min
+[cuda:0] (13/29) RUN s3_moe_balanced_K10_s42
+[cuda:1] (12/29) OK s3_moe_balanced_K6_s123 2.9min
+[cuda:1] (13/29) RUN s3_moe_balanced_K10_s123
+[cuda:0] (13/29) OK s3_moe_balanced_K10_s42 3.1min
+[cuda:0] (14/29) RUN s3_moe_balanced_K11_s42
+[cuda:1] (13/29) OK s3_moe_balanced_K10_s123 3.5min
+[cuda:1] (14/29) RUN s3_moe_balanced_K11_s123
+[cuda:0] (14/29) OK s3_moe_balanced_K11_s42 3.4min
+[cuda:0] (15/29) RUN s3_moe_balanced_K2_s456
+[cuda:1] (14/29) OK s3_moe_balanced_K11_s123 3.5min
+[cuda:1] (15/29) RUN s3_moe_balanced_K2_s789
+[cuda:0] (15/29) OK s3_moe_balanced_K2_s456 2.6min
+[cuda:0] (16/29) RUN s3_moe_balanced_K3_s456
+[cuda:1] (15/29) OK s3_moe_balanced_K2_s789 2.3min
+[cuda:1] (16/29) RUN s3_moe_balanced_K3_s789
+[cuda:0] (16/29) OK s3_moe_balanced_K3_s456 2.5min
+[cuda:0] (17/29) RUN s3_moe_balanced_K6_s456
+[cuda:1] (16/29) OK s3_moe_balanced_K3_s789 2.5min
+[cuda:1] (17/29) RUN s3_moe_balanced_K6_s789
+[cuda:0] (17/29) OK s3_moe_balanced_K6_s456 2.9min
+[cuda:0] (18/29) RUN s3_moe_balanced_K10_s456
+[cuda:1] (17/29) OK s3_moe_balanced_K6_s789 2.7min
+[cuda:1] (18/29) RUN s3_moe_balanced_K10_s789
+[cuda:0] (18/29) OK s3_moe_balanced_K10_s456 3.4min
+[cuda:0] (19/29) RUN s3_moe_balanced_K11_s456
+[cuda:1] (18/29) OK s3_moe_balanced_K10_s789 3.3min
+[cuda:1] (19/29) RUN s3_moe_balanced_K11_s789
+[cuda:0] (19/29) OK s3_moe_balanced_K11_s456 3.7min
+[cuda:0] (20/29) RUN s4_dense_balanced_lr0.0002_s42
+[cuda:1] (19/29) OK s3_moe_balanced_K11_s789 3.4min
+[cuda:1] (20/29) RUN s4_dense_balanced_lr0.0002_s123
+[cuda:0] (20/29) OK s4_dense_balanced_lr0.0002_s42 2.3min
+[cuda:0] (21/29) RUN s4_moe_balanced_K5_lr0.0002_s42
+[cuda:1] (20/29) OK s4_dense_balanced_lr0.0002_s123 2.1min
+[cuda:1] (21/29) RUN s4_moe_balanced_K5_lr0.0002_s123
+[cuda:0] (21/29) OK s4_moe_balanced_K5_lr0.0002_s42 2.7min
+[cuda:0] (22/29) RUN s4_dense_balanced_lr0.003_s42
+[cuda:1] (21/29) OK s4_moe_balanced_K5_lr0.0002_s123 2.7min
+[cuda:1] (22/29) RUN s4_dense_balanced_lr0.003_s123
+[cuda:0] (22/29) OK s4_dense_balanced_lr0.003_s42 2.0min
+[cuda:0] (23/29) RUN s4_moe_balanced_K5_lr0.003_s42
+[cuda:1] (22/29) OK s4_dense_balanced_lr0.003_s123 2.1min
+[cuda:1] (23/29) RUN s4_moe_balanced_K5_lr0.003_s123
+[cuda:0] (23/29) OK s4_moe_balanced_K5_lr0.003_s42 3.1min
+[cuda:0] (24/29) RUN s4_dense_balanced_lr0.0002_s456
+[cuda:1] (23/29) OK s4_moe_balanced_K5_lr0.003_s123 3.0min
+[cuda:1] (24/29) RUN s4_dense_balanced_lr0.0002_s789
+[cuda:0] (24/29) OK s4_dense_balanced_lr0.0002_s456 2.1min
+[cuda:0] (25/29) RUN s4_moe_balanced_K5_lr0.0002_s456
+[cuda:1] (24/29) OK s4_dense_balanced_lr0.0002_s789 2.0min
+[cuda:1] (25/29) RUN s4_moe_balanced_K5_lr0.0002_s789
+[cuda:0] (25/29) OK s4_moe_balanced_K5_lr0.0002_s456 2.7min
+[cuda:0] (26/29) RUN s4_dense_balanced_lr0.003_s456
+[cuda:1] (25/29) OK s4_moe_balanced_K5_lr0.0002_s789 2.8min
+[cuda:1] (26/29) RUN s4_dense_balanced_lr0.003_s789
+[cuda:0] (26/29) OK s4_dense_balanced_lr0.003_s456 2.1min
+[cuda:0] (27/29) RUN s4_moe_balanced_K5_lr0.003_s456
+[cuda:1] (26/29) OK s4_dense_balanced_lr0.003_s789 2.3min
+[cuda:1] (27/29) RUN s4_moe_balanced_K5_lr0.003_s789
+[cuda:0] (27/29) OK s4_moe_balanced_K5_lr0.003_s456 3.1min
+[cuda:0] (28/29) RUN s5full_dense_balanced_s42
+[cuda:1] (27/29) OK s4_moe_balanced_K5_lr0.003_s789 3.4min
+[cuda:1] (28/29) RUN s5full_dense_balanced_s123
+[cuda:0] (28/29) OK s5full_dense_balanced_s42 2.6min
+[cuda:0] (29/29) RUN s5full_moe_balanced_s42
+[cuda:1] (28/29) OK s5full_dense_balanced_s123 2.8min
+[cuda:1] (29/29) RUN s5full_moe_balanced_s123
+[cuda:0] (29/29) OK s5full_moe_balanced_s42 3.3min
+[cuda:1] (29/29) OK s5full_moe_balanced_s123 3.3min
+
+[matrix] done: 58 ok, 0 failed, 0 skipped
+
+[matrix] summarizing ...
+# E5 报告：场景内泛化（macro-AUC）下的 scenario-routed MoE
+
+- 生成时间：自动汇总（58 个 run 已完成）
+- 主终点：macro AUC over scenarios [0, 1, 2, 3, 4, 5, 6, 8]（test，等权）
+- 预注册：`docs/20260815-0018-场景内泛化MoE长程矩阵预注册.md`
+
+## Stage 1（主实验）：arch × loss × 4 seed
+
+| seed | dense+pooled | moe+pooled | dense+balanced | moe+balanced | Δ_moe(bal) | Δ_moe(pool) | Δ_loss(dense) |
+|---|---|---|---|---|---|---|---|
+| 42 | 0.733204 | 0.734458 | 0.727816 | 0.722239 | -0.005577 | +0.001254 | -0.005388 |
+| 123 | 0.733444 | 0.732054 | 0.724835 | 0.723147 | -0.001689 | -0.001390 | -0.008609 |
+| 456 | 0.731501 | 0.734816 | 0.731134 | 0.717539 | -0.013594 | +0.003315 | -0.000367 |
+| 789 | 0.738290 | 0.729432 | 0.717818 | 0.720007 | +0.002189 | -0.008858 | -0.020471 |
+
+**噪声地板（实测）** = 2 × SD(dense+balanced macro) = 0.011344
+
+**Δ_moe(balanced) 均值 = -0.004668**
+
+**判定 = `INCONCLUSIVE`** — sign flip across seeds, or effect within the noise floor
+
+**函数保持哨兵**（frozen-router MoE − dense，应 ≈0，容差 0.01）：s42=-0.007207, s123=-0.003868 → PASS
+
+## 逐场景分解（moe+balanced − dense+balanced，seed 平均）
+
+| scenario | dense | moe | Δ |
+|---|---|---|---|
+| s0 | 0.6879 | 0.6945 | +0.0066 |
+| s1 | 0.7180 | 0.7224 | +0.0044 |
+| s2 | 0.7923 | 0.7919 | -0.0004 |
+| s3 | 0.7397 | 0.7260 | -0.0137 |
+| s4 | 0.7136 | 0.7120 | -0.0017 |
+| s5 | 0.6538 | 0.6314 | -0.0225 |
+| s6 | 0.7264 | 0.7230 | -0.0033 |
+| s8 | 0.7715 | 0.7647 | -0.0068 |
+
+## 口径对照：同一批 run 在 pooled 端点上的 Δ
+
+| seed | Δ_moe(macro) | Δ_moe(pooled) | 倍数 |
+|---|---|---|---|
+| 42 | -0.005577 | +0.000781 | 7.1x |
+| 123 | -0.001689 | +0.002141 | 0.8x |
+| 456 | -0.013594 | +0.002837 | 4.8x |
+| 789 | +0.002189 | +0.004616 | 0.5x |
+
+> 若 macro 的 |Δ| 显著大于 pooled 的 |Δ|，即定量证明「过去用 pooled 端点测不到该机制」。
+
+## Stage 3：隔离粒度 K 扫描（容量恒定）
+
+| K | macro（seed 平均） | Δ vs dense | n_seed |
+|---|---|---|---|
+| 2 | 0.722459 | -0.002942 | 4 |
+| 3 | 0.723822 | -0.001579 | 4 |
+| 5 | 0.720733 | -0.004668 | 4 |
+| 6 | 0.716189 | -0.009212 | 4 |
+| 10 | 0.724442 | -0.000959 | 4 |
+| 11 | 0.727075 | +0.001674 | 4 |
+
+## Stage 4：lr 稳健性
+
+
+wrote cache/macro_auc/e5_decision.json
+wrote cache/macro_auc/e5_report.md

@@ -1,3 +1,0 @@
-necessity matrix launched: gpu0 -> seed 42 ; gpu1 -> seed 123
-per-run log in logs/capacity_moe_s{42,123}_necessity.log
-necessity matrix done

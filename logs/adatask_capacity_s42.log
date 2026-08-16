@@ -1,637 +1,0 @@
-[config] device=cuda:0 seed=42 K=4 alpha=0.5 lr=0.001 epochs=5 batch=16384 freeze='none' tag='cap_k4_tk2_s42' vanilla=cache/dcnv2_vanilla.pt
-Phase 0: Loading cached vanilla pretrain...
-
-============================================================
-Training AdaTask capacity-MoE: mode = none
-============================================================
-  [none][warmup] Batch 20, AU entries: 195, loss: 0.3581
-  [none][warmup] Batch 40, AU entries: 195, loss: 0.2831
-  [none][warmup] Batch 60, AU entries: 195, loss: 0.2363
-  [none][warmup] Batch 80, AU entries: 195, loss: 0.1423
-  [none][warmup] Batch 100, AU entries: 195, loss: 0.4440
-  [none][warmup] Batch 120, AU entries: 195, loss: 0.7752
-  [none][warmup] Batch 140, AU entries: 195, loss: 0.3721
-  [none][warmup] Batch 160, AU entries: 195, loss: 0.1529
-  [none][warmup] Batch 180, AU entries: 195, loss: 0.3178
-  [none][warmup] Batch 200, AU entries: 195, loss: 0.2061
-  [none][warmup] Batch 220, AU entries: 195, loss: 0.2643
-  [none][warmup] Batch 240, AU entries: 195, loss: 0.0459
-  [none][warmup] Batch 260, AU entries: 195, loss: 0.3920
-  [none][warmup] Batch 280, AU entries: 195, loss: 0.3811
-  [none][warmup] Batch 300, AU entries: 195, loss: 0.4805
-  [none][warmup] Batch 320, AU entries: 195, loss: 0.2704
-  [none][warmup] Batch 340, AU entries: 195, loss: 0.1292
-  [none][warmup] Batch 360, AU entries: 195, loss: 0.5177
-  [none][warmup] Batch 380, AU entries: 195, loss: 0.3130
-  [none][warmup] Batch 400, AU entries: 195, loss: 0.0550
-  [none][warmup] Batch 420, AU entries: 195, loss: 0.5300
-  [none][warmup] Batch 440, AU entries: 195, loss: 0.3803
-  [none][warmup] Batch 460, AU entries: 210, loss: 0.3056
-  [none][warmup] Batch 480, AU entries: 210, loss: 0.4270
-  [none][warmup] Batch 500, AU entries: 210, loss: 0.2369
-  [none][warmup] Batch 520, AU entries: 210, loss: 0.4018
-  [none][warmup] Batch 540, AU entries: 210, loss: 0.2793
-  [none][warmup] Batch 560, AU entries: 210, loss: 0.4739
-  [none][warmup] Batch 580, AU entries: 210, loss: 0.1988
-  [none][warmup] Batch 600, AU entries: 210, loss: 0.1436
-  [none][warmup] Batch 620, AU entries: 210, loss: 0.2143
-  [none][warmup] Batch 640, AU entries: 210, loss: 0.2434
-  0%|          | 0/121 [00:00<?, ?it/s]  1%|          | 1/121 [00:03<07:08,  3.57s/it]  2%|▏         | 2/121 [00:03<03:15,  1.65s/it]  7%|▋         | 9/121 [00:04<00:30,  3.66it/s]  9%|▉         | 11/121 [00:04<00:26,  4.20it/s] 17%|█▋        | 20/121 [00:04<00:10,  9.25it/s] 25%|██▍       | 30/121 [00:04<00:06, 14.65it/s] 33%|███▎      | 40/121 [00:05<00:04, 19.65it/s] 41%|████▏     | 50/121 [00:05<00:02, 23.98it/s] 50%|████▉     | 60/121 [00:05<00:02, 27.49it/s] 58%|█████▊    | 70/121 [00:06<00:01, 30.29it/s] 65%|██████▌   | 79/121 [00:06<00:01, 37.50it/s] 70%|███████   | 85/121 [00:06<00:01, 34.35it/s] 74%|███████▍  | 90/121 [00:06<00:00, 31.87it/s] 82%|████████▏ | 99/121 [00:06<00:00, 40.59it/s] 87%|████████▋ | 105/121 [00:06<00:00, 36.00it/s] 91%|█████████ | 110/121 [00:07<00:00, 32.94it/s]100%|██████████| 121/121 [00:07<00:00, 46.59it/s]100%|██████████| 121/121 [00:07<00:00, 15.47it/s]
-  [none][warmup] Epoch 1 entropy_mean=0.9226 (logK=1.3863)
-  [none][warmup] Batch 660, AU entries: 210, loss: 0.4578
-  [none][warmup] Batch 680, AU entries: 210, loss: 0.3753
-  [none][warmup] Batch 700, AU entries: 210, loss: 0.2067
-  [none][warmup] Batch 720, AU entries: 210, loss: 0.6968
-  [none][warmup] Batch 740, AU entries: 210, loss: 0.6501
-  [none][warmup] Batch 760, AU entries: 210, loss: 0.3067
-  [none][warmup] Batch 780, AU entries: 210, loss: 0.3052
-  [none][warmup] Batch 800, AU entries: 210, loss: 0.2343
-  [none][warmup] Batch 820, AU entries: 210, loss: 0.4944
-  [none][warmup] Batch 840, AU entries: 210, loss: 0.2016
-  [none][warmup] Batch 860, AU entries: 210, loss: 0.0727
-  [none][warmup] Batch 880, AU entries: 210, loss: 0.6882
-  [none][warmup] Batch 900, AU entries: 210, loss: 0.3417
-  [none][warmup] Batch 920, AU entries: 210, loss: 0.1569
-  [none][warmup] Batch 940, AU entries: 210, loss: 0.6015
-  [none][warmup] Batch 960, AU entries: 210, loss: 0.0860
-  [none][warmup] Batch 980, AU entries: 210, loss: 0.1134
-  [none][warmup] Batch 1000, AU entries: 210, loss: 0.2602
-  [none][warmup] Batch 1020, AU entries: 210, loss: 0.3542
-  [none][warmup] Batch 1040, AU entries: 210, loss: 0.1164
-  [none][warmup] Batch 1060, AU entries: 210, loss: 0.4941
-  [none][warmup] Batch 1080, AU entries: 210, loss: 0.3776
-  [none][warmup] Batch 1100, AU entries: 210, loss: 0.6466
-  [none][warmup] Batch 1120, AU entries: 210, loss: 0.1397
-  [none][warmup] Batch 1140, AU entries: 210, loss: 0.2922
-  [none][warmup] Batch 1160, AU entries: 210, loss: 0.4544
-  [none][warmup] Batch 1180, AU entries: 210, loss: 0.0927
-  [none][warmup] Batch 1200, AU entries: 210, loss: 0.4807
-  [none][warmup] Batch 1220, AU entries: 210, loss: 0.3863
-  [none][warmup] Batch 1240, AU entries: 210, loss: 0.2893
-  [none][warmup] Batch 1260, AU entries: 210, loss: 0.3105
-  [none][warmup] Batch 1280, AU entries: 210, loss: 0.5493
-  0%|          | 0/121 [00:00<?, ?it/s]  1%|          | 1/121 [00:02<05:01,  2.51s/it]  8%|▊         | 10/121 [00:02<00:23,  4.76it/s] 17%|█▋        | 20/121 [00:03<00:10,  9.92it/s] 25%|██▍       | 30/121 [00:03<00:06, 15.01it/s] 33%|███▎      | 40/121 [00:03<00:04, 19.73it/s] 41%|████▏     | 50/121 [00:03<00:02, 23.86it/s] 50%|████▉     | 60/121 [00:04<00:02, 27.23it/s] 58%|█████▊    | 70/121 [00:04<00:01, 29.90it/s] 66%|██████▌   | 80/121 [00:04<00:01, 32.01it/s] 74%|███████▍  | 90/121 [00:04<00:00, 33.51it/s] 83%|████████▎ | 100/121 [00:05<00:00, 34.65it/s] 91%|█████████ | 110/121 [00:05<00:00, 35.46it/s]100%|██████████| 121/121 [00:06<00:00, 19.46it/s]
-  [none][warmup] Epoch 2 entropy_mean=0.8989 (logK=1.3863)
-  [none][sparse] Batch 1300, AU entries: 210, loss: 0.6553
-  [none][sparse] Batch 1320, AU entries: 210, loss: 0.3551
-  [none][sparse] Batch 1340, AU entries: 210, loss: 0.8372
-  [none][sparse] Batch 1360, AU entries: 210, loss: 0.6295
-  [none][sparse] Batch 1380, AU entries: 210, loss: 0.0780
-  [none][sparse] Batch 1400, AU entries: 210, loss: 0.1510
-  [none][sparse] Batch 1420, AU entries: 210, loss: 0.5128
-  [none][sparse] Batch 1440, AU entries: 210, loss: 0.6697
-  [none][sparse] Batch 1460, AU entries: 210, loss: 0.1192
-  [none][sparse] Batch 1480, AU entries: 210, loss: 0.2610
-  [none][sparse] Batch 1500, AU entries: 210, loss: 0.3118
-  [none][sparse] Batch 1520, AU entries: 210, loss: 0.1212
-  [none][sparse] Batch 1540, AU entries: 210, loss: 0.3179
-  [none][sparse] Batch 1560, AU entries: 210, loss: 0.1097
-  [none][sparse] Batch 1580, AU entries: 210, loss: 0.5153
-  [none][sparse] Batch 1600, AU entries: 210, loss: 0.2725
-  [none][sparse] Batch 1620, AU entries: 210, loss: 0.5032
-  [none][sparse] Batch 1640, AU entries: 210, loss: 0.1132
-  [none][sparse] Batch 1660, AU entries: 210, loss: 0.2152
-  [none][sparse] Batch 1680, AU entries: 210, loss: 0.5990
-  [none][sparse] Batch 1700, AU entries: 210, loss: 0.5002
-  [none][sparse] Batch 1720, AU entries: 210, loss: 0.0903
-  [none][sparse] Batch 1740, AU entries: 210, loss: 0.1259
-  [none][sparse] Batch 1760, AU entries: 210, loss: 0.5549
-  [none][sparse] Batch 1780, AU entries: 210, loss: 0.5354
-  [none][sparse] Batch 1800, AU entries: 210, loss: 0.2641
-  [none][sparse] Batch 1820, AU entries: 210, loss: 0.4626
-  [none][sparse] Batch 1840, AU entries: 210, loss: 0.2873
-  [none][sparse] Batch 1860, AU entries: 210, loss: 0.3470
-  [none][sparse] Batch 1880, AU entries: 210, loss: 0.2283
-  [none][sparse] Batch 1900, AU entries: 210, loss: 0.3514
-  [none][sparse] Batch 1920, AU entries: 210, loss: 0.3720
-  0%|          | 0/121 [00:00<?, ?it/s]  1%|          | 1/121 [00:02<05:01,  2.51s/it]  8%|▊         | 10/121 [00:02<00:23,  4.75it/s] 17%|█▋        | 20/121 [00:03<00:10,  9.90it/s] 25%|██▍       | 30/121 [00:03<00:06, 15.01it/s] 33%|███▎      | 40/121 [00:03<00:04, 19.79it/s] 41%|████▏     | 50/121 [00:03<00:02, 23.94it/s] 50%|████▉     | 60/121 [00:04<00:02, 27.38it/s] 58%|█████▊    | 70/121 [00:04<00:01, 30.08it/s] 66%|██████▌   | 80/121 [00:04<00:01, 32.32it/s] 74%|███████▍  | 90/121 [00:04<00:00, 33.96it/s] 83%|████████▎ | 100/121 [00:05<00:00, 35.06it/s] 91%|█████████ | 110/121 [00:05<00:00, 35.92it/s]100%|██████████| 121/121 [00:06<00:00, 20.08it/s]
-  [none][sparse] Epoch 3 entropy_mean=0.7718 (logK=1.3863)
-  [none][sparse] Batch 1940, AU entries: 210, loss: 0.1622
-  [none][sparse] Batch 1960, AU entries: 210, loss: 0.2643
-  [none][sparse] Batch 1980, AU entries: 210, loss: 0.3064
-  [none][sparse] Batch 2000, AU entries: 210, loss: 0.1539
-  [none][sparse] Batch 2020, AU entries: 210, loss: 0.4336
-  [none][sparse] Batch 2040, AU entries: 210, loss: 0.8757
-  [none][sparse] Batch 2060, AU entries: 210, loss: 0.3770
-  [none][sparse] Batch 2080, AU entries: 210, loss: 0.2755
-  [none][sparse] Batch 2100, AU entries: 210, loss: 0.4011
-  [none][sparse] Batch 2120, AU entries: 210, loss: 0.4331
-  [none][sparse] Batch 2140, AU entries: 210, loss: 0.1676
-  [none][sparse] Batch 2160, AU entries: 210, loss: 0.7774
-  [none][sparse] Batch 2180, AU entries: 210, loss: 0.3614
-  [none][sparse] Batch 2200, AU entries: 210, loss: 0.1379
-  [none][sparse] Batch 2220, AU entries: 210, loss: 0.3661
-  [none][sparse] Batch 2240, AU entries: 210, loss: 0.3030
-  [none][sparse] Batch 2260, AU entries: 210, loss: 0.3104
-  [none][sparse] Batch 2280, AU entries: 210, loss: 0.1382
-  [none][sparse] Batch 2300, AU entries: 210, loss: 0.3896
-  [none][sparse] Batch 2320, AU entries: 210, loss: 0.1340
-  [none][sparse] Batch 2340, AU entries: 210, loss: 0.2513
-  [none][sparse] Batch 2360, AU entries: 210, loss: 0.4702
-  [none][sparse] Batch 2380, AU entries: 210, loss: 0.1304
-  [none][sparse] Batch 2400, AU entries: 210, loss: 0.5772
-  [none][sparse] Batch 2420, AU entries: 210, loss: 0.2658
-  [none][sparse] Batch 2440, AU entries: 210, loss: 0.2950
-  [none][sparse] Batch 2460, AU entries: 210, loss: 0.1807
-  [none][sparse] Batch 2480, AU entries: 210, loss: 0.3007
-  [none][sparse] Batch 2500, AU entries: 210, loss: 0.3488
-  [none][sparse] Batch 2520, AU entries: 210, loss: 0.8840
-  [none][sparse] Batch 2540, AU entries: 210, loss: 0.1985
-  [none][sparse] Batch 2560, AU entries: 210, loss: 0.1763
-  0%|          | 0/121 [00:00<?, ?it/s]  1%|          | 1/121 [00:03<07:37,  3.81s/it]  9%|▉         | 11/121 [00:04<00:30,  3.65it/s] 17%|█▋        | 21/121 [00:04<00:13,  7.55it/s] 20%|█▉        | 24/121 [00:04<00:12,  7.95it/s] 22%|██▏       | 27/121 [00:05<00:13,  7.21it/s] 24%|██▍       | 29/121 [00:05<00:12,  7.23it/s] 31%|███▏      | 38/121 [00:05<00:06, 12.43it/s] 39%|███▉      | 47/121 [00:05<00:03, 19.70it/s] 43%|████▎     | 52/121 [00:06<00:03, 19.94it/s] 48%|████▊     | 58/121 [00:06<00:02, 22.36it/s] 52%|█████▏    | 63/121 [00:06<00:02, 26.11it/s] 56%|█████▌    | 68/121 [00:06<00:01, 27.28it/s] 60%|██████    | 73/121 [00:06<00:01, 31.06it/s] 64%|██████▍   | 78/121 [00:06<00:01, 31.02it/s] 69%|██████▊   | 83/121 [00:06<00:01, 34.80it/s] 73%|███████▎  | 88/121 [00:07<00:00, 33.19it/s] 78%|███████▊  | 94/121 [00:07<00:00, 37.69it/s] 82%|████████▏ | 99/121 [00:07<00:00, 35.73it/s] 86%|████████▌ | 104/121 [00:07<00:00, 38.26it/s] 90%|█████████ | 109/121 [00:07<00:00, 36.10it/s] 95%|█████████▌| 115/121 [00:07<00:00, 40.91it/s]100%|██████████| 121/121 [00:08<00:00, 14.38it/s]
-  [none][sparse] Epoch 4 entropy_mean=0.8042 (logK=1.3863)
-  [none][sparse] Batch 2580, AU entries: 210, loss: 0.2372
-  [none][sparse] Batch 2600, AU entries: 210, loss: 0.4220
-  [none][sparse] Batch 2620, AU entries: 210, loss: 0.3938
-  [none][sparse] Batch 2640, AU entries: 210, loss: 0.1650
-  [none][sparse] Batch 2660, AU entries: 210, loss: 0.4229
-  [none][sparse] Batch 2680, AU entries: 210, loss: 0.1824
-  [none][sparse] Batch 2700, AU entries: 210, loss: 0.1429
-  [none][sparse] Batch 2720, AU entries: 210, loss: 0.4399
-  [none][sparse] Batch 2740, AU entries: 210, loss: 0.4226
-  [none][sparse] Batch 2760, AU entries: 210, loss: 0.2862
-  [none][sparse] Batch 2780, AU entries: 210, loss: 0.1408
-  [none][sparse] Batch 2800, AU entries: 210, loss: 0.1755
-  [none][sparse] Batch 2820, AU entries: 210, loss: 0.3808
-  [none][sparse] Batch 2840, AU entries: 210, loss: 0.2131
-  [none][sparse] Batch 2860, AU entries: 210, loss: 0.1859
-  [none][sparse] Batch 2880, AU entries: 210, loss: 0.1077
-  [none][sparse] Batch 2900, AU entries: 210, loss: 0.3991
-  [none][sparse] Batch 2920, AU entries: 210, loss: 0.1981
-  [none][sparse] Batch 2940, AU entries: 210, loss: 0.0144
-  [none][sparse] Batch 2960, AU entries: 210, loss: 0.2575
-  [none][sparse] Batch 2980, AU entries: 210, loss: 0.3288
-  [none][sparse] Batch 3000, AU entries: 210, loss: 0.3010
-  [none][sparse] Batch 3020, AU entries: 210, loss: 0.2397
-  [none][sparse] Batch 3040, AU entries: 210, loss: 0.5666
-  [none][sparse] Batch 3060, AU entries: 210, loss: 0.1828
-  [none][sparse] Batch 3080, AU entries: 210, loss: 0.3281
-  [none][sparse] Batch 3100, AU entries: 210, loss: 0.1960
-  [none][sparse] Batch 3120, AU entries: 210, loss: 0.4427
-  [none][sparse] Batch 3140, AU entries: 210, loss: 0.3106
-  [none][sparse] Batch 3160, AU entries: 210, loss: 0.0892
-  [none][sparse] Batch 3180, AU entries: 210, loss: 0.2777
-  [none][sparse] Batch 3200, AU entries: 210, loss: 0.6142
-  0%|          | 0/121 [00:00<?, ?it/s]  1%|          | 1/121 [00:03<07:09,  3.58s/it]  2%|▏         | 2/121 [00:03<03:20,  1.69s/it]  7%|▋         | 9/121 [00:04<00:31,  3.59it/s]  9%|▉         | 11/121 [00:04<00:26,  4.11it/s] 17%|█▋        | 20/121 [00:04<00:11,  9.17it/s] 25%|██▍       | 30/121 [00:05<00:06, 14.67it/s] 33%|███▎      | 40/121 [00:05<00:04, 19.62it/s] 40%|████      | 49/121 [00:05<00:02, 26.93it/s] 45%|████▍     | 54/121 [00:05<00:02, 26.06it/s] 50%|████▉     | 60/121 [00:05<00:02, 26.37it/s] 57%|█████▋    | 69/121 [00:05<00:01, 35.46it/s] 62%|██████▏   | 75/121 [00:06<00:01, 32.76it/s] 66%|██████▌   | 80/121 [00:06<00:01, 30.23it/s] 74%|███████▎  | 89/121 [00:06<00:00, 39.94it/s] 79%|███████▊  | 95/121 [00:06<00:00, 35.46it/s] 83%|████████▎ | 100/121 [00:06<00:00, 31.89it/s] 89%|████████▉ | 108/121 [00:06<00:00, 40.31it/s] 94%|█████████▍| 114/121 [00:07<00:00, 36.11it/s]100%|██████████| 121/121 [00:07<00:00, 15.39it/s]
-  [none][sparse] Epoch 5 entropy_mean=0.7747 (logK=1.3863)
-
-Evaluating none...
-  Scenario 0: AUC = 0.6646
-  Scenario 1: AUC = 0.7035
-  Scenario 2: AUC = 0.7667
-  Scenario 3: AUC = 0.6856
-  Scenario 4: AUC = 0.6967
-  Scenario 5: AUC = 0.6302
-  Scenario 6: AUC = 0.6774
-  Scenario 8: AUC = 0.7009
-[router=none expert=none shared=none]
---- Cross Layer 0 Expert Dominance ---
-  E0: 0.001 0.000 0.004 0.049 ... 0.738 0.043 0.163
-  E1: 0.001 0.000 0.007 0.054 ... 0.737 0.076 0.123
-  E2: 0.001 0.000 0.005 0.046 ... 0.745 0.066 0.134
-  E3: 0.000 0.000 0.001 0.014 ... 0.956 0.016 0.012
---- Cross Layer 1 Expert Dominance ---
-  E0: 0.002 0.001 0.010 0.082 ... 0.616 0.090 0.196
-  E1: 0.000 0.000 0.003 0.036 ... 0.854 0.036 0.070
-  E2: 0.000 0.000 0.002 0.021 ... 0.881 0.029 0.065
-  E3: 0.000 0.000 0.003 0.053 ... 0.825 0.045 0.071
---- Cross Layer 2 Expert Dominance ---
-  E0: 0.000 0.000 0.005 0.041 ... 0.813 0.049 0.089
-  E1: 0.001 0.000 0.005 0.041 ... 0.840 0.038 0.073
-  E2: 0.001 0.000 0.006 0.066 ... 0.677 0.078 0.169
-  E3: 0.001 0.000 0.006 0.159 ... 0.610 0.066 0.153
-
-============================================================
-Training AdaTask capacity-MoE: mode = encourage
-============================================================
-  [encourage][warmup] Batch 20, AU entries: 180, loss: 0.4229
-  [encourage][warmup] Batch 40, AU entries: 195, loss: 2.1034
-  [encourage][warmup] Batch 60, AU entries: 195, loss: 0.4238
-  [encourage][warmup] Batch 80, AU entries: 195, loss: 0.1003
-  [encourage][warmup] Batch 100, AU entries: 195, loss: 0.5450
-  [encourage][warmup] Batch 120, AU entries: 195, loss: 0.2089
-  [encourage][warmup] Batch 140, AU entries: 195, loss: 0.8085
-  [encourage][warmup] Batch 160, AU entries: 195, loss: 0.4812
-  [encourage][warmup] Batch 180, AU entries: 195, loss: 0.1995
-  [encourage][warmup] Batch 200, AU entries: 195, loss: 0.5836
-  [encourage][warmup] Batch 220, AU entries: 195, loss: 0.7219
-  [encourage][warmup] Batch 240, AU entries: 195, loss: 0.3365
-  [encourage][warmup] Batch 260, AU entries: 195, loss: 0.2095
-  [encourage][warmup] Batch 280, AU entries: 195, loss: 0.3782
-  [encourage][warmup] Batch 300, AU entries: 210, loss: 0.6381
-  [encourage][warmup] Batch 320, AU entries: 210, loss: 0.3158
-  [encourage][warmup] Batch 340, AU entries: 210, loss: 0.7031
-  [encourage][warmup] Batch 360, AU entries: 210, loss: 0.5182
-  [encourage][warmup] Batch 380, AU entries: 210, loss: 0.2473
-  [encourage][warmup] Batch 400, AU entries: 210, loss: 0.3961
-  [encourage][warmup] Batch 420, AU entries: 210, loss: 0.4901
-  [encourage][warmup] Batch 440, AU entries: 210, loss: 0.3388
-  [encourage][warmup] Batch 460, AU entries: 210, loss: 0.3708
-  [encourage][warmup] Batch 480, AU entries: 210, loss: 0.2500
-  [encourage][warmup] Batch 500, AU entries: 210, loss: 0.3563
-  [encourage][warmup] Batch 520, AU entries: 210, loss: 0.2929
-  [encourage][warmup] Batch 540, AU entries: 210, loss: 0.4324
-  [encourage][warmup] Batch 560, AU entries: 210, loss: 0.2592
-  [encourage][warmup] Batch 580, AU entries: 210, loss: 0.5680
-  [encourage][warmup] Batch 600, AU entries: 210, loss: 0.5472
-  [encourage][warmup] Batch 620, AU entries: 210, loss: 0.3065
-  [encourage][warmup] Batch 640, AU entries: 210, loss: 0.6876
-  0%|          | 0/121 [00:00<?, ?it/s]  1%|          | 1/121 [00:03<07:00,  3.51s/it]  2%|▏         | 2/121 [00:03<03:18,  1.67s/it] 10%|▉         | 12/121 [00:04<00:21,  4.97it/s] 18%|█▊        | 22/121 [00:04<00:10,  9.69it/s] 21%|██        | 25/121 [00:04<00:09,  9.79it/s] 23%|██▎       | 28/121 [00:05<00:12,  7.19it/s] 25%|██▍       | 30/121 [00:05<00:12,  7.13it/s] 32%|███▏      | 39/121 [00:06<00:06, 12.13it/s] 40%|████      | 49/121 [00:06<00:04, 17.47it/s] 49%|████▉     | 59/121 [00:06<00:02, 22.18it/s] 56%|█████▌    | 68/121 [00:06<00:01, 29.52it/s] 60%|██████    | 73/121 [00:06<00:01, 27.59it/s] 65%|██████▌   | 79/121 [00:07<00:01, 28.09it/s] 72%|███████▏  | 87/121 [00:07<00:00, 35.51it/s] 76%|███████▌  | 92/121 [00:07<00:00, 31.51it/s] 82%|████████▏ | 99/121 [00:07<00:00, 32.28it/s] 88%|████████▊ | 106/121 [00:07<00:00, 38.58it/s] 92%|█████████▏| 111/121 [00:08<00:00, 33.04it/s]100%|██████████| 121/121 [00:08<00:00, 13.82it/s]
-  [encourage][warmup] Epoch 1 entropy_mean=0.8624 (logK=1.3863)
-  [encourage][warmup] Batch 660, AU entries: 210, loss: 0.2739
-  [encourage][warmup] Batch 680, AU entries: 210, loss: 0.5101
-  [encourage][warmup] Batch 700, AU entries: 210, loss: 0.4271
-  [encourage][warmup] Batch 720, AU entries: 210, loss: 0.3611
-  [encourage][warmup] Batch 740, AU entries: 210, loss: 0.2850
-  [encourage][warmup] Batch 760, AU entries: 210, loss: 0.1738
-  [encourage][warmup] Batch 780, AU entries: 210, loss: 0.2583
-  [encourage][warmup] Batch 800, AU entries: 210, loss: 0.2657
-  [encourage][warmup] Batch 820, AU entries: 210, loss: 0.4614
-  [encourage][warmup] Batch 840, AU entries: 210, loss: 0.2567
-  [encourage][warmup] Batch 860, AU entries: 210, loss: 0.2290
-  [encourage][warmup] Batch 880, AU entries: 210, loss: 0.5853
-  [encourage][warmup] Batch 900, AU entries: 210, loss: 0.2930
-  [encourage][warmup] Batch 920, AU entries: 210, loss: 0.1235
-  [encourage][warmup] Batch 940, AU entries: 210, loss: 0.3668
-  [encourage][warmup] Batch 960, AU entries: 210, loss: 0.1613
-  [encourage][warmup] Batch 980, AU entries: 210, loss: 0.4275
-  [encourage][warmup] Batch 1000, AU entries: 210, loss: 0.2627
-  [encourage][warmup] Batch 1020, AU entries: 210, loss: 0.4160
-  [encourage][warmup] Batch 1040, AU entries: 210, loss: 0.5297
-  [encourage][warmup] Batch 1060, AU entries: 210, loss: 0.2998
-  [encourage][warmup] Batch 1080, AU entries: 210, loss: 0.2729
-  [encourage][warmup] Batch 1100, AU entries: 210, loss: 0.4738
-  [encourage][warmup] Batch 1120, AU entries: 210, loss: 0.2348
-  [encourage][warmup] Batch 1140, AU entries: 210, loss: 0.1040
-  [encourage][warmup] Batch 1160, AU entries: 210, loss: 0.3065
-  [encourage][warmup] Batch 1180, AU entries: 210, loss: 0.2917
-  [encourage][warmup] Batch 1200, AU entries: 210, loss: 0.2425
-  [encourage][warmup] Batch 1220, AU entries: 210, loss: 0.1207
-  [encourage][warmup] Batch 1240, AU entries: 210, loss: 0.4053
-  [encourage][warmup] Batch 1260, AU entries: 210, loss: 0.0777
-  [encourage][warmup] Batch 1280, AU entries: 210, loss: 0.3624
-  0%|          | 0/121 [00:00<?, ?it/s]  1%|          | 1/121 [00:03<07:00,  3.50s/it]  2%|▏         | 2/121 [00:03<03:12,  1.62s/it]  7%|▋         | 9/121 [00:04<00:30,  3.71it/s]  9%|▉         | 11/121 [00:04<00:25,  4.25it/s] 17%|█▋        | 20/121 [00:04<00:10,  9.32it/s] 25%|██▍       | 30/121 [00:04<00:06, 14.72it/s] 33%|███▎      | 40/121 [00:05<00:04, 19.68it/s] 40%|████      | 49/121 [00:05<00:02, 26.86it/s] 45%|████▍     | 54/121 [00:05<00:02, 24.77it/s] 50%|████▉     | 60/121 [00:05<00:02, 27.01it/s] 53%|█████▎    | 64/121 [00:05<00:02, 27.14it/s] 58%|█████▊    | 70/121 [00:05<00:01, 31.42it/s] 61%|██████    | 74/121 [00:06<00:01, 28.20it/s] 68%|██████▊   | 82/121 [00:06<00:01, 27.84it/s] 76%|███████▌  | 92/121 [00:06<00:00, 31.27it/s] 84%|████████▍ | 102/121 [00:06<00:00, 33.40it/s] 93%|█████████▎| 112/121 [00:07<00:00, 42.49it/s]100%|██████████| 121/121 [00:07<00:00, 15.71it/s]
-  [encourage][warmup] Epoch 2 entropy_mean=0.8754 (logK=1.3863)
-  [encourage][sparse] Batch 1300, AU entries: 210, loss: 0.2855
-  [encourage][sparse] Batch 1320, AU entries: 210, loss: 0.4918
-  [encourage][sparse] Batch 1340, AU entries: 210, loss: 0.5224
-  [encourage][sparse] Batch 1360, AU entries: 210, loss: 0.1729
-  [encourage][sparse] Batch 1380, AU entries: 210, loss: 0.4653
-  [encourage][sparse] Batch 1400, AU entries: 210, loss: 0.8020
-  [encourage][sparse] Batch 1420, AU entries: 210, loss: 0.4037
-  [encourage][sparse] Batch 1440, AU entries: 210, loss: 0.5946
-  [encourage][sparse] Batch 1460, AU entries: 210, loss: 0.7117
-  [encourage][sparse] Batch 1480, AU entries: 210, loss: 0.1190
-  [encourage][sparse] Batch 1500, AU entries: 210, loss: 0.2021
-  [encourage][sparse] Batch 1520, AU entries: 210, loss: 0.2965
-  [encourage][sparse] Batch 1540, AU entries: 210, loss: 0.4184
-  [encourage][sparse] Batch 1560, AU entries: 210, loss: 0.2016
-  [encourage][sparse] Batch 1580, AU entries: 210, loss: 0.3837
-  [encourage][sparse] Batch 1600, AU entries: 210, loss: 0.1534
-  [encourage][sparse] Batch 1620, AU entries: 210, loss: 0.3069
-  [encourage][sparse] Batch 1640, AU entries: 210, loss: 0.1355
-  [encourage][sparse] Batch 1660, AU entries: 210, loss: 0.2661
-  [encourage][sparse] Batch 1680, AU entries: 210, loss: 0.2788
-  [encourage][sparse] Batch 1700, AU entries: 210, loss: 0.4715
-  [encourage][sparse] Batch 1720, AU entries: 210, loss: 0.2089
-  [encourage][sparse] Batch 1740, AU entries: 210, loss: 0.1067
-  [encourage][sparse] Batch 1760, AU entries: 210, loss: 0.2573
-  [encourage][sparse] Batch 1780, AU entries: 210, loss: 0.1393
-  [encourage][sparse] Batch 1800, AU entries: 210, loss: 0.6274
-  [encourage][sparse] Batch 1820, AU entries: 210, loss: 0.5365
-  [encourage][sparse] Batch 1840, AU entries: 210, loss: 0.5812
-  [encourage][sparse] Batch 1860, AU entries: 210, loss: 0.2890
-  [encourage][sparse] Batch 1880, AU entries: 210, loss: 0.2149
-  [encourage][sparse] Batch 1900, AU entries: 210, loss: 0.7119
-  [encourage][sparse] Batch 1920, AU entries: 210, loss: 0.0914
-  0%|          | 0/121 [00:00<?, ?it/s]  1%|          | 1/121 [00:02<05:01,  2.52s/it]  9%|▉         | 11/121 [00:02<00:20,  5.30it/s] 17%|█▋        | 21/121 [00:03<00:09, 10.42it/s] 24%|██▍       | 29/121 [00:03<00:05, 15.87it/s] 28%|██▊       | 34/121 [00:03<00:05, 17.37it/s] 34%|███▍      | 41/121 [00:03<00:03, 20.65it/s] 40%|███▉      | 48/121 [00:03<00:02, 26.80it/s] 44%|████▍     | 53/121 [00:03<00:02, 26.57it/s] 50%|█████     | 61/121 [00:04<00:02, 29.06it/s] 57%|█████▋    | 69/121 [00:04<00:01, 36.76it/s] 61%|██████    | 74/121 [00:04<00:01, 33.26it/s] 67%|██████▋   | 81/121 [00:04<00:01, 32.58it/s] 74%|███████▎  | 89/121 [00:04<00:00, 40.72it/s] 79%|███████▊  | 95/121 [00:04<00:00, 36.62it/s] 83%|████████▎ | 101/121 [00:05<00:00, 33.70it/s] 91%|█████████ | 110/121 [00:05<00:00, 41.84it/s]100%|██████████| 121/121 [00:05<00:00, 20.21it/s]
-  [encourage][sparse] Epoch 3 entropy_mean=0.7500 (logK=1.3863)
-  [encourage][sparse] Batch 1940, AU entries: 210, loss: 0.2950
-  [encourage][sparse] Batch 1960, AU entries: 210, loss: 0.5856
-  [encourage][sparse] Batch 1980, AU entries: 210, loss: 0.1207
-  [encourage][sparse] Batch 2000, AU entries: 210, loss: 0.2202
-  [encourage][sparse] Batch 2020, AU entries: 210, loss: 0.4951
-  [encourage][sparse] Batch 2040, AU entries: 210, loss: 0.1388
-  [encourage][sparse] Batch 2060, AU entries: 210, loss: 0.2841
-  [encourage][sparse] Batch 2080, AU entries: 210, loss: 0.3997
-  [encourage][sparse] Batch 2100, AU entries: 210, loss: 0.3333
-  [encourage][sparse] Batch 2120, AU entries: 210, loss: 0.1592
-  [encourage][sparse] Batch 2140, AU entries: 210, loss: 0.5850
-  [encourage][sparse] Batch 2160, AU entries: 210, loss: 0.4584
-  [encourage][sparse] Batch 2180, AU entries: 210, loss: 0.4524
-  [encourage][sparse] Batch 2200, AU entries: 210, loss: 0.3629
-  [encourage][sparse] Batch 2220, AU entries: 210, loss: 0.3344
-  [encourage][sparse] Batch 2240, AU entries: 210, loss: 0.5299
-  [encourage][sparse] Batch 2260, AU entries: 210, loss: 0.7291
-  [encourage][sparse] Batch 2280, AU entries: 210, loss: 0.2519
-  [encourage][sparse] Batch 2300, AU entries: 210, loss: 0.2748
-  [encourage][sparse] Batch 2320, AU entries: 210, loss: 0.5094
-  [encourage][sparse] Batch 2340, AU entries: 210, loss: 0.4777
-  [encourage][sparse] Batch 2360, AU entries: 210, loss: 0.4061
-  [encourage][sparse] Batch 2380, AU entries: 210, loss: 0.4200
-  [encourage][sparse] Batch 2400, AU entries: 210, loss: 0.1556
-  [encourage][sparse] Batch 2420, AU entries: 210, loss: 0.1663
-  [encourage][sparse] Batch 2440, AU entries: 210, loss: 0.5928
-  [encourage][sparse] Batch 2460, AU entries: 210, loss: 0.3123
-  [encourage][sparse] Batch 2480, AU entries: 210, loss: 0.1023
-  [encourage][sparse] Batch 2500, AU entries: 210, loss: 0.1781
-  [encourage][sparse] Batch 2520, AU entries: 210, loss: 0.7639
-  [encourage][sparse] Batch 2540, AU entries: 210, loss: 0.1636
-  [encourage][sparse] Batch 2560, AU entries: 210, loss: 0.3807
-  0%|          | 0/121 [00:00<?, ?it/s]  1%|          | 1/121 [00:02<05:07,  2.56s/it]  8%|▊         | 10/121 [00:02<00:23,  4.69it/s] 17%|█▋        | 20/121 [00:03<00:10,  9.81it/s] 25%|██▍       | 30/121 [00:03<00:06, 14.84it/s] 33%|███▎      | 40/121 [00:03<00:04, 19.64it/s] 41%|████▏     | 50/121 [00:03<00:02, 23.85it/s] 49%|████▉     | 59/121 [00:03<00:01, 31.05it/s] 54%|█████▎    | 65/121 [00:04<00:01, 30.04it/s] 58%|█████▊    | 70/121 [00:04<00:01, 28.59it/s] 65%|██████▌   | 79/121 [00:04<00:01, 37.60it/s] 70%|███████   | 85/121 [00:04<00:01, 34.54it/s] 74%|███████▍  | 90/121 [00:04<00:00, 31.61it/s] 81%|████████  | 98/121 [00:05<00:00, 39.37it/s] 85%|████████▌ | 103/121 [00:05<00:00, 35.29it/s] 91%|█████████ | 110/121 [00:05<00:00, 33.37it/s]100%|██████████| 121/121 [00:06<00:00, 19.60it/s]
-  [encourage][sparse] Epoch 4 entropy_mean=0.7734 (logK=1.3863)
-  [encourage][sparse] Batch 2580, AU entries: 210, loss: 0.4697
-  [encourage][sparse] Batch 2600, AU entries: 210, loss: 0.2147
-  [encourage][sparse] Batch 2620, AU entries: 210, loss: 0.1130
-  [encourage][sparse] Batch 2640, AU entries: 210, loss: 0.4390
-  [encourage][sparse] Batch 2660, AU entries: 210, loss: 0.0920
-  [encourage][sparse] Batch 2680, AU entries: 210, loss: 0.2133
-  [encourage][sparse] Batch 2700, AU entries: 210, loss: 0.1217
-  [encourage][sparse] Batch 2720, AU entries: 210, loss: 0.2628
-  [encourage][sparse] Batch 2740, AU entries: 210, loss: 0.1116
-  [encourage][sparse] Batch 2760, AU entries: 210, loss: 0.2519
-  [encourage][sparse] Batch 2780, AU entries: 210, loss: 0.1542
-  [encourage][sparse] Batch 2800, AU entries: 210, loss: 0.1716
-  [encourage][sparse] Batch 2820, AU entries: 210, loss: 0.2775
-  [encourage][sparse] Batch 2840, AU entries: 210, loss: 0.3490
-  [encourage][sparse] Batch 2860, AU entries: 210, loss: 0.2968
-  [encourage][sparse] Batch 2880, AU entries: 210, loss: 0.4607
-  [encourage][sparse] Batch 2900, AU entries: 210, loss: 0.1519
-  [encourage][sparse] Batch 2920, AU entries: 210, loss: 0.2008
-  [encourage][sparse] Batch 2940, AU entries: 210, loss: 0.5360
-  [encourage][sparse] Batch 2960, AU entries: 210, loss: 0.2392
-  [encourage][sparse] Batch 2980, AU entries: 210, loss: 0.2112
-  [encourage][sparse] Batch 3000, AU entries: 210, loss: 0.3993
-  [encourage][sparse] Batch 3020, AU entries: 210, loss: 0.2893
-  [encourage][sparse] Batch 3040, AU entries: 210, loss: 0.2255
-  [encourage][sparse] Batch 3060, AU entries: 210, loss: 0.2269
-  [encourage][sparse] Batch 3080, AU entries: 210, loss: 0.3983
-  [encourage][sparse] Batch 3100, AU entries: 210, loss: 0.3281
-  [encourage][sparse] Batch 3120, AU entries: 210, loss: 0.2056
-  [encourage][sparse] Batch 3140, AU entries: 210, loss: 0.5185
-  [encourage][sparse] Batch 3160, AU entries: 210, loss: 0.1550
-  [encourage][sparse] Batch 3180, AU entries: 210, loss: 0.2111
-  [encourage][sparse] Batch 3200, AU entries: 210, loss: 0.3818
-  0%|          | 0/121 [00:00<?, ?it/s]  1%|          | 1/121 [00:03<06:56,  3.47s/it]  2%|▏         | 2/121 [00:03<03:12,  1.62s/it]  2%|▏         | 3/121 [00:04<01:58,  1.01s/it]  7%|▋         | 8/121 [00:04<00:31,  3.60it/s]  7%|▋         | 9/121 [00:04<00:30,  3.62it/s]  8%|▊         | 10/121 [00:04<00:30,  3.63it/s] 17%|█▋        | 20/121 [00:05<00:09, 11.11it/s] 24%|██▍       | 29/121 [00:05<00:04, 19.43it/s] 27%|██▋       | 33/121 [00:05<00:04, 19.56it/s] 33%|███▎      | 40/121 [00:05<00:03, 22.45it/s] 40%|███▉      | 48/121 [00:05<00:02, 30.63it/s] 44%|████▍     | 53/121 [00:05<00:02, 29.18it/s] 50%|████▉     | 60/121 [00:06<00:02, 29.50it/s] 57%|█████▋    | 69/121 [00:06<00:01, 38.88it/s] 61%|██████    | 74/121 [00:06<00:01, 34.39it/s] 66%|██████▌   | 80/121 [00:06<00:01, 32.31it/s] 73%|███████▎  | 88/121 [00:06<00:00, 40.45it/s] 77%|███████▋  | 93/121 [00:07<00:00, 34.87it/s] 83%|████████▎ | 100/121 [00:07<00:00, 34.02it/s] 89%|████████▉ | 108/121 [00:07<00:00, 41.56it/s] 93%|█████████▎| 113/121 [00:07<00:00, 36.94it/s]100%|██████████| 121/121 [00:08<00:00, 14.59it/s]
-  [encourage][sparse] Epoch 5 entropy_mean=0.7706 (logK=1.3863)
-
-Evaluating encourage...
-  Scenario 0: AUC = 0.6610
-  Scenario 1: AUC = 0.7032
-  Scenario 2: AUC = 0.7748
-  Scenario 3: AUC = 0.6937
-  Scenario 4: AUC = 0.6977
-  Scenario 5: AUC = 0.6173
-  Scenario 6: AUC = 0.6700
-  Scenario 8: AUC = 0.6801
-[router=none expert=encourage shared=none]
---- Cross Layer 0 Expert Dominance ---
-  E0: 0.001 0.000 0.007 0.069 ... 0.747 0.076 0.097
-  E1: 0.001 0.000 0.005 0.106 ... 0.545 0.068 0.271
-  E2: 0.000 0.000 0.003 0.040 ... 0.645 0.036 0.274
-  E3: 0.000 0.000 0.004 0.041 ... 0.514 0.038 0.400
---- Cross Layer 1 Expert Dominance ---
-  E0: 0.001 0.000 0.006 0.062 ... 0.738 0.083 0.107
-  E1: 0.001 0.000 0.007 0.069 ... 0.698 0.079 0.141
-  E2: 0.000 0.000 0.003 0.044 ... 0.644 0.036 0.271
-  E3: 0.001 0.000 0.007 0.077 ... 0.676 0.057 0.179
---- Cross Layer 2 Expert Dominance ---
-  E0: 0.001 0.000 0.006 0.033 ... 0.684 0.064 0.209
-  E1: 0.001 0.000 0.007 0.093 ... 0.739 0.061 0.095
-  E2: 0.001 0.000 0.008 0.079 ... 0.767 0.048 0.093
-  E3: 0.000 0.000 0.005 0.014 ... 0.798 0.063 0.117
-
-============================================================
-Training AdaTask capacity-MoE: mode = suppress
-============================================================
-  [suppress][warmup] Batch 20, AU entries: 195, loss: 0.2931
-  [suppress][warmup] Batch 40, AU entries: 195, loss: 0.3484
-  [suppress][warmup] Batch 60, AU entries: 195, loss: 0.3379
-  [suppress][warmup] Batch 80, AU entries: 195, loss: 0.6672
-  [suppress][warmup] Batch 100, AU entries: 195, loss: 0.4289
-  [suppress][warmup] Batch 120, AU entries: 210, loss: 0.3122
-  [suppress][warmup] Batch 140, AU entries: 210, loss: 0.8243
-  [suppress][warmup] Batch 160, AU entries: 210, loss: 0.6146
-  [suppress][warmup] Batch 180, AU entries: 210, loss: 0.4330
-  [suppress][warmup] Batch 200, AU entries: 210, loss: 0.1769
-  [suppress][warmup] Batch 220, AU entries: 210, loss: 0.4098
-  [suppress][warmup] Batch 240, AU entries: 210, loss: 0.0341
-  [suppress][warmup] Batch 260, AU entries: 210, loss: 0.7092
-  [suppress][warmup] Batch 280, AU entries: 210, loss: 0.1130
-  [suppress][warmup] Batch 300, AU entries: 210, loss: 0.4523
-  [suppress][warmup] Batch 320, AU entries: 210, loss: 0.1882
-  [suppress][warmup] Batch 340, AU entries: 210, loss: 0.4023
-  [suppress][warmup] Batch 360, AU entries: 210, loss: 0.1809
-  [suppress][warmup] Batch 380, AU entries: 210, loss: 0.3649
-  [suppress][warmup] Batch 400, AU entries: 210, loss: 0.3372
-  [suppress][warmup] Batch 420, AU entries: 210, loss: 0.0912
-  [suppress][warmup] Batch 440, AU entries: 210, loss: 0.4992
-  [suppress][warmup] Batch 460, AU entries: 210, loss: 0.2283
-  [suppress][warmup] Batch 480, AU entries: 210, loss: 0.2508
-  [suppress][warmup] Batch 500, AU entries: 210, loss: 0.3451
-  [suppress][warmup] Batch 520, AU entries: 210, loss: 0.3167
-  [suppress][warmup] Batch 540, AU entries: 210, loss: 0.4787
-  [suppress][warmup] Batch 560, AU entries: 210, loss: 0.4427
-  [suppress][warmup] Batch 580, AU entries: 210, loss: 0.6149
-  [suppress][warmup] Batch 600, AU entries: 210, loss: 0.1508
-  [suppress][warmup] Batch 620, AU entries: 210, loss: 0.0696
-  [suppress][warmup] Batch 640, AU entries: 210, loss: 0.1343
-  0%|          | 0/121 [00:00<?, ?it/s]  1%|          | 1/121 [00:02<05:09,  2.58s/it]  2%|▏         | 2/121 [00:02<02:24,  1.22s/it]  8%|▊         | 10/121 [00:03<00:20,  5.34it/s] 17%|█▋        | 20/121 [00:03<00:09, 11.17it/s] 25%|██▍       | 30/121 [00:03<00:05, 16.60it/s] 33%|███▎      | 40/121 [00:03<00:03, 21.44it/s] 41%|████▏     | 50/121 [00:04<00:02, 25.32it/s] 50%|████▉     | 60/121 [00:04<00:02, 28.52it/s] 58%|█████▊    | 70/121 [00:04<00:01, 30.96it/s] 66%|██████▌   | 80/121 [00:04<00:01, 32.84it/s] 74%|███████▍  | 90/121 [00:05<00:00, 34.14it/s] 83%|████████▎ | 100/121 [00:05<00:00, 31.09it/s] 91%|█████████ | 110/121 [00:05<00:00, 32.82it/s]100%|██████████| 121/121 [00:06<00:00, 18.38it/s]
-  [suppress][warmup] Epoch 1 entropy_mean=0.7798 (logK=1.3863)
-  [suppress][warmup] Batch 660, AU entries: 210, loss: 0.1659
-  [suppress][warmup] Batch 680, AU entries: 210, loss: 0.4415
-  [suppress][warmup] Batch 700, AU entries: 210, loss: 0.2440
-  [suppress][warmup] Batch 720, AU entries: 210, loss: 0.4136
-  [suppress][warmup] Batch 740, AU entries: 210, loss: 0.3806
-  [suppress][warmup] Batch 760, AU entries: 210, loss: 0.1120
-  [suppress][warmup] Batch 780, AU entries: 210, loss: 0.1504
-  [suppress][warmup] Batch 800, AU entries: 210, loss: 0.0624
-  [suppress][warmup] Batch 820, AU entries: 210, loss: 0.1233
-  [suppress][warmup] Batch 840, AU entries: 210, loss: 0.2643
-  [suppress][warmup] Batch 860, AU entries: 210, loss: 0.6363
-  [suppress][warmup] Batch 880, AU entries: 210, loss: 0.2381
-  [suppress][warmup] Batch 900, AU entries: 210, loss: 0.3407
-  [suppress][warmup] Batch 920, AU entries: 210, loss: 0.4002
-  [suppress][warmup] Batch 940, AU entries: 210, loss: 0.3653
-  [suppress][warmup] Batch 960, AU entries: 210, loss: 0.1685
-  [suppress][warmup] Batch 980, AU entries: 210, loss: 0.3780
-  [suppress][warmup] Batch 1000, AU entries: 210, loss: 0.4133
-  [suppress][warmup] Batch 1020, AU entries: 210, loss: 0.4355
-  [suppress][warmup] Batch 1040, AU entries: 210, loss: 0.7768
-  [suppress][warmup] Batch 1060, AU entries: 210, loss: 0.3616
-  [suppress][warmup] Batch 1080, AU entries: 210, loss: 0.2227
-  [suppress][warmup] Batch 1100, AU entries: 210, loss: 0.4889
-  [suppress][warmup] Batch 1120, AU entries: 210, loss: 0.2255
-  [suppress][warmup] Batch 1140, AU entries: 210, loss: 0.2930
-  [suppress][warmup] Batch 1160, AU entries: 210, loss: 0.1512
-  [suppress][warmup] Batch 1180, AU entries: 210, loss: 0.0685
-  [suppress][warmup] Batch 1200, AU entries: 210, loss: 0.6576
-  [suppress][warmup] Batch 1220, AU entries: 210, loss: 0.2607
-  [suppress][warmup] Batch 1240, AU entries: 210, loss: 0.2481
-  [suppress][warmup] Batch 1260, AU entries: 210, loss: 0.3344
-  [suppress][warmup] Batch 1280, AU entries: 210, loss: 0.5181
-  0%|          | 0/121 [00:00<?, ?it/s]  1%|          | 1/121 [00:02<05:05,  2.55s/it]  8%|▊         | 10/121 [00:02<00:23,  4.72it/s] 17%|█▋        | 20/121 [00:03<00:10,  9.84it/s] 25%|██▍       | 30/121 [00:03<00:06, 14.93it/s] 33%|███▎      | 40/121 [00:03<00:04, 19.64it/s] 41%|████▏     | 50/121 [00:03<00:02, 23.79it/s] 50%|████▉     | 60/121 [00:04<00:02, 27.32it/s] 58%|█████▊    | 70/121 [00:04<00:01, 30.10it/s] 66%|██████▌   | 80/121 [00:04<00:01, 32.21it/s] 74%|███████▍  | 90/121 [00:04<00:00, 33.79it/s] 83%|████████▎ | 100/121 [00:05<00:00, 34.87it/s] 91%|█████████ | 110/121 [00:05<00:00, 35.66it/s]100%|██████████| 121/121 [00:06<00:00, 19.71it/s]
-  [suppress][warmup] Epoch 2 entropy_mean=0.8201 (logK=1.3863)
-  [suppress][sparse] Batch 1300, AU entries: 210, loss: 0.0865
-  [suppress][sparse] Batch 1320, AU entries: 210, loss: 0.1383
-  [suppress][sparse] Batch 1340, AU entries: 210, loss: 0.2716
-  [suppress][sparse] Batch 1360, AU entries: 210, loss: 0.3246
-  [suppress][sparse] Batch 1380, AU entries: 210, loss: 0.1497
-  [suppress][sparse] Batch 1400, AU entries: 210, loss: 0.3298
-  [suppress][sparse] Batch 1420, AU entries: 210, loss: 0.8180
-  [suppress][sparse] Batch 1440, AU entries: 210, loss: 0.2585
-  [suppress][sparse] Batch 1460, AU entries: 210, loss: 0.0986
-  [suppress][sparse] Batch 1480, AU entries: 210, loss: 0.2579
-  [suppress][sparse] Batch 1500, AU entries: 210, loss: 0.7090
-  [suppress][sparse] Batch 1520, AU entries: 210, loss: 0.1015
-  [suppress][sparse] Batch 1540, AU entries: 210, loss: 0.3600
-  [suppress][sparse] Batch 1560, AU entries: 210, loss: 0.4700
-  [suppress][sparse] Batch 1580, AU entries: 210, loss: 0.3567
-  [suppress][sparse] Batch 1600, AU entries: 210, loss: 0.2824
-  [suppress][sparse] Batch 1620, AU entries: 210, loss: 0.2814
-  [suppress][sparse] Batch 1640, AU entries: 210, loss: 0.3036
-  [suppress][sparse] Batch 1660, AU entries: 210, loss: 0.2822
-  [suppress][sparse] Batch 1680, AU entries: 210, loss: 0.1413
-  [suppress][sparse] Batch 1700, AU entries: 210, loss: 0.4503
-  [suppress][sparse] Batch 1720, AU entries: 210, loss: 0.2453
-  [suppress][sparse] Batch 1740, AU entries: 210, loss: 0.4316
-  [suppress][sparse] Batch 1760, AU entries: 210, loss: 0.3127
-  [suppress][sparse] Batch 1780, AU entries: 210, loss: 0.1575
-  [suppress][sparse] Batch 1800, AU entries: 210, loss: 0.7303
-  [suppress][sparse] Batch 1820, AU entries: 210, loss: 0.3055
-  [suppress][sparse] Batch 1840, AU entries: 210, loss: 0.2559
-  [suppress][sparse] Batch 1860, AU entries: 210, loss: 0.3740
-  [suppress][sparse] Batch 1880, AU entries: 210, loss: 0.5705
-  [suppress][sparse] Batch 1900, AU entries: 210, loss: 0.0749
-  [suppress][sparse] Batch 1920, AU entries: 210, loss: 0.3582
-  0%|          | 0/121 [00:00<?, ?it/s]  1%|          | 1/121 [00:02<05:07,  2.56s/it]  3%|▎         | 4/121 [00:02<01:05,  1.78it/s]  8%|▊         | 10/121 [00:03<00:22,  4.99it/s] 17%|█▋        | 20/121 [00:03<00:09, 10.88it/s] 25%|██▍       | 30/121 [00:03<00:05, 16.40it/s] 33%|███▎      | 40/121 [00:03<00:03, 21.21it/s] 41%|████▏     | 50/121 [00:04<00:02, 25.16it/s] 50%|████▉     | 60/121 [00:04<00:02, 28.46it/s] 58%|█████▊    | 70/121 [00:04<00:01, 31.13it/s] 66%|██████▌   | 80/121 [00:04<00:01, 33.04it/s] 74%|███████▍  | 90/121 [00:05<00:00, 34.36it/s] 83%|████████▎ | 100/121 [00:05<00:00, 35.48it/s] 91%|█████████ | 110/121 [00:05<00:00, 36.10it/s]100%|██████████| 121/121 [00:06<00:00, 18.86it/s]
-  [suppress][sparse] Epoch 3 entropy_mean=0.6940 (logK=1.3863)
-  [suppress][sparse] Batch 1940, AU entries: 210, loss: 0.3937
-  [suppress][sparse] Batch 1960, AU entries: 210, loss: 0.3035
-  [suppress][sparse] Batch 1980, AU entries: 210, loss: 0.7474
-  [suppress][sparse] Batch 2000, AU entries: 210, loss: 0.4046
-  [suppress][sparse] Batch 2020, AU entries: 210, loss: 0.2720
-  [suppress][sparse] Batch 2040, AU entries: 210, loss: 0.5245
-  [suppress][sparse] Batch 2060, AU entries: 210, loss: 0.1325
-  [suppress][sparse] Batch 2080, AU entries: 210, loss: 0.4289
-  [suppress][sparse] Batch 2100, AU entries: 210, loss: 0.5445
-  [suppress][sparse] Batch 2120, AU entries: 210, loss: 0.3844
-  [suppress][sparse] Batch 2140, AU entries: 210, loss: 0.8726
-  [suppress][sparse] Batch 2160, AU entries: 210, loss: 0.7108
-  [suppress][sparse] Batch 2180, AU entries: 210, loss: 0.4303
-  [suppress][sparse] Batch 2200, AU entries: 210, loss: 0.2088
-  [suppress][sparse] Batch 2220, AU entries: 210, loss: 0.2190
-  [suppress][sparse] Batch 2240, AU entries: 210, loss: 0.1677
-  [suppress][sparse] Batch 2260, AU entries: 210, loss: 0.5586
-  [suppress][sparse] Batch 2280, AU entries: 210, loss: 0.5689
-  [suppress][sparse] Batch 2300, AU entries: 210, loss: 0.4926
-  [suppress][sparse] Batch 2320, AU entries: 210, loss: 0.6257
-  [suppress][sparse] Batch 2340, AU entries: 210, loss: 0.3077
-  [suppress][sparse] Batch 2360, AU entries: 210, loss: 0.3616
-  [suppress][sparse] Batch 2380, AU entries: 210, loss: 0.5695
-  [suppress][sparse] Batch 2400, AU entries: 210, loss: 0.6406
-  [suppress][sparse] Batch 2420, AU entries: 210, loss: 0.5531
-  [suppress][sparse] Batch 2440, AU entries: 210, loss: 0.4877
-  [suppress][sparse] Batch 2460, AU entries: 210, loss: 0.2454
-  [suppress][sparse] Batch 2480, AU entries: 210, loss: 0.3798
-  [suppress][sparse] Batch 2500, AU entries: 210, loss: 0.2442
-  [suppress][sparse] Batch 2520, AU entries: 210, loss: 0.5438
-  [suppress][sparse] Batch 2540, AU entries: 210, loss: 0.1834
-  [suppress][sparse] Batch 2560, AU entries: 210, loss: 0.2553
-  0%|          | 0/121 [00:00<?, ?it/s]  1%|          | 1/121 [00:02<05:00,  2.50s/it]  8%|▊         | 10/121 [00:02<00:24,  4.57it/s] 17%|█▋        | 20/121 [00:03<00:10,  9.60it/s] 25%|██▍       | 30/121 [00:03<00:06, 14.64it/s] 33%|███▎      | 40/121 [00:03<00:04, 19.36it/s] 41%|████▏     | 50/121 [00:03<00:03, 23.51it/s] 50%|████▉     | 60/121 [00:04<00:02, 26.91it/s] 57%|█████▋    | 69/121 [00:04<00:01, 34.22it/s] 62%|██████▏   | 75/121 [00:04<00:01, 32.62it/s] 66%|██████▌   | 80/121 [00:04<00:01, 30.12it/s] 74%|███████▎  | 89/121 [00:04<00:00, 38.75it/s] 79%|███████▊  | 95/121 [00:05<00:00, 34.88it/s] 83%|████████▎ | 100/121 [00:05<00:00, 32.33it/s] 89%|████████▉ | 108/121 [00:05<00:00, 40.44it/s] 94%|█████████▍| 114/121 [00:05<00:00, 37.49it/s]100%|██████████| 121/121 [00:06<00:00, 19.48it/s]
-  [suppress][sparse] Epoch 4 entropy_mean=0.7067 (logK=1.3863)
-  [suppress][sparse] Batch 2580, AU entries: 210, loss: 0.0957
-  [suppress][sparse] Batch 2600, AU entries: 210, loss: 0.1345
-  [suppress][sparse] Batch 2620, AU entries: 210, loss: 0.2324
-  [suppress][sparse] Batch 2640, AU entries: 210, loss: 0.4266
-  [suppress][sparse] Batch 2660, AU entries: 210, loss: 0.0983
-  [suppress][sparse] Batch 2680, AU entries: 210, loss: 0.2529
-  [suppress][sparse] Batch 2700, AU entries: 210, loss: 0.3725
-  [suppress][sparse] Batch 2720, AU entries: 210, loss: 0.2246
-  [suppress][sparse] Batch 2740, AU entries: 210, loss: 0.2004
-  [suppress][sparse] Batch 2760, AU entries: 210, loss: 0.4618
-  [suppress][sparse] Batch 2780, AU entries: 210, loss: 0.1472
-  [suppress][sparse] Batch 2800, AU entries: 210, loss: 0.4604
-  [suppress][sparse] Batch 2820, AU entries: 210, loss: 0.2520
-  [suppress][sparse] Batch 2840, AU entries: 210, loss: 0.1650
-  [suppress][sparse] Batch 2860, AU entries: 210, loss: 0.4144
-  [suppress][sparse] Batch 2880, AU entries: 210, loss: 0.3114
-  [suppress][sparse] Batch 2900, AU entries: 210, loss: 0.4226
-  [suppress][sparse] Batch 2920, AU entries: 210, loss: 0.2348
-  [suppress][sparse] Batch 2940, AU entries: 210, loss: 0.3119
-  [suppress][sparse] Batch 2960, AU entries: 210, loss: 0.1229
-  [suppress][sparse] Batch 2980, AU entries: 210, loss: 0.6714
-  [suppress][sparse] Batch 3000, AU entries: 210, loss: 0.1285
-  [suppress][sparse] Batch 3020, AU entries: 210, loss: 0.3674
-  [suppress][sparse] Batch 3040, AU entries: 210, loss: 0.1746
-  [suppress][sparse] Batch 3060, AU entries: 210, loss: 0.3881
-  [suppress][sparse] Batch 3080, AU entries: 210, loss: 0.3914
-  [suppress][sparse] Batch 3100, AU entries: 210, loss: 0.1306
-  [suppress][sparse] Batch 3120, AU entries: 210, loss: 0.2646
-  [suppress][sparse] Batch 3140, AU entries: 210, loss: 0.1830
-  [suppress][sparse] Batch 3160, AU entries: 210, loss: 0.2510
-  [suppress][sparse] Batch 3180, AU entries: 210, loss: 0.3234
-  [suppress][sparse] Batch 3200, AU entries: 210, loss: 0.2163
-  0%|          | 0/121 [00:00<?, ?it/s]  1%|          | 1/121 [00:02<05:01,  2.51s/it]  8%|▊         | 10/121 [00:02<00:23,  4.75it/s] 17%|█▋        | 20/121 [00:03<00:10,  9.90it/s] 25%|██▍       | 30/121 [00:03<00:06, 15.00it/s] 32%|███▏      | 39/121 [00:03<00:03, 21.72it/s] 37%|███▋      | 45/121 [00:03<00:03, 22.43it/s] 41%|████▏     | 50/121 [00:03<00:03, 23.52it/s] 47%|████▋     | 57/121 [00:03<00:02, 29.81it/s] 51%|█████     | 62/121 [00:04<00:02, 28.01it/s] 58%|█████▊    | 70/121 [00:04<00:01, 30.86it/s] 64%|██████▎   | 77/121 [00:04<00:01, 37.00it/s] 68%|██████▊   | 82/121 [00:04<00:01, 32.11it/s] 74%|███████▍  | 90/121 [00:04<00:00, 34.56it/s] 79%|███████▊  | 95/121 [00:05<00:00, 37.31it/s] 83%|████████▎ | 100/121 [00:05<00:00, 35.42it/s] 87%|████████▋ | 105/121 [00:05<00:00, 38.25it/s] 91%|█████████ | 110/121 [00:05<00:00, 35.81it/s]100%|██████████| 121/121 [00:06<00:00, 19.57it/s]
-  [suppress][sparse] Epoch 5 entropy_mean=0.7345 (logK=1.3863)
-
-Evaluating suppress...
-  Scenario 0: AUC = 0.6621
-  Scenario 1: AUC = 0.7031
-  Scenario 2: AUC = 0.7730
-  Scenario 3: AUC = 0.6828
-  Scenario 4: AUC = 0.6935
-  Scenario 5: AUC = 0.6050
-  Scenario 6: AUC = 0.6743
-  Scenario 8: AUC = 0.7254
-[router=none expert=suppress shared=none]
---- Cross Layer 0 Expert Dominance ---
-  E0: 0.002 0.001 0.011 0.127 ... 0.661 0.118 0.074
-  E1: 0.002 0.001 0.009 0.183 ... 0.462 0.258 0.077
-  E2: 0.001 0.000 0.006 0.041 ... 0.812 0.054 0.083
-  E3: 0.001 0.001 0.009 0.087 ... 0.483 0.106 0.308
---- Cross Layer 1 Expert Dominance ---
-  E0: 0.001 0.000 0.006 0.032 ... 0.669 0.076 0.213
-  E1: 0.001 0.000 0.007 0.077 ... 0.710 0.072 0.129
-  E2: 0.001 0.001 0.007 0.056 ... 0.784 0.082 0.065
-  E3: 0.001 0.000 0.006 0.062 ... 0.778 0.053 0.097
---- Cross Layer 2 Expert Dominance ---
-  E0: 0.001 0.000 0.006 0.053 ... 0.816 0.055 0.066
-  E1: 0.001 0.001 0.011 0.102 ... 0.481 0.088 0.311
-  E2: 0.001 0.000 0.007 0.059 ... 0.505 0.070 0.354
-  E3: 0.001 0.000 0.008 0.051 ... 0.809 0.065 0.062
-
-============================================================
-AdaTask MoE Results: Encourage vs Suppress Expert Specialization
-============================================================
- scenario     none  encourage  suppress
-        0 0.664564   0.661027  0.662078
-        1 0.703502   0.703227  0.703149
-        2 0.766664   0.774820  0.772950
-        3 0.685551   0.693671  0.682831
-        4 0.696745   0.697695  0.693534
-        5 0.630186   0.617261  0.605030
-        6 0.677423   0.669965  0.674315
-        8 0.700927   0.680090  0.725359
-
---- Mean AUC ---
-  none      : 0.6907
-  encourage : 0.6872
-  suppress  : 0.6899
-  encourage  Δ vs none: -0.0035
-  suppress   Δ vs none: -0.0008
-
-Results: /root/Documents/Lfm4ads/cache/adatask_results_cap_k4_tk2_s42.csv
-AU data:  /root/Documents/Lfm4ads/cache/adatask_au_*_cap_k4_tk2_s42.json
-
-============================================================
-Routing specialization: entropy trajectory per mode (log K = 1.3863)
-============================================================
-  none      : e1(w)=0.923  e2(w)=0.899  e3(s)=0.772  e4(s)=0.804  e5(s)=0.775
-  encourage : e1(w)=0.862  e2(w)=0.875  e3(s)=0.750  e4(s)=0.773  e5(s)=0.771
-  suppress  : e1(w)=0.780  e2(w)=0.820  e3(s)=0.694  e4(s)=0.707  e5(s)=0.735
-
-  dispatch utilization (final sparse epoch, layer 0):
-  none      : E0:0.210  E1:0.161  E2:0.384  E3:0.246
-  encourage : E0:0.263  E1:0.274  E2:0.339  E3:0.124
-  suppress  : E0:0.175  E1:0.083  E2:0.418  E3:0.324

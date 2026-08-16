@@ -1,0 +1,2 @@
+matrix launched: gpu0 -> seed 42,456 ; gpu1 -> seed 123
+18 runs total; per-run log in logs/capacity_moe_<tag>.log

@@ -1,0 +1,12 @@
+[2026-08-13 18:11:59] gpu0 seed=42 top_k=1 lb_alpha=0 tag=s42_k1_w2_lb0
+[2026-08-13 18:26:56] gpu0 DONE s42_k1_w2_lb0 (exit 0)
+[2026-08-13 18:26:56] gpu0 seed=42 top_k=1 lb_alpha=0.001 tag=s42_k1_w2_lb1e3
+[2026-08-13 18:43:37] gpu0 DONE s42_k1_w2_lb1e3 (exit 0)
+[2026-08-13 18:43:37] gpu0 seed=42 top_k=1 lb_alpha=0.003 tag=s42_k1_w2_lb3e3
+[2026-08-13 19:00:33] gpu0 DONE s42_k1_w2_lb3e3 (exit 0)
+[2026-08-13 19:00:33] gpu0 seed=42 top_k=2 lb_alpha=0 tag=s42_k2_w2_lb0
+[2026-08-13 19:16:42] gpu0 DONE s42_k2_w2_lb0 (exit 0)
+[2026-08-13 19:16:42] gpu0 seed=42 top_k=2 lb_alpha=0.001 tag=s42_k2_w2_lb1e3
+[2026-08-13 19:34:04] gpu0 DONE s42_k2_w2_lb1e3 (exit 0)
+[2026-08-13 19:34:04] gpu0 seed=42 top_k=2 lb_alpha=0.003 tag=s42_k2_w2_lb3e3
+[2026-08-13 19:51:30] gpu0 DONE s42_k2_w2_lb3e3 (exit 0)

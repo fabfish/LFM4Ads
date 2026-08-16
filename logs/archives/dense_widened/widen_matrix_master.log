@@ -1,0 +1,8 @@
+=== dense-widened capacity-control matrix ===
+epochs=30 width=2 freeze=sparse gpu_resident=on full_batch=on
+[launch] seed=42 dev=cuda:0 lr=2e-4 -> logs/widen_s42_lr2e4.log
+[launch] seed=42 dev=cuda:0 lr=1e-3 -> logs/widen_s42_lr1e3.log
+[launch] seed=123 dev=cuda:1 lr=2e-4 -> logs/widen_s123_lr2e4.log
+[launch] seed=123 dev=cuda:1 lr=1e-3 -> logs/widen_s123_lr1e3.log
+=== all launched; waiting ===
+=== matrix complete ===

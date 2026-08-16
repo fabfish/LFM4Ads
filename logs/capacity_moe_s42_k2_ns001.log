@@ -1,6 +1,0 @@
-[config] device=cuda:0 seed=42 K=4 top_k=2 lr=0.001 beta2=0.999 noise_scale=0.01 lb_alpha=0.01 batch_size=10000 max_epochs=8 tag='s42_k2_ns001'
-[sentinel] log K = 1.3863; PASS threshold = 1.2363
-============================================================
-Step 1: dense baseline (arm A)
-============================================================
-  0%|          | 0/121 [00:00<?, ?it/s]

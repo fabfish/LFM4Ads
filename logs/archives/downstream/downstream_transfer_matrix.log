@@ -1,0 +1,57 @@
+[matrix] G1: seed 42
++ /opt/conda/envs/torch-base/bin/python scripts/run_downstream_source_pretrain.py --model dense --device cuda:1 --seed 42
+[source][epoch 1] train_loss=0.5400 val_auc=0.7757
+[source][epoch 2] train_loss=0.5322 val_auc=0.7767
+[source] dense seed 42 done -> cache/downstream_transfer/source/dense_seed42.pt
+[source] test_auc=0.7771 best_val_auc=0.7757
++ /opt/conda/envs/torch-base/bin/python scripts/run_downstream_source_pretrain.py --model moe --device cuda:1 --seed 42
+[source][epoch 1] train_loss=0.5413 val_auc=0.7751
+[source][epoch 2] train_loss=0.5331 val_auc=0.7766
+[source][epoch 3] train_loss=0.5289 val_auc=0.7760
+[source] moe seed 42 done -> cache/downstream_transfer/source/moe_seed42.pt
+[source] test_auc=0.7778 best_val_auc=0.7766
++ /opt/conda/envs/torch-base/bin/python scripts/run_downstream_transfer_trial.py --arm dense-head --target 2 --seed 42 --device cuda:1
+[trial] dense-head t2 s42 -> test_auc=0.7670 val=0.7500 trainable=361 (dense-head_t2_s42.json)
++ /opt/conda/envs/torch-base/bin/python scripts/run_downstream_transfer_trial.py --arm dense-head --target 5 --seed 42 --device cuda:1
+[trial] dense-head t5 s42 -> test_auc=0.6396 val=0.6510 trainable=361 (dense-head_t5_s42.json)
++ /opt/conda/envs/torch-base/bin/python scripts/run_downstream_transfer_trial.py --arm dense-head --target 6 --seed 42 --device cuda:1
+[trial] dense-head t6 s42 -> test_auc=0.7212 val=0.7377 trainable=361 (dense-head_t6_s42.json)
++ /opt/conda/envs/torch-base/bin/python scripts/run_downstream_transfer_trial.py --arm dense-adapter-r2 --target 2 --seed 42 --device cuda:1
+[trial] dense-adapter-r2 t2 s42 -> test_auc=0.7817 val=0.7633 trainable=4681 (dense-adapter-r2_t2_s42.json)
++ /opt/conda/envs/torch-base/bin/python scripts/run_downstream_transfer_trial.py --arm dense-adapter-r2 --target 5 --seed 42 --device cuda:1
+[trial] dense-adapter-r2 t5 s42 -> test_auc=0.6514 val=0.6822 trainable=4681 (dense-adapter-r2_t5_s42.json)
++ /opt/conda/envs/torch-base/bin/python scripts/run_downstream_transfer_trial.py --arm dense-adapter-r2 --target 6 --seed 42 --device cuda:1
+[trial] dense-adapter-r2 t6 s42 -> test_auc=0.7161 val=0.7456 trainable=4681 (dense-adapter-r2_t6_s42.json)
++ /opt/conda/envs/torch-base/bin/python scripts/run_downstream_transfer_trial.py --arm moe-head --target 2 --seed 42 --device cuda:1
+[trial] moe-head t2 s42 -> test_auc=0.7755 val=0.7551 trainable=361 (moe-head_t2_s42.json)
++ /opt/conda/envs/torch-base/bin/python scripts/run_downstream_transfer_trial.py --arm moe-head --target 5 --seed 42 --device cuda:1
+[trial] moe-head t5 s42 -> test_auc=0.6491 val=0.6361 trainable=361 (moe-head_t5_s42.json)
++ /opt/conda/envs/torch-base/bin/python scripts/run_downstream_transfer_trial.py --arm moe-head --target 6 --seed 42 --device cuda:1
+[trial] moe-head t6 s42 -> test_auc=0.7209 val=0.7432 trainable=361 (moe-head_t6_s42.json)
++ /opt/conda/envs/torch-base/bin/python scripts/run_downstream_transfer_trial.py --arm moe-router --target 2 --seed 42 --device cuda:1
+[trial] moe-router t2 s42 -> test_auc=0.7745 val=0.7635 trainable=4693 (moe-router_t2_s42.json)
++ /opt/conda/envs/torch-base/bin/python scripts/run_downstream_transfer_trial.py --arm moe-router --target 5 --seed 42 --device cuda:1
+[trial] moe-router t5 s42 -> test_auc=0.6643 val=0.6693 trainable=4693 (moe-router_t5_s42.json)
++ /opt/conda/envs/torch-base/bin/python scripts/run_downstream_transfer_trial.py --arm moe-router --target 6 --seed 42 --device cuda:1
+[trial] moe-router t6 s42 -> test_auc=0.7214 val=0.7319 trainable=4693 (moe-router_t6_s42.json)
+[matrix] G1 gate: {
+  "2": {
+    "moe_router": 0.7635186505108101,
+    "dense_adapter_r2": 0.7632612655420924,
+    "moe_head": 0.7551160212243605,
+    "passed": true
+  },
+  "5": {
+    "moe_router": 0.6693436579584587,
+    "dense_adapter_r2": 0.6822302723630996,
+    "moe_head": 0.6361144653364768,
+    "passed": false
+  },
+  "6": {
+    "moe_router": 0.7318526031102096,
+    "dense_adapter_r2": 0.7455916159567275,
+    "moe_head": 0.7431507775524002,
+    "passed": false
+  }
+}
+[matrix] G1 FAILED -> stop (no compute on seeds 123/456)
