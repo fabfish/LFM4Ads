@@ -1,3 +1,5 @@
+import os, sys as _sys
+_sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 #!/usr/bin/env python
 """Run one Task-Conditioned Mixture Routing (TCMR) experiment.
 

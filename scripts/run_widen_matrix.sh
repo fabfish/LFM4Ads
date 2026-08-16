@@ -22,7 +22,7 @@ launch_seed() {
     local tag="widen_s${seed}_lr${name}"
     local log="logs/widen_s${seed}_lr${name}.log"
     echo "[launch] seed=$seed dev=$device lr=$lr -> $log"
-    python main_dense_widened.py "$device" \
+    python experiments/main_dense_widened.py "$device" \
       --seed "$seed" --lr "$lr" --width "$WIDTH" \
       --max-epochs "$EPOCHS" --freeze sparse \
       --tag "$tag" > "$log" 2>&1 &

@@ -161,8 +161,8 @@ def run_one(code):
                 json.dumps(cmd, sort_keys=True).encode()).hexdigest(),
             "source_hashes": {
                 "train.py": sha256_file(os.path.join(REPO, "train.py")),
-                "run_moe_pretrain_from_scratch.py":
-                    sha256_file(os.path.join(REPO, "run_moe_pretrain_from_scratch.py")),
+                "experiments/run_moe_pretrain_from_scratch.py":
+                    sha256_file(os.path.join(REPO, "experiments/run_moe_pretrain_from_scratch.py")),
                 "swg_config.py": sha256_file(os.path.join(SCRIPT_DIR, "swg_config.py")),
                 "swg_config_stageb.py":
                     sha256_file(os.path.join(SCRIPT_DIR, "swg_config_stageb.py")),

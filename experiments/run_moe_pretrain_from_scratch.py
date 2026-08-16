@@ -1,3 +1,5 @@
+import os, sys as _sys
+_sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 """从零预训练混合专家 backbone 与基准稠密模型（不加载任何预训练权重）。
 
 三类 backbone（各随机初始化）：

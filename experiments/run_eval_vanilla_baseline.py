@@ -1,3 +1,5 @@
+import os, sys as _sys
+_sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 """复评现有 vanilla DCNv2 基准基线（不重新训练）。
 
 用于「混合专家是否改进上游」的对照。直接加载仓库已有的

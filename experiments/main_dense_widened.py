@@ -1,3 +1,5 @@
+import os, sys as _sys
+_sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 """Dense-widened 4x Cross-layer capacity control (no routing).
 
 Decisive control for the capacity-MoE "capacity is the bottleneck?" question.

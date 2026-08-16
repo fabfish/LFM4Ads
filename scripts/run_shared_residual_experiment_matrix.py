@@ -71,7 +71,7 @@ def build_trials(devices):
                     "device": device_by_seed[seed],
                     "command": [
                         sys.executable,
-                        "run_shared_residual_continual_trial.py",
+                        "experiments/run_shared_residual_continual_trial.py",
                         "--run-name", name,
                         "--arm", arm,
                         "--expert-learning-rate", str(learning_rate),
@@ -115,7 +115,7 @@ def frozen_paths(driver):
         REPOSITORY / "dataset.py",
         REPOSITORY / "fields.py",
         REPOSITORY / "shared_residual_continual_protocol.py",
-        REPOSITORY / "run_shared_residual_continual_trial.py",
+        REPOSITORY / "experiments/run_shared_residual_continual_trial.py",
         REPOSITORY / "scripts" / "verify_shared_residual_experiment.py",
         REPOSITORY / "scripts" / "shared_residual_experiment.sh",
         Path(__file__).resolve(),

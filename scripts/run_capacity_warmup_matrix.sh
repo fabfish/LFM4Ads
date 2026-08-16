@@ -37,7 +37,7 @@ run_variants() {
             lbtag="$(lb_tag "$lb")"
             local tag="s${seed}_k${topk}_w${WARMUP}_lb${lbtag}"
             echo "[$(date '+%F %T')] gpu${gpu} seed=${seed} top_k=${topk} lb_alpha=${lb} tag=${tag}"
-            python main_moe_capacity.py "cuda:${gpu}" \
+            python experiments/main_moe_capacity.py "cuda:${gpu}" \
                 --top-k "$topk" --noise-scale "$NOISE" --seed "$seed" \
                 --warmup-epochs "$WARMUP" --min-epochs "$MIN_EPOCHS" \
                 --max-epochs "$MAX_EPOCHS" --lb-alpha "$lb" --tag "$tag" \

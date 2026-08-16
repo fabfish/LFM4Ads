@@ -14,8 +14,8 @@
 set -u
 DEVICE=${1:-cuda:0}
 SEED=${2:-42}
-MOD=run_moe_subtask_modulation.py
-REP=run_moe_representation_usage.py
+MOD=experiments/run_moe_subtask_modulation.py
+REP=experiments/run_moe_representation_usage.py
 LOGD=logs
 mkdir -p "$LOGD"
 TAG=$(echo "$DEVICE" | tr ':' '_')

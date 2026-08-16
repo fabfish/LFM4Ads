@@ -1,3 +1,5 @@
+import os, sys as _sys
+_sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 #!/usr/bin/env python
 """特征级表征用法：把（调制后的）混合专家 backbone 当作 LFM4Ads 做下游特征增强。
 

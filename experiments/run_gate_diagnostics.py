@@ -1,3 +1,5 @@
+import os, sys as _sys
+_sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 #!/usr/bin/env python
 """路由门控诊断：区分「分工更稳定」与「路由被冻结在近均匀」两种竞争解释。
 

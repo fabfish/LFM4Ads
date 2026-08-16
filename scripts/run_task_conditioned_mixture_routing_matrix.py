@@ -72,7 +72,7 @@ def trial_commands(devices):
             name = run_name(routing_mode, seed)
             commands.append([
                 sys.executable,
-                "run_task_conditioned_mixture_routing.py",
+                "experiments/run_task_conditioned_mixture_routing.py",
                 "--routing-mode", routing_mode,
                 "--seed", str(seed),
                 "--run-name", name,
@@ -114,7 +114,7 @@ def frozen_source_paths(driver):
         REPOSITORY / "dataset.py",
         REPOSITORY / "fields.py",
         REPOSITORY / "dataset.feather",
-        REPOSITORY / "run_task_conditioned_mixture_routing.py",
+        REPOSITORY / "experiments/run_task_conditioned_mixture_routing.py",
         REPOSITORY / "scripts" / "verify_task_conditioned_mixture_routing.py",
         Path(__file__).resolve(),
         REPOSITORY / "scripts" / "summarize_task_conditioned_mixture_routing.py",

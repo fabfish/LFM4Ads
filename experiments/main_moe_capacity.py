@@ -1,3 +1,5 @@
+import os, sys as _sys
+_sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 """Capacity-Scale MoE — 训练与烟测入口.
 
 实现第一个「同激活、K× 总容量」的 MoE：K 个 full-rank 专家 + 真实 top-k

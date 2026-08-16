@@ -1,7 +1,7 @@
 """Stage B 同 FLOPs 门控对照：实验代号 → 配置 的唯一映射表（单一事实来源）。
 
 代号规则见 docs/20260811-2310-StageB-MoE-九次训练驱动.md §二。
-每个 run-code 展开为对 run_moe_pretrain_from_scratch.py 的固定命令，机械可执行。
+每个 run-code 展开为对 experiments/run_moe_pretrain_from_scratch.py 的固定命令，机械可执行。
 
 设计（见驱动文档 §一/§二）：
 - stgb-lrfd-fr  ：低秩全维专家 (rank r, 输出全维) + 冻结路由 | frozen | sample
@@ -45,10 +45,10 @@ RUN_CARDS = {
 
 
 def build_command(code):
-    """把 run-code 展开为 run_moe_pretrain_from_scratch.py 的 argv 列表。"""
+    """把 run-code 展开为 experiments/run_moe_pretrain_from_scratch.py 的 argv 列表。"""
     card = RUN_CARDS[code]
     cmd = [
-        "python", "run_moe_pretrain_from_scratch.py",
+        "python", "experiments/run_moe_pretrain_from_scratch.py",
         "--model", card["model"],
         "--scenario-loss-weighting", card["weighting"],
         "--seed", str(card["seed"]),

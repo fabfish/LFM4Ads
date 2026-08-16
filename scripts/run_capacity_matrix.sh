@@ -28,7 +28,7 @@ run_variants() {
             nstag="$(printf '%.2f' "$ns" | sed 's/\.//')"
             local tag="s${seed}_k${topk}_ns${nstag}"
             echo "[$(date '+%F %T')] gpu${gpu} seed=${seed} top_k=${topk} noise_scale=${ns} tag=${tag}"
-            python main_moe_capacity.py "cuda:${gpu}" \
+            python experiments/main_moe_capacity.py "cuda:${gpu}" \
                 --top-k "$topk" --noise-scale "$ns" --seed "$seed" --tag "$tag" \
                 > "logs/capacity_moe_${tag}.log" 2>&1
             echo "[$(date '+%F %T')] gpu${gpu} DONE ${tag} (exit $?)"

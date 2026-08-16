@@ -15,7 +15,7 @@ launch() {  # seed device
   local seed=$1 dev=$2
   local tag="s${seed}_lr${LR}"
   echo "[launch] seed=$seed device=$dev tag=$tag"
-  nohup python main_field_ablation.py "$dev" \
+  nohup python experiments/main_field_ablation.py "$dev" \
     --seed "$seed" --lr "$LR" --max-epochs "$EPOCHS" --tag "$tag" \
     > "logs/fieldabl_${tag}.log" 2>&1 &
   echo "  pid=$! log=logs/fieldabl_${tag}.log"

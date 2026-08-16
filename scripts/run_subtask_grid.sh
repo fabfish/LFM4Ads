@@ -12,7 +12,7 @@ DEVICE=${1:-cuda:0}
 MODEL=${2:-fully-routed}
 SEED=${3:-42}
 MODES="none encourage suppress"
-PY=run_moe_subtask_modulation.py
+PY=experiments/run_moe_subtask_modulation.py
 LOGD=logs
 mkdir -p "$LOGD"
 MASTER="$LOGD/grid_${MODEL}.log"

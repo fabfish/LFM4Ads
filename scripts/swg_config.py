@@ -1,7 +1,7 @@
 """Stage A 样本加权关卡：实验代号 → 配置 的唯一映射表（单一事实来源）。
 
 代号规则见 docs/20260811-2010-按场景训练代价消除与混合专家可竞争性验证.md §三。
-每个 run-code 展开为对 run_moe_pretrain_from_scratch.py 的固定命令，机械可执行。
+每个 run-code 展开为对 experiments/run_moe_pretrain_from_scratch.py 的固定命令，机械可执行。
 
 COMMON 为所有 run 共享的口径（控制变量）：cuda:0 独占、seed 由卡片指定、
 lr=1e-3、beta2=0.999、shuffle 开、K=4、routing=data、batch=10000。
@@ -50,7 +50,7 @@ APPEND_SEEDS = {"swg-dens-sp-789": 789, "swg-dens-sp-2024": 2024}
 
 
 def build_command(code):
-    """把 run-code 展开为 run_moe_pretrain_from_scratch.py 的 argv 列表。"""
+    """把 run-code 展开为 experiments/run_moe_pretrain_from_scratch.py 的 argv 列表。"""
     if code in APPEND_SEEDS:
         card = dict(model="vanilla", vanilla_per_scenario=True,
                     freeze_router=False, weighting="sample",
@@ -58,7 +58,7 @@ def build_command(code):
     else:
         card = RUN_CARDS[code]
     cmd = [
-        "python", "run_moe_pretrain_from_scratch.py",
+        "python", "experiments/run_moe_pretrain_from_scratch.py",
         "--model", card["model"],
         "--scenario-loss-weighting", card["weighting"],
         "--seed", str(card["seed"]),

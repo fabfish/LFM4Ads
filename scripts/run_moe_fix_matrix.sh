@@ -34,7 +34,7 @@ launch_seed() {
     local tag="fix_s${seed}_${name}"
     local log="logs/capacity_fix_s${seed}_${name}.log"
     echo "[launch] seed=$seed device=$device cfg=$name lr=$lr lr_router=$lr_router warmup=$warmup -> $log"
-    python main_moe_capacity.py "$device" \
+    python experiments/main_moe_capacity.py "$device" \
       --seed "$seed" --K "$K" --top-k "$TOP_K" \
       --noise-scale "$NS" --lb-alpha "$LB" \
       --lr "$lr" --lr-router "$lr_router" \

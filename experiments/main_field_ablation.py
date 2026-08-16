@@ -1,3 +1,5 @@
+import os, sys as _sys
+_sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 """E1 — retrain confirmation: are the 83,984,250 ID-embedding params dead weight?
 
 Pre-registered in

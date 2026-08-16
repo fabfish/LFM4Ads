@@ -1,3 +1,5 @@
+import os, sys as _sys
+_sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 """Advanced MoE (V2) Pretraining & Evaluation.
 
 基于 DCNv2MoE_V2: shared expert + noisy top-k routing + load balancing.

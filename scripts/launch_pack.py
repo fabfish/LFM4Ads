@@ -33,9 +33,9 @@ python scripts/launch_pack.py \
     --max-per-device 3 \
     --monitor-interval 120 \
     -- \
-    "D6_v2_shared_s1|main_moe_v2.py|--shuffle --seed 1 --tag d6_v2_shared_s1" \
-    "D6_v2_shared_s7|main_moe_v2.py|--shuffle --seed 7 --tag d6_v2_shared_s7" \
-    "bb_vanilla|main.py|cuda --seed 1 --tag bb_vanilla"
+    "D6_v2_shared_s1|experiments/main_moe_v2.py|--shuffle --seed 1 --tag d6_v2_shared_s1" \
+    "D6_v2_shared_s7|experiments/main_moe_v2.py|--shuffle --seed 7 --tag d6_v2_shared_s7" \
+    "bb_vanilla|experiments/main.py|cuda --seed 1 --tag bb_vanilla"
 
 job 格式：用 `|` 分隔的三段 —— <tag>|<script>|<extra-args>
 （tag 仅用于日志文件名与排序，不影响结果）

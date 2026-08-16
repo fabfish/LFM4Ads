@@ -15,7 +15,7 @@ DEVICE=${1:-cuda:0}
 MODEL=${2:-partial-shared}
 SEED=${3:-42}
 CONFIGS=${4:-}
-PY=run_moe_subtask_modulation.py
+PY=experiments/run_moe_subtask_modulation.py
 LOGD=logs
 mkdir -p "$LOGD"
 TAG=$(echo "$DEVICE" | tr ':' '_')

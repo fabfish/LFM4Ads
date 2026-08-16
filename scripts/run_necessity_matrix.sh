@@ -24,7 +24,7 @@ run_necessity() {
     local gpu="$2"
     local tag="s${seed}_necessity"
     echo "[$(date '+%F %T')] gpu${gpu} seed=${seed} tag=${tag} (dense-cont + MoE-optimal, 16ep)"
-    python main_moe_capacity.py "cuda:${gpu}" \
+    python experiments/main_moe_capacity.py "cuda:${gpu}" \
         --seed "$seed" \
         --K 4 --top-k 2 \
         --noise-scale 0.1 --lb-alpha 0.001 \

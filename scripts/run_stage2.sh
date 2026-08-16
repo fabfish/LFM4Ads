@@ -12,7 +12,7 @@
 #             纯促进共享(共享主效应) / 促进路由+抑制共享(最差，验证负向协同)
 set -u
 DEVICE=${1:-cuda:0}
-PRE=run_moe_pretrain_from_scratch.py
+PRE=experiments/run_moe_pretrain_from_scratch.py
 W=scripts/run_subtask_worker.sh
 LOGD=logs
 mkdir -p "$LOGD"

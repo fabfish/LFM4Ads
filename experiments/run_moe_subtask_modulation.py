@@ -1,3 +1,5 @@
+import os, sys as _sys
+_sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 """子任务 路由网络/路由专家/共享专家 多维交叉促进-抑制 调制实验。
 
 加载对应的「从零预训练 backbone」，在按场景切分的子批量上做梯度平方累计
