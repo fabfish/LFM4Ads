@@ -90,10 +90,10 @@
 | `--reinit-cross` | `main_moe_capacity.py` | 两臂 cross 层同时随机重置（制造真实 headroom） |
 | `DenseWidenedDCNv2` | `model.py` | cross 层加宽 720 维+ReLU，参数量精确 4.00×，无路由 |
 | `main_dense_widened.py` | — | dense-widened 三臂对照入口 |
-| **零成本诊断（新）** | `scripts/diagnose_embedding_capacity.py` | 参数集中度 / 曝光频次 / OOV 率，无需 GPU |
-| **零成本诊断（新）** | `scripts/diagnose_field_ablation.py` | 推理期逐字段 embedding 置零，测依赖度，~30s |
+| **零成本诊断（新）** | `scripts/diagnose/diagnose_embedding_capacity.py` | 参数集中度 / 曝光频次 / OOV 率，无需 GPU |
+| **零成本诊断（新）** | `scripts/diagnose/diagnose_field_ablation.py` | 推理期逐字段 embedding 置零，测依赖度，~30s |
 | **E1 入口（新）** | `main_field_ablation.py` | `full`/`idzero`/`iddrop` 三臂 from-scratch + 内置哨兵 |
-| **E1 判定（新）** | `scripts/summarize_field_ablation.py` | 阈值硬编码防漂移，产出 `e1_decision.json` |
+| **E1 判定（新）** | `scripts/summarize/summarize_field_ablation.py` | 阈值硬编码防漂移，产出 `e1_decision.json` |
 | **轻量基线（新，推荐默认）** | `iddrop` 臂 | **0.58M 参数、7.1s/epoch**，AUC 与 84.7M 全模型无可测差异 |
 
 **默认实验口径**（后续所有公平对比照此执行）：

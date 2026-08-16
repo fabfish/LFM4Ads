@@ -61,7 +61,7 @@ capacity 路线全部关闭 + embedding 伪瓶颈被证伪后，给出**两个�
 - 口径：`lr=1e-3`（from-scratch 历史口径）、batch 10000、15 epoch、best=精确 argmax(valid)、
   GpuBatches；**不使用 `--freeze sparse`**（embedding 是被测对象）。
 - 产物：`main_field_ablation.py`、`scripts/run_field_ablation_matrix.sh`、
-  `scripts/summarize_field_ablation.py`、`cache/embedding_capacity/e1_decision.json`
+  `scripts/summarize/summarize_field_ablation.py`、`cache/embedding_capacity/e1_decision.json`
   （`verdict=PASS`、`unlock_feature_information_track=true`）。
   结论见 [E1 结论](./20260814-2225-E1结论-ID-embedding死重确认.md)。实际成本 8 min。
 - **边界**：**"无可测差异"≠"删掉更好"**（Δ 在地板内）；限 lr=1e-3/15 epoch/2 seed；

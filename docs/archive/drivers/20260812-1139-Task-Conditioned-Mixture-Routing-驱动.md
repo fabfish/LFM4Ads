@@ -190,9 +190,9 @@ TOR 和 DATCR 只作次级解释，不能替换失败的主终点。
 ```bash
 python -m py_compile model.py train.py task_conditioned_mixture_routing_protocol.py \
   run_task_conditioned_mixture_routing.py \
-  scripts/verify_task_conditioned_mixture_routing.py \
-  scripts/run_task_conditioned_mixture_routing_matrix.py \
-  scripts/summarize_task_conditioned_mixture_routing.py
+  scripts/verify/verify_task_conditioned_mixture_routing.py \
+  scripts/matrix/run_task_conditioned_mixture_routing_matrix.py \
+  scripts/summarize/summarize_task_conditioned_mixture_routing.py
 python -c "import torch, torcheval; print(torch.__version__, torcheval.__version__)"
 ```
 
@@ -204,7 +204,7 @@ sample-weighted 单 optimizer step 和共享专家初始化 hash 检查；矩阵
 ### 7.2 只展示计划，不训练
 
 ```bash
-python scripts/run_task_conditioned_mixture_routing_matrix.py plan --device cuda:0
+python scripts/matrix/run_task_conditioned_mixture_routing_matrix.py plan --device cuda:0
 ```
 
 必须人工核对输出恰好 15 个完整描述性 run name，且顺序与第四节一致。
@@ -212,7 +212,7 @@ python scripts/run_task_conditioned_mixture_routing_matrix.py plan --device cuda
 ### 7.3 正式前置门控
 
 ```bash
-python scripts/verify_task_conditioned_mixture_routing.py --write-report
+python scripts/verify/verify_task_conditioned_mixture_routing.py --write-report
 ```
 
 预期产物：
@@ -232,7 +232,7 @@ python scripts/verify_task_conditioned_mixture_routing.py --write-report
 矩阵脚本会同时检查显式命令行确认和机器授权；任一缺失都拒绝训练：
 
 ```bash
-python scripts/run_task_conditioned_mixture_routing_matrix.py execute \
+python scripts/matrix/run_task_conditioned_mixture_routing_matrix.py execute \
   --device cuda:0 cuda:1 --acknowledge-document-driver
 ```
 
@@ -249,7 +249,7 @@ python scripts/run_task_conditioned_mixture_routing_matrix.py execute \
 ### 7.5 汇总
 
 ```bash
-python scripts/summarize_task_conditioned_mixture_routing.py --write-results
+python scripts/summarize/summarize_task_conditioned_mixture_routing.py --write-results
 ```
 
 若不足 15/15，汇总器只能输出 `not-started/running` 与 `INCONCLUSIVE`，禁止写结论。

@@ -143,7 +143,7 @@
 
 ### 3.11 E0/E0b embedding「伪瓶颈」证伪（零训练成本，修订 §3.9/§3.10 的末句推断）
 
-- 代码：`scripts/diagnose_embedding_capacity.py`、`scripts/diagnose_field_ablation.py`；
+- 代码：`scripts/diagnose/diagnose_embedding_capacity.py`、`scripts/diagnose/diagnose_field_ablation.py`；
   证据：`cache/embedding_capacity/diagnosis.json`、`cache/embedding_capacity/field_ablation.json`（均不可覆盖）。
 - **参数集中度**：`video_id`+`author_id`+`music_id` = **83,984,250 参数 = embedding 的 99.96%**；
   其余 33 个字段合计仅 **33,140**。样本计数冻结基线：train 9,281,007 / valid 1,230,368 / test 1,201,670。
@@ -166,7 +166,7 @@
 ### 3.12 E1：ID embedding 死重的重训练确认（PASS）
 
 - 代码：`main_field_ablation.py`（三臂 + 内置哨兵）、`scripts/run_field_ablation_matrix.sh`、
-  `scripts/summarize_field_ablation.py`（判定阈值硬编码）。
+  `scripts/summarize/summarize_field_ablation.py`（判定阈值硬编码）。
 - 设计：from-scratch 三臂，`full`(36 字段, dim=360) / **`idzero`**(三张 ID 表置零+冻结，与 full
   **架构完全同构**、非 sparse 参数量同为 655,215) / `iddrop`(真移除, dim=330)。
   一进程一 seed → 三臂同卡，配对由构造保证。口径 `lr=1e-3`、batch 10000、15 epoch、
@@ -209,7 +209,7 @@
 3. sparse scale-out 与 same-latency 叙事；
 4. 将 TCMR 或 G3 的跨 seed 变号结果写成稳定收益。
 
-新下游路线已 `done / G1 FAIL`：`scripts/run_downstream_transfer_matrix.py` 完成 G1（seed 42 验证门控）后按协议停止，未续 seeds 123/456；正式结论见[G1 结论](archive/conclusions/20260813-1219-MoE下游留出域迁移G1结论.md)。
+新下游路线已 `done / G1 FAIL`：`scripts/matrix/run_downstream_transfer_matrix.py` 完成 G1（seed 42 验证门控）后按协议停止，未续 seeds 123/456；正式结论见[G1 结论](archive/conclusions/20260813-1219-MoE下游留出域迁移G1结论.md)。
 
 **下一阶段方向**：**特征信息侧**（E1 PASS 已解锁）——E2 长尾 ID 的可泛化表示 / E3 交互表达 /
 E4 天花板定位。见 [`NEXT.md`](NEXT.md) §3.2 与 [`HANDOFF.md`](HANDOFF.md) §4。

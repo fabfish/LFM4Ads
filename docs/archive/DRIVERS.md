@@ -6,9 +6,9 @@
 > 任何数字出现在文档里，必须能从 `来源文件 + 提取命令` 复现——否则视为无效。
 
 - **命名规范**：`YYYYMMDD-HHMM-主题.md`（见 `AGENTS.md` §1）
-- **核查命令**：`python scripts/verify_provenance.py`（全量，含 444MB feather）
+- **核查命令**：`python scripts/verify/verify_provenance.py`（全量，含 444MB feather）
   / `--no-feather`（快速）
-- **下游还原**：`python scripts/reconstruct_downstream.py`（从 `cache/moe_pretrain.log` 重建 `result_moe_downstream.csv`）；`python scripts/extract_downstream.py [logfile]`（仅打印摘要）
+- **下游还原**：`python scripts/diagnose/reconstruct_downstream.py`（从 `cache/moe_pretrain.log` 重建 `result_moe_downstream.csv`）；`python scripts/diagnose/extract_downstream.py [logfile]`（仅打印摘要）
 - **最后核查**：2025-08-08（本次会话从 `moe_pretrain.log` 重建下游 CSV，C10 已闭合），`cache/provenance_report.json`
 
 ---
@@ -18,8 +18,8 @@
 | # | 驱动文档 | 类型 | 状态 | 主数据源 | 实验入口 |
 |---|---------|------|------|---------|---------|
 | D0 | [20250808-0000-LFM4Ads-初步探索与预训练复现](./20250808-0000-LFM4Ads-初步探索与预训练复现.md) | 基线复现 | ✅ 已闭合 | `result.csv`、`dataset.feather` | `main.py <device>` |
-| D1 | [20250808-1611-AdaTask-MoE调研与漂移检测实验设计](./20250808-1611-AdaTask-MoE调研与漂移检测实验设计.md) | **设计（总纲）** | ✅ 设计定稿 + **Phase 3 已执行（SpecLoss 实测损害 AUC，负向）** | `model.py`、`train.py`、`cache/dcnv2_moe_k4_spec.pt` | `scripts/run_phase3_spec.py`（独立 Phase 3 入口，不动 Phase1） |
-| D2 | [20250808-1710-LFM4Ads-数据核查与来源追溯](./20250808-1710-LFM4Ads-数据核查与来源追溯.md) | **核查（元文档）** | ✅ 已闭合 | 全部 `cache/*`、`*.csv`、`*.log`、`dataset.feather` | `scripts/verify_provenance.py` |
+| D1 | [20250808-1611-AdaTask-MoE调研与漂移检测实验设计](./20250808-1611-AdaTask-MoE调研与漂移检测实验设计.md) | **设计（总纲）** | ✅ 设计定稿 + **Phase 3 已执行（SpecLoss 实测损害 AUC，负向）** | `model.py`、`train.py`、`cache/dcnv2_moe_k4_spec.pt` | `scripts/matrix/run_phase3_spec.py`（独立 Phase 3 入口，不动 Phase1） |
+| D2 | [20250808-1710-LFM4Ads-数据核查与来源追溯](./20250808-1710-LFM4Ads-数据核查与来源追溯.md) | **核查（元文档）** | ✅ 已闭合 | 全部 `cache/*`、`*.csv`、`*.log`、`dataset.feather` | `scripts/verify/verify_provenance.py` |
 | D3 | [20250808-1720-LFM4Ads-base-vs-MoE效果对比](./20250808-1720-LFM4Ads-base-vs-MoE效果对比.md) | 实验 | ✅ 已闭合（单 seed） | `result_moe.csv`、`cache/moe_pretrain.log` | `main_moe.py <device>` |
 | D4 | [20250808-1730-LFM4Ads-专家特异性鼓励与抑制](./20250808-1730-LFM4Ads-专家特异性鼓励与抑制.md) | 实验 | ✅ 已闭合（单 seed） | `cache/adatask_results.csv`、`cache/adatask_au_*.json` | `main_adatask.py <device>` |
 | D5 | [20250808-1740-LFM4Ads-base遗忘与持续学习](./20250808-1740-LFM4Ads-base遗忘与持续学习.md) | 实验 | ✅ 已闭合（单 order 单 seed） | `cache/continual_results.json` | `main_continual.py <device>` |
@@ -87,9 +87,9 @@ graph TD
 | `cache/adatask_results.csv` | `main_adatask.py` | D4 | ✅ 8 场景 × 3 模式 |
 | `cache/adatask_au_{mode}.json` | `main_adatask.py` | D4 | ✅ 168 条/模式（3 层 × 4 专家 × 14 场景） |
 | `dataset.feather` | `dataset.py` | D0、D2 | ✅ 原始数据 |
-| `cache/dcnv2_moe_k4_spec.pt` | `scripts/run_phase3_spec.py`（2026-08-09 独立 Phase 3 run） | D1 §7.6 | ✅ 69/69 张量与 Phase1 不同（SpecLoss 真实生效） |
-| `cache/phase3_spec_results.json` | `scripts/run_phase3_spec.py` | D1 §7.6 | ✅ 逐 epoch 轨迹 + 逐场景 AUC 对比 |
-| `cache/provenance_report.json` | `scripts/verify_provenance.py` | D2 | 🔄 每次核查重新生成 |
+| `cache/dcnv2_moe_k4_spec.pt` | `scripts/matrix/run_phase3_spec.py`（2026-08-09 独立 Phase 3 run） | D1 §7.6 | ✅ 69/69 张量与 Phase1 不同（SpecLoss 真实生效） |
+| `cache/phase3_spec_results.json` | `scripts/matrix/run_phase3_spec.py` | D1 §7.6 | ✅ 逐 epoch 轨迹 + 逐场景 AUC 对比 |
+| `cache/provenance_report.json` | `scripts/verify/verify_provenance.py` | D2 | 🔄 每次核查重新生成 |
 | `result_moe_v2.csv` | `main_moe_v2.py` Step 4 | D6 | ⏳ 待生成 |
 | `result_moe_v2_downstream.csv` | `main_moe_v2.py` Step 5 | D6 | ⏳ 待生成 |
 | `cache/gate_stats_v2.json` | `main_moe_v2.py` Step 6 | D6 | ⏳ 待生成 |
@@ -99,7 +99,7 @@ graph TD
 | `.codebuddy/skills/lfm4ads-watch/` | 本文（D8）产物 | D8、D9 | ✅ 已创建，驱动 D9/D10/D11 双卡自循环 |
 | `cache/moe_v1_summary_{k1,k2,k4,k8}_*.json` | `main_moe.py`（`--freeze` / `--K` 扫描） | D9 §3.1 | ✅ 8 组配置 × (test_auc_all + 8 场景) |
 | `cache/moe_v2_train_history*.json` | `main_moe_v2.py` | D9 §3.2/3.3 | ✅ 全量 1 组 + rx-only 3 组 + D10 6 组 |
-| `cache/grad_dominance_*.json` | `scripts/measure_gradient_dominance.py` | D9 §3.4 | ✅ 8 组：groups(RMS) + per_unit + per_unit_scenario + verdict |
+| `cache/grad_dominance_*.json` | `scripts/diagnose/measure_gradient_dominance.py` | D9 §3.4 | ✅ 8 组：groups(RMS) + per_unit + per_unit_scenario + verdict |
 | `cache/d10_summary.json` | D10 汇总脚本 | D9 §3.3 | ✅ 6 组消融 + 三项裁决 |
 | `cache/d11_chain.sh` / `cache/d10_chain.sh` | 本文（D9）部署 | D9 §8 | ✅ 双卡链式调度器 |
 | `docs/20260809-2314-*.md` | 本文（D9） | D9 | ✅ 已写入（主结论闭合） |
@@ -154,6 +154,6 @@ graph TD
 1. `date '+%Y%m%d-%H%M'` 取时间码，按 `YYYYMMDD-HHMM-主题.md` 建文件；
 2. 文档头写清 **文档 ID / 角色 / 状态 / 关联代码 / 数据源**；
 3. 正文按 **目标 → 口径 → 设计 → 结果（每表标注来源与提取命令）→ 分析 → 缺陷 → Backlog** 组织；
-4. 若引入新指标，在 `scripts/verify_provenance.py` 增加一项 `check(...)`；
+4. 若引入新指标，在 `scripts/verify/verify_provenance.py` 增加一项 `check(...)`；
 5. 回到本文件登记：注册表加一行、依赖图连边、数据源映射补充；
-6. 跑一次 `python scripts/verify_provenance.py --no-feather`，全绿或已解释后才可标 ✅。
+6. 跑一次 `python scripts/verify/verify_provenance.py --no-feather`，全绿或已解释后才可标 ✅。

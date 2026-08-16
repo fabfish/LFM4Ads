@@ -42,7 +42,7 @@ CACHE_DIR = "cache"
 OUT_DIR = f"{CACHE_DIR}/embedding_capacity"
 BIG_ID_FIELDS = ("video_id", "author_id", "music_id")
 BIG_ID_PARAMS = 83_984_250
-# frozen sample counts from scripts/diagnose_embedding_capacity.py (sentinel S1)
+# frozen sample counts from scripts/diagnose/diagnose_embedding_capacity.py (sentinel S1)
 EXPECTED_COUNTS = {"train": 9_281_007, "valid": 1_230_368, "test": 1_201_670}
 ARMS = ("full", "idzero", "iddrop")
 

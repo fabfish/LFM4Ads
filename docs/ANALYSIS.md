@@ -101,14 +101,14 @@ G3 已确认：
 
 零训练成本诊断（两个脚本，合计 < 1 分钟，无需长跑）：
 
-**参数集中度与监督稀薄度**（`scripts/diagnose_embedding_capacity.py` → `cache/embedding_capacity/diagnosis.json`）：
+**参数集中度与监督稀薄度**（`scripts/diagnose/diagnose_embedding_capacity.py` → `cache/embedding_capacity/diagnosis.json`）：
 
 - 三张 ID 表 `video_id`/`author_id`/`music_id` = **83,984,250 参数 = embedding 的 99.96%**；其余 33 个字段合计仅 **33,140** 参数。
 - `video_id`：vocab 4,369,953，train 中出现 3,560,309，**平均曝光 2.6 次/ID**，**79.83% 的 ID 曝光≤2 次**，**test 中 74.19% 的样本其 video_id 在 train 从未出现**。
 - **17.53%（14,725,500）的 embedding 参数从未收到任何梯度**，永久停留在随机初始化。
 - 样本计数（后续哨兵基线）：train 9,281,007 / valid 1,230,368 / test 1,201,670。
 
-**推理期字段消融**（`scripts/diagnose_field_ablation.py` → `cache/embedding_capacity/field_ablation.json`，基线 ckpt `dcnv2_vanilla.pt`，test AUC 0.777490）：
+**推理期字段消融**（`scripts/diagnose/diagnose_field_ablation.py` → `cache/embedding_capacity/field_ablation.json`，基线 ckpt `dcnv2_vanilla.pt`，test AUC 0.777490）：
 
 | 消融对象 | 参数 | Δ test AUC |
 |---|---|---|

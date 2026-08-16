@@ -48,7 +48,7 @@
 ## 三、结果 1：Phase 1 预训练 AUC
 
 **来源**：`result_moe.csv`（`main_moe.py` Step 4 写出）
-**提取**：`python scripts/verify_provenance.py --no-feather`（检查项 C1）
+**提取**：`python scripts/verify/verify_provenance.py --no-feather`（检查项 C1）
 
 | Scenario | 样本占比 | test 样本数 | Vanilla | MoE(K=4) | Delta |
 |----------|---------|------------|---------|----------|-------|
@@ -92,16 +92,16 @@ S6 0.0180、S3 0.0028、S8 0.0017、S5 0.0015。
 > 若按真实流量加权，MoE **反而更差 0.0071**。
 > 两个数都对，但**结论完全相反**——引用时必须写明口径。
 
-（复现：`python scripts/weighted_auc.py --cached`，产物 `cache/weighted_auc.json`）
+（复现：`python scripts/diagnose/weighted_auc.py --cached`，产物 `cache/weighted_auc.json`）
 
 ---
 
 ## 四、结果 2：三级下游评估
 
 **来源**：`cache/moe_pretrain.log`（完整 224 条 = 8 场景 × 2 模型 × 14 方法）
-**提取**：`python scripts/extract_downstream.py`（打印摘要）／
-`python scripts/reconstruct_downstream.py`（把日志 224 条写回 `result_moe_downstream.csv`）
-**核查**：`python scripts/verify_provenance.py --no-feather`（检查项 C10，现 PASS）
+**提取**：`python scripts/diagnose/extract_downstream.py`（打印摘要）／
+`python scripts/diagnose/reconstruct_downstream.py`（把日志 224 条写回 `result_moe_downstream.csv`）
+**核查**：`python scripts/verify/verify_provenance.py --no-feather`（检查项 C10，现 PASS）
 
 > **2025-08-08 更新**：`result_moe_downstream.csv` 此前仅含表头（被中断 run 未落盘），
 > 本次已从 `cache/moe_pretrain.log` 重建为完整 224 行 / 8 场景，C10 已闭合。
@@ -146,7 +146,7 @@ Module Usage `Vanilla`（1 项）、Model Usage `SUM`（1 项）。
 Router 的 gate 只依赖 `tab`（`model.py:59-60`：`gate = softmax(embed(tab)) * K`），
 因此可以**不用任何数据**、直接从 checkpoint 精确复原。
 
-**来源**：`cache/dcnv2_moe_k4.pt`　**提取**：`python scripts/analyze_gate.py`
+**来源**：`cache/dcnv2_moe_k4.pt`　**提取**：`python scripts/diagnose/analyze_gate.py`
 
 | 层 | gate 极差（max−min）范围 | 熵范围（上限 log4 = 1.38629） |
 |----|------------------------|------------------------------|
@@ -199,9 +199,9 @@ Router 的 gate 只依赖 `tab`（`model.py:59-60`：`gate = softmax(embed(tab))
 
 | 文件 | 改动 |
 |------|------|
-| `scripts/weighted_auc.py` | 新增：按 test 样本数计算流量加权 AUC（§3.2） |
-| `scripts/analyze_gate.py` | 新增：从 checkpoint 复原 router 门控与熵（§五） |
-| `scripts/extract_downstream.py` | 新增：从日志还原完整三级下游（§四） |
+| `scripts/diagnose/weighted_auc.py` | 新增：按 test 样本数计算流量加权 AUC（§3.2） |
+| `scripts/diagnose/analyze_gate.py` | 新增：从 checkpoint 复原 router 门控与熵（§五） |
+| `scripts/diagnose/extract_downstream.py` | 新增：从日志还原完整三级下游（§四） |
 
 ---
 
