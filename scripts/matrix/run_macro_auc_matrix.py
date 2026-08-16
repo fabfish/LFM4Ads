@@ -129,6 +129,17 @@ def build_tasks(stages=PRIMARY_STAGES, epochs=EPOCHS, patience=PATIENCE):
                                  epochs=epochs, patience=patience)
                            for seed in SEEDS_EXTRA
                            for arch in ("dense", "moe")],
+        # Stage 8 (E11): full-ID fairness — re-add the 550M ID embeddings and
+        # re-run the FINAL config (dense vs moe K=5 hard top_k=2, balanced).
+        # Same optimizer (dense AdamW), same params except routing; answers
+        # "does the MoE gain survive adding back the ID tables?".
+        "s8full": lambda: [_task("s8full", seed, arch, "balanced",
+                                 K=MAIN_K, top_k=2 if arch == "moe" else None,
+                                 extra=["--full-embeddings"],
+                                 tag=f"s8full_{arch}_balanced_s{seed}",
+                                 epochs=epochs, patience=patience)
+                           for seed in SEEDS
+                           for arch in ("dense", "moe")],
     }
     tasks = []
     for s in stages:
