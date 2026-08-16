@@ -44,6 +44,11 @@ SEED_DEVICE = {42: "cuda:0", 456: "cuda:0", 101: "cuda:0",
 MAIN_K = 5           # 330 = 2*3*5*11, so K must divide 330
 K_SWEEP = (2, 3, 6, 10, 11)
 LR_SWEEP = (2e-4, 3e-3)   # 1e-3 is covered by stage 1
+#: top-k values for s6sparse (E10). Reduced from (2, 3) to (2,) on 2026-08-16:
+#: tk2 already showed +0.0053 vs dense (2 seeds, stronger than soft routing's
+#: +0.0019), so tk3 is a low-information middle point; authorized reduction
+#: registered in docs/20260816-1250-三个后续任务预注册.md.
+TOP_KS = (2,)
 EPOCHS = 80
 PATIENCE = 12
 #: Stage1 primary is 2 arch x 2 loss; on 27K (27x data, ~200s/epoch) a run is
@@ -118,7 +123,7 @@ def build_tasks(stages=PRIMARY_STAGES, epochs=EPOCHS, patience=PATIENCE):
         "s6sparse": lambda: [_task("s6sparse", seed, "moe", "balanced",
                                    K=MAIN_K, top_k=tk,
                                    epochs=epochs, patience=patience)
-                             for seed in SEEDS for tk in (2, 3)],
+                             for seed in SEEDS for tk in TOP_KS],
         # Stage 7 (E8 extra seeds): pooled-loss robustness on {101, 202}.
         "s7pool": lambda: [_task("s7pool", seed, arch, "pooled",
                                  epochs=epochs, patience=patience)
