@@ -25,3 +25,6 @@ result_moe_downstream.csv
 logs/*.pid
 logs/gpu_keeper.log
 .Trash-*/
+
+# gpu_keeper runtime logs (常驻服务运行时日志)
+logs/gpu_keeper*.log
