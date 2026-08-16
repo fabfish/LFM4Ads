@@ -122,10 +122,11 @@ class CrossExpertLayer(nn.Module):
     Formula: x_{l+1} = concat([g_i · W_i(x_l)]) ⊙ x_0 + x_l
     """
 
-    def __init__(self, dim=360, K=4, routing='scenario'):
+    def __init__(self, dim=360, K=4, routing='scenario', top_k=None):
         super().__init__()
         assert dim % K == 0, f"dim {dim} must be divisible by K={K}"
-        self.dim, self.K, self.routing = dim, K, routing
+        assert top_k is None or 1 <= top_k <= K, f"top_k {top_k} out of [1,K]"
+        self.dim, self.K, self.routing, self.top_k = dim, K, routing, top_k
         expert_dim = dim // K
         self.experts = nn.ModuleList([nn.Linear(dim, expert_dim) for _ in range(K)])
 
@@ -155,6 +156,14 @@ class CrossExpertLayer(nn.Module):
         else:
             gate = self.router(x)    # [B, K], data-driven
 
+        # hard top-k sparsity (activation sparsity, params preserved): keep only
+        # the top-k gates, zero the rest. Switched-off experts get zero output
+        # and zero gradient this step (their weights remain trainable).
+        if self.top_k is not None and self.top_k < self.K:
+            _, top_idx = gate.topk(self.top_k, dim=-1)
+            mask = torch.zeros_like(gate).scatter_(-1, top_idx, 1.0)
+            gate = gate * mask
+
         expert_outs = [e(x) for e in self.experts]  # K × [B, dim//K]
         weighted = torch.cat(
             [gate[:, i:i + 1] * expert_outs[i] for i in range(self.K)], dim=-1
@@ -165,12 +174,13 @@ class CrossExpertLayer(nn.Module):
 class DCNv2MoE(nn.Module):
     """DCNv2 with zero-parameter MoE: 3 MoE Cross layers + 2 DNN + head."""
 
-    def __init__(self, dim=360, K=4, routing='scenario'):
+    def __init__(self, dim=360, K=4, routing='scenario', top_k=None):
         super().__init__()
-        self.dim, self.K, self.routing = dim, K, routing
+        self.dim, self.K, self.routing, self.top_k = dim, K, routing, top_k
         self.sparse = Sparse()
         self.cross_layers = nn.ModuleList(
-            [CrossExpertLayer(dim, K, routing=routing) for _ in range(3)]
+            [CrossExpertLayer(dim, K, routing=routing, top_k=top_k)
+             for _ in range(3)]
         )
         self.dnn = nn.ModuleList([nn.Linear(dim, dim) for _ in range(2)])
         self.head = nn.Linear(dim, 15)

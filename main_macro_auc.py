@@ -181,7 +181,7 @@ def freeze_router(model):
     return n
 
 
-def build(arch, K, lightweight, device):
+def build(arch, K, lightweight, device, top_k=None):
     drop = BIG_ID_FIELDS if lightweight else ()
     dim = lightweight_dim(drop) if lightweight else 360
     if arch == "dense":
@@ -192,7 +192,7 @@ def build(arch, K, lightweight, device):
                 f"dim={dim} not divisible by K={K}; the parameter-conserving "
                 f"expert split requires dim % K == 0 (dim=330 ⇒ K in "
                 f"{{2,3,5,6,10,11,...}})")
-        model = DCNv2MoE(dim=dim, K=K, routing="scenario")
+        model = DCNv2MoE(dim=dim, K=K, routing="scenario", top_k=top_k)
     else:
         raise SystemExit(f"unknown arch {arch!r}")
     if lightweight:
@@ -204,6 +204,7 @@ def build(arch, K, lightweight, device):
     router = sum(p.numel() for n, p in model.named_parameters()
                  if "router" in n)
     return model, {"arch": arch, "K": K if arch == "moe" else None, "dim": dim,
+                   "top_k": top_k if arch == "moe" else None,
                    "total_params": total, "non_sparse_params": non_sparse,
                    "router_params": router}
 
@@ -274,6 +275,9 @@ def main():
     ap.add_argument("--arch", default="dense", choices=("dense", "moe"))
     ap.add_argument("--loss", default="pooled", choices=("pooled", "balanced"))
     ap.add_argument("--K", type=int, default=5)
+    ap.add_argument("--top-k", type=int, default=None,
+                    help="hard top-k sparsity; None/K = soft (all experts "
+                         "active)")
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--lr", type=float, default=1e-3)
     ap.add_argument("--batch-size", type=int, default=10000)
@@ -291,6 +295,8 @@ def main():
     os.makedirs(OUT_DIR, exist_ok=True)
     tag = args.tag or (f"{args.arch}_{args.loss}"
                        + (f"_K{args.K}" if args.arch == "moe" else "")
+                       + (f"_tk{args.top_k}" if args.arch == "moe"
+                          and args.top_k is not None else "")
                        + ("_frozen" if args.freeze_router else "")
                        + f"_s{args.seed}")
     out_json = f"{OUT_DIR}/run_{tag}.json"
@@ -318,7 +324,8 @@ def main():
     del train_set, valid_set, test_set
 
     torch.manual_seed(args.seed)
-    model, info = build(args.arch, args.K, lightweight, args.device)
+    model, info = build(args.arch, args.K, lightweight, args.device,
+                        top_k=args.top_k)
     info["router_frozen"] = bool(args.freeze_router)
     if args.freeze_router:
         if args.arch != "moe":
@@ -336,7 +343,7 @@ def main():
     out["provenance"] = {
         "script": "main_macro_auc.py", "device": args.device,
         "arch": args.arch, "loss": args.loss, "K": args.K, "seed": args.seed,
-        "lr": args.lr, "batch_size": args.batch_size,
+        "top_k": args.top_k, "lr": args.lr, "batch_size": args.batch_size,
         "max_epochs": args.max_epochs, "patience": args.patience,
         "lightweight": lightweight, "freeze_router": bool(args.freeze_router),
         "sample_counts": counts,

@@ -36,8 +36,11 @@ LOG_DIR = OUT_DIR.replace("cache", "logs", 1)
 STATE = os.path.join(OUT_DIR, "matrix_state.json")
 
 SEEDS = (42, 123, 456, 789)
+#: extra seeds for E8's pooled-loss robustness (pre-registered {101, 202})
+SEEDS_EXTRA = (101, 202)
 #: fixed so that all configs of one seed share one card (paired-difference rule)
-SEED_DEVICE = {42: "cuda:0", 456: "cuda:0", 123: "cuda:1", 789: "cuda:1"}
+SEED_DEVICE = {42: "cuda:0", 456: "cuda:0", 101: "cuda:0",
+               123: "cuda:1", 789: "cuda:1", 202: "cuda:1"}
 MAIN_K = 5           # 330 = 2*3*5*11, so K must divide 330
 K_SWEEP = (2, 3, 6, 10, 11)
 LR_SWEEP = (2e-4, 3e-3)   # 1e-3 is covered by stage 1
@@ -50,10 +53,12 @@ PATIENCE = 12
 PRIMARY_STAGES = ("s1", "s2sent")
 
 
-def _task(stage, seed, arch, loss, K=MAIN_K, lr=1e-3, extra=(), tag=None,
-          epochs=EPOCHS, patience=PATIENCE):
+def _task(stage, seed, arch, loss, K=MAIN_K, lr=1e-3, top_k=None, extra=(),
+          tag=None, epochs=EPOCHS, patience=PATIENCE):
     tag = tag or (f"{stage}_{arch}_{loss}"
                   + (f"_K{K}" if arch == "moe" else "")
+                  + (f"_tk{top_k}" if arch == "moe" and top_k is not None
+                     else "")
                   + (f"_lr{lr:g}" if lr != 1e-3 else "")
                   + f"_s{seed}")
     cmd = ["python", "main_macro_auc.py", SEED_DEVICE[seed],
@@ -62,66 +67,69 @@ def _task(stage, seed, arch, loss, K=MAIN_K, lr=1e-3, extra=(), tag=None,
            "--patience", str(patience), "--tag", tag]
     if arch == "moe":
         cmd += ["--K", str(K)]
+        if top_k is not None:
+            cmd += ["--top-k", str(top_k)]
     cmd += list(extra)
     return {"stage": stage, "tag": tag, "seed": seed, "arch": arch,
-            "loss": loss, "K": K if arch == "moe" else None, "lr": lr,
+            "loss": loss, "K": K if arch == "moe" else None,
+            "top_k": top_k if arch == "moe" else None, "lr": lr,
             "device": SEED_DEVICE[seed], "cmd": cmd}
 
 
 def build_tasks(stages=PRIMARY_STAGES, epochs=EPOCHS, patience=PATIENCE):
-    """The frozen task list, ordered so the primary evidence lands first.
+    """The frozen task list, dispatched in the ORDER of ``stages``.
 
-    ``stages`` selects which pre-registered stages to run. The stage set and
-    each stage's inner loop are the pre-registration; only the *selection* of
-    which stages to materialize varies per dataset/budget.
+    ``stages`` selects which pre-registered stages to run AND their order, so a
+    quick-verdict stage (e.g. ``s7pool``) can be scheduled first. The stage set
+    and each stage's inner loop are the pre-registration; only the *selection*
+    and *order* of stages vary per dataset/budget.
     """
+    builders = {
+        # Stage 1 (PRIMARY): 2 arch x 2 loss x 4 seeds = 16 runs.
+        #   arch dense->moe = parameter isolation (capacity held constant)
+        #   loss pooled->balanced = gradient rebalancing toward small scenarios
+        "s1": lambda: [t for seed in SEEDS for loss in ("balanced", "pooled")
+                       for arch in ("dense", "moe")
+                       for t in [_task("s1", seed, arch, loss,
+                                       epochs=epochs, patience=patience)]],
+        # Stage 2 sentinel: frozen-uniform router must match dense.
+        "s2sent": lambda: [_task("s2sent", seed, "moe", "balanced",
+                                 extra=["--freeze-router"],
+                                 tag=f"s2sent_moe_frozen_s{seed}",
+                                 epochs=epochs, patience=patience)
+                           for seed in (42, 123)],
+        # Stage 3 (E9): isolation granularity at CONSTANT capacity.
+        "s3": lambda: [_task("s3", seed, "moe", "balanced", K=K,
+                             epochs=epochs, patience=patience)
+                       for seed in SEEDS for K in K_SWEEP],
+        # Stage 4: lr robustness of the primary contrast.
+        "s4": lambda: [_task("s4", seed, arch, "balanced", lr=lr,
+                             epochs=epochs, patience=patience)
+                       for seed in SEEDS for lr in LR_SWEEP
+                       for arch in ("dense", "moe")],
+        # Stage 5: does the conclusion survive the full embeddings?
+        "s5full": lambda: [_task("s5full", seed, arch, "balanced",
+                                 extra=["--full-embeddings"],
+                                 tag=f"s5full_{arch}_balanced_s{seed}",
+                                 epochs=epochs, patience=patience)
+                           for seed in (42, 123)
+                           for arch in ("dense", "moe")],
+        # Stage 6 (E10): hard top-k sparsity, K=5, params preserved.
+        "s6sparse": lambda: [_task("s6sparse", seed, "moe", "balanced",
+                                   K=MAIN_K, top_k=tk,
+                                   epochs=epochs, patience=patience)
+                             for seed in SEEDS for tk in (2, 3)],
+        # Stage 7 (E8 extra seeds): pooled-loss robustness on {101, 202}.
+        "s7pool": lambda: [_task("s7pool", seed, arch, "pooled",
+                                 epochs=epochs, patience=patience)
+                           for seed in SEEDS_EXTRA
+                           for arch in ("dense", "moe")],
+    }
     tasks = []
-
-    # --- Stage 1 (PRIMARY): 2 arch x 2 loss x 4 seeds = 16 runs -------------
-    # Isolates two mechanisms at once:
-    #   arch  dense->moe   = parameter isolation (capacity held constant)
-    #   loss  pooled->balanced = gradient rebalancing toward small scenarios
-    if "s1" in stages:
-        for seed in SEEDS:
-            for loss in ("balanced", "pooled"):
-                for arch in ("dense", "moe"):
-                    tasks.append(_task("s1", seed, arch, loss,
-                                       epochs=epochs, patience=patience))
-
-    # --- Stage 2 sentinel: frozen-uniform router must match dense -----------
-    # gates pinned at 1.0 make the K experts algebraically one Linear(dim,dim).
-    if "s2sent" in stages:
-        for seed in (42, 123):
-            tasks.append(_task("s2sent", seed, "moe", "balanced",
-                               extra=["--freeze-router"],
-                               tag=f"s2sent_moe_frozen_s{seed}",
-                               epochs=epochs, patience=patience))
-
-    # --- Stage 3: isolation granularity at CONSTANT capacity ---------------
-    # K only changes how Linear(dim,dim) is partitioned; total params are
-    # conserved, so this is a pure granularity sweep with no capacity confound.
-    if "s3" in stages:
-        for seed in SEEDS:
-            for K in K_SWEEP:
-                tasks.append(_task("s3", seed, "moe", "balanced", K=K,
-                                   epochs=epochs, patience=patience))
-
-    # --- Stage 4: lr robustness of the primary contrast --------------------
-    if "s4" in stages:
-        for seed in SEEDS:
-            for lr in LR_SWEEP:
-                for arch in ("dense", "moe"):
-                    tasks.append(_task("s4", seed, arch, "balanced", lr=lr,
-                                       epochs=epochs, patience=patience))
-
-    # --- Stage 5: does the conclusion survive the full embeddings? ---------
-    if "s5full" in stages:
-        for seed in (42, 123):
-            for arch in ("dense", "moe"):
-                tasks.append(_task("s5full", seed, arch, "balanced",
-                                   extra=["--full-embeddings"],
-                                   tag=f"s5full_{arch}_balanced_s{seed}",
-                                   epochs=epochs, patience=patience))
+    for s in stages:
+        if s not in builders:
+            raise SystemExit(f"unknown stage {s!r}; valid: {sorted(builders)}")
+        tasks.extend(builders[s]())
     return tasks
 
 
