@@ -8,11 +8,13 @@
 
 ## 0. 速览（当前状态）
 
-**唯一活跃路线**：27K 数据上的 scenario-routed MoE。
+**唯一活跃路线（已收官）**：27K 数据上的 scenario-routed MoE。**最终形态 = 硬路由 top_k=2**。
 
-- **E7（已 PASS）**：MoE 相对 dense 在场景内泛化（macro AUC）上稳定胜出，Δ_moe = {+0.0019, +0.0022, +0.0012, +0.0023}，4/4 seed 为正，均值越过噪声地板。**本项目第一个 MoE work case**。
-  - 证据：`cache/macro_auc_27k/e5_decision.json`、`e5_report.md`；结论 [`20260816-1237-E7结论`](../docs/20260816-1237-E7结论-27K场景内MoE首个work-case.md)
-- **E9/E10（在跑）**：K 隔离粒度扫描 + top-k 稀疏。证据目录 `cache/macro_auc_27k/`。
+- **E7（PASS）**：软路由 MoE 相对 dense 稳定胜出，Δ=+0.0019，4/4 seed 正。首个 work case。
+- **E10（PASS）**：**硬路由 top_k=2，Δ=+0.0050，4/4 seed 正**（越过噪声地板 3.7 倍），是软路由的 2.7 倍——**最终形态**。稀疏不损失收益（wall 0.98x，尚未省算力）。
+- **E8（INCONCLUSIVE）**：pooled 训练下 5/6 seed 正、均值略越地板但 1 微负；绝对成绩 moe+pooled 最高，实用推荐 pooled 训练。
+- **E9（撤销）**：K 扫描 20 run 按用户授权缩减不执行（top_k 维度比 K 粒度重要）。
+- 证据：`cache/macro_auc_27k/`；结论 [`20260816-1950-E8910结论`](../docs/20260816-1950-E8910结论-硬路由topk2最终形态.md)、[`20260816-1237-E7结论`](../docs/20260816-1237-E7结论-27K场景内MoE首个work-case.md)
 - 预注册：[`20260816-1250-三个后续任务预注册`](../docs/20260816-1250-三个后续任务预注册.md)
 
 **三条已关闭的路线**（一句话）：
@@ -34,6 +36,8 @@
 | 实验 | 状态 | 结果文件 | 判定 | 一句话结论 | doc |
 |---|---|---|---|---|---|
 | **E7 场景内泛化 MoE（27K）** | **活跃** | `cache/macro_auc_27k/`（json 证据，18 run） | **PASS** | Δ_moe +0.0019，4/4 seed 正，首个 work case | [`E7 结论`](../docs/20260816-1237-E7结论-27K场景内MoE首个work-case.md) |
+| **E10 硬路由 top_k=2（27K）** | **活跃（最终形态）** | `cache/macro_auc_27k/run_s6sparse_*.json` | **PASS** | Δ=+0.0050，4/4 seed 正，软路由的 2.7 倍 | [`E8910 结论`](../docs/20260816-1950-E8910结论-硬路由topk2最终形态.md) |
+| **E8 pooled 组合（27K）** | 已复盘 | `cache/macro_auc_27k/run_s7pool_*.json` | INCONCLUSIVE | 5/6 正、绝对成绩最高，实用推荐 pooled 训练 | [`E8910 结论`](../docs/20260816-1950-E8910结论-硬路由topk2最终形态.md) |
 | E5 场景内泛化 MoE（1K） | 已复盘 | `cache/macro_auc/`（json 证据，58 run） | INCONCLUSIVE | 1K 测不出（小场景 70 正样本），换 27K 后成立 | [`E5/E6 结论`](../docs/20260815-1508-E5E6结论-场景内泛化MoE与隔离上界.md) |
 
 ### 已关闭路线

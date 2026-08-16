@@ -1,0 +1,60 @@
+{
+  "stage": "E8_E9_E10",
+  "e8": {
+    "verdict": "INCONCLUSIVE",
+    "delta_pooled_per_seed": {
+      "42": 0.001565745822242448,
+      "123": -0.0009447253369003761,
+      "456": 0.002559613975222752,
+      "789": 0.002231183530132075,
+      "101": 0.0006380005431048108,
+      "202": 0.0005768371536415406
+    },
+    "noise_floor_pooled": 0.0010221769694863823,
+    "abs_macro_order": [
+      {
+        "arm": "moe+pooled",
+        "macro": 0.735684373806197
+      },
+      {
+        "arm": "dense+pooled",
+        "macro": 0.7343314193085227
+      },
+      {
+        "arm": "moe+balanced",
+        "macro": 0.7322564544137911
+      },
+      {
+        "arm": "dense+balanced",
+        "macro": 0.7303755342733703
+      }
+    ]
+  },
+  "e9": {
+    "best_K": 5,
+    "k_stats": {
+      "5": {
+        "mean_macro": 0.7322564544137911,
+        "mean_delta": 0.001880920140420711,
+        "n_pos": 4,
+        "n": 4
+      }
+    }
+  },
+  "e10": {
+    "2": {
+      "verdict": "PASS\uff08\u7a00\u758f\u672a\u5403\u6389\u6536\u76ca\uff09",
+      "mean_delta": 0.005012391494728458,
+      "n_pos": 4,
+      "n": 4,
+      "mean_macro": 0.7353879257680987
+    }
+  },
+  "boundary": [
+    "macro endpoint, equal weight over the 8 pre-registered scenarios.",
+    "K sweep keeps capacity constant (moe-dense = 45*K router params).",
+    "top-k is activation sparsity, params preserved.",
+    "E8 primary endpoint (pooled) was INCONCLUSIVE at 4 seeds; extra seeds {101,202} are the pre-registered fallback."
+  ],
+  "preregistration": "docs/20260816-1250-\u4e09\u4e2a\u540e\u7eed\u4efb\u52a1\u9884\u6ce8\u518c.md"
+}
