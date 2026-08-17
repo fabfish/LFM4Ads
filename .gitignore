@@ -21,7 +21,9 @@ result_moe_downstream.csv
 .vscode/
 .idea/
 
-# gpu_keeper runtime artifacts (volatile, regenerated each run)
+# Experiment and gpu_keeper runtime artifacts (volatile, regenerated each run)
+logs/**/*.log
+logs/**/*.pid
 logs/*.pid
 logs/gpu_keeper.log
 .Trash-*/
