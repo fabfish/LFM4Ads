@@ -526,6 +526,341 @@ class TaskRoleOptimizer:
         return {key: value.detach().clone() for key, value in state.items()}
 
 
+class BatchedTaskRoleOptimizer:
+    """用显式场景维度批量更新状态的角色隔离优化器。"""
+
+    FORMAT_VERSION = 2
+
+    def __init__(
+        self,
+        registry: ParameterRoleRegistry,
+        role_hyperparameters: Mapping[str, RoleHyperParameters],
+    ):
+        self.registry = registry
+        missing = set(PARAMETER_ROLES) - set(role_hyperparameters)
+        extra = set(role_hyperparameters) - set(PARAMETER_ROLES)
+        if missing or extra:
+            raise ValueError(
+                f"role hyperparameters mismatch: missing={missing}, extra={extra}")
+        task_counts = {
+            spec.parameter.shape[0] for spec in registry.specs
+            if spec.role in (ROUTER, TASK_HEAD)
+        }
+        if len(task_counts) != 1:
+            raise ValueError(
+                f"router and task head must agree on task count: {task_counts}")
+        self.num_tasks = task_counts.pop()
+        self.role_hyperparameters = dict(role_hyperparameters)
+        self._states: dict[str, dict[str, torch.Tensor] | None] = {
+            spec.name: None for spec in registry.specs
+        }
+        self.last_step_metrics: dict[str, object] = {}
+        self._epoch_role_update_norm_sum: dict[str, torch.Tensor] = {}
+        self._epoch_metric_steps = 0
+
+    def _new_state(self, spec: ParameterSpec) -> dict[str, torch.Tensor]:
+        parameter = spec.parameter
+        step_shape = (
+            (self.num_tasks, parameter.shape[0])
+            if spec.row_sparse else (self.num_tasks,)
+        )
+        moment_shape = (self.num_tasks,) + tuple(parameter.shape)
+        state = {
+            "initialized": torch.zeros(
+                self.num_tasks, device=parameter.device, dtype=torch.bool),
+            "step": torch.zeros(
+                step_shape, device=parameter.device, dtype=torch.long),
+            "exp_avg_sq": torch.zeros(
+                moment_shape, device=parameter.device, dtype=parameter.dtype),
+        }
+        if self.role_hyperparameters[spec.role].use_first_moment:
+            state["exp_avg"] = torch.zeros(
+                moment_shape, device=parameter.device, dtype=parameter.dtype)
+        return state
+
+    def _state_for(self, spec: ParameterSpec) -> dict[str, torch.Tensor]:
+        state = self._states[spec.name]
+        if state is None:
+            state = self._new_state(spec)
+            self._states[spec.name] = state
+        return state
+
+    @staticmethod
+    def _broadcast_correction(
+        correction: torch.Tensor,
+        value_ndim: int,
+    ) -> torch.Tensor:
+        return correction.reshape(
+            (correction.shape[0],) + (1,) * (value_ndim - 1))
+
+    def _dense_directions(
+        self,
+        spec: ParameterSpec,
+        task_ids: torch.Tensor,
+        gradients: torch.Tensor,
+    ) -> torch.Tensor:
+        hyper = self.role_hyperparameters[spec.role]
+        beta1, beta2 = hyper.betas
+        state = self._state_for(spec)
+        steps = state["step"].index_select(0, task_ids).add_(1)
+        state["step"].index_copy_(0, task_ids, steps)
+        state["initialized"].index_fill_(0, task_ids, True)
+
+        second = state["exp_avg_sq"].index_select(0, task_ids)
+        second.mul_(beta2).addcmul_(gradients, gradients, value=1.0 - beta2)
+        state["exp_avg_sq"].index_copy_(0, task_ids, second)
+        correction2 = self._broadcast_correction(
+            1.0 - beta2 ** steps.to(gradients.dtype), gradients.ndim)
+        second_hat = second / correction2
+
+        if hyper.use_first_moment:
+            first = state["exp_avg"].index_select(0, task_ids)
+            first.mul_(beta1).add_(gradients, alpha=1.0 - beta1)
+            state["exp_avg"].index_copy_(0, task_ids, first)
+            correction1 = self._broadcast_correction(
+                1.0 - beta1 ** steps.to(gradients.dtype), gradients.ndim)
+            numerator = first / correction1
+        else:
+            numerator = gradients
+        return numerator / (second_hat.sqrt() + hyper.eps)
+
+    def _row_directions(
+        self,
+        spec: ParameterSpec,
+        items: Sequence[TaskGradient],
+    ) -> tuple[torch.Tensor, torch.Tensor] | None:
+        pair_tasks: list[torch.Tensor] = []
+        pair_rows: list[torch.Tensor] = []
+        pair_gradients: list[torch.Tensor] = []
+        for item in items:
+            gradient = item.gradients.get(spec.name)
+            rows = item.active_rows.get(spec.name)
+            if gradient is None or rows is None or rows.numel() == 0:
+                continue
+            rows = torch.unique(
+                rows.to(device=spec.parameter.device, dtype=torch.long))
+            pair_tasks.append(torch.full_like(rows, item.task_id))
+            pair_rows.append(rows)
+            pair_gradients.append(gradient.index_select(0, rows))
+        if not pair_rows:
+            return None
+
+        task_indices = torch.cat(pair_tasks)
+        row_indices = torch.cat(pair_rows)
+        gradients = torch.cat(pair_gradients)
+        hyper = self.role_hyperparameters[spec.role]
+        beta1, beta2 = hyper.betas
+        state = self._state_for(spec)
+        steps = state["step"][task_indices, row_indices].add_(1)
+        state["step"][task_indices, row_indices] = steps
+        state["initialized"].index_fill_(
+            0, torch.unique(task_indices), True)
+
+        second = state["exp_avg_sq"][task_indices, row_indices]
+        second.mul_(beta2).addcmul_(gradients, gradients, value=1.0 - beta2)
+        state["exp_avg_sq"][task_indices, row_indices] = second
+        correction2 = self._broadcast_correction(
+            1.0 - beta2 ** steps.to(gradients.dtype), gradients.ndim)
+        second_hat = second / correction2
+
+        if hyper.use_first_moment:
+            first = state["exp_avg"][task_indices, row_indices]
+            first.mul_(beta1).add_(gradients, alpha=1.0 - beta1)
+            state["exp_avg"][task_indices, row_indices] = first
+            correction1 = self._broadcast_correction(
+                1.0 - beta1 ** steps.to(gradients.dtype), gradients.ndim)
+            numerator = first / correction1
+        else:
+            numerator = gradients
+        directions = numerator / (second_hat.sqrt() + hyper.eps)
+        return row_indices, directions
+
+    @staticmethod
+    def _is_active(spec: ParameterSpec, item: TaskGradient) -> bool:
+        if spec.role != SPARSE_EXPERT:
+            return True
+        return spec.expert_index in item.active_experts.get(
+            spec.layer_index or 0, frozenset())
+
+    @torch.no_grad()
+    def step(self, task_gradients: Sequence[TaskGradient]) -> dict[str, object]:
+        if not task_gradients:
+            raise ValueError("task_gradients must not be empty")
+        task_ids = [item.task_id for item in task_gradients]
+        if len(task_ids) != len(set(task_ids)):
+            raise ValueError(f"duplicate task ids in one batch: {task_ids}")
+        task_count = float(len(task_gradients))
+        role_update_sq: dict[str, torch.Tensor | None] = {
+            role: None for role in PARAMETER_ROLES
+        }
+        parameter_writes: dict[str, int] = {}
+        active_rows_metric: dict[str, int] = {}
+
+        for spec in self.registry.specs:
+            hyper = self.role_hyperparameters[spec.role]
+            active_items = [
+                item for item in task_gradients
+                if item.gradients.get(spec.name) is not None
+                and self._is_active(spec, item)
+            ]
+            if not active_items:
+                continue
+            if spec.row_sparse:
+                row_result = self._row_directions(spec, active_items)
+                if row_result is None:
+                    continue
+                rows, directions = row_result
+                accumulated = torch.zeros_like(spec.parameter)
+                accumulated.index_add_(0, rows, directions / task_count)
+                active_rows = torch.unique(rows)
+                active_rows_metric[spec.name] = int(active_rows.numel())
+                old_value = spec.parameter.index_select(0, active_rows)
+                direction = accumulated.index_select(0, active_rows)
+                new_value = old_value - direction * hyper.learning_rate
+                if hyper.weight_decay and hyper.learning_rate:
+                    new_value.add_(
+                        old_value,
+                        alpha=-hyper.learning_rate * hyper.weight_decay)
+                applied = old_value - new_value
+                spec.parameter.index_copy_(0, active_rows, new_value)
+            else:
+                task_tensor = torch.tensor(
+                    [item.task_id for item in active_items],
+                    device=spec.parameter.device,
+                    dtype=torch.long,
+                )
+                gradients = torch.stack([
+                    item.gradients[spec.name] for item in active_items
+                ])
+                directions = self._dense_directions(
+                    spec, task_tensor, gradients)
+                accumulated = directions.sum(dim=0) / task_count
+                old_value = spec.parameter.detach().clone()
+                new_value = spec.parameter - accumulated * hyper.learning_rate
+                if hyper.weight_decay and hyper.learning_rate:
+                    new_value.add_(
+                        spec.parameter,
+                        alpha=-hyper.learning_rate * hyper.weight_decay)
+                applied = old_value - new_value
+                spec.parameter.copy_(new_value)
+
+            parameter_writes[spec.name] = 1
+            update_sq = applied.float().pow(2).sum()
+            previous = role_update_sq[spec.role]
+            role_update_sq[spec.role] = (
+                update_sq if previous is None else previous + update_sq)
+
+        for role, value in role_update_sq.items():
+            if value is None:
+                continue
+            norm = value.sqrt()
+            if role in self._epoch_role_update_norm_sum:
+                self._epoch_role_update_norm_sum[role].add_(norm)
+            else:
+                self._epoch_role_update_norm_sum[role] = norm.detach().clone()
+        self._epoch_metric_steps += 1
+        self.last_step_metrics = {
+            "task_ids": task_ids,
+            "task_count": len(task_ids),
+            "parameter_writes": parameter_writes,
+            "active_rows": active_rows_metric,
+        }
+        return copy.deepcopy(self.last_step_metrics)
+
+    def reset_epoch_metrics(self) -> None:
+        self._epoch_role_update_norm_sum = {}
+        self._epoch_metric_steps = 0
+
+    def epoch_metrics(self) -> dict[str, object]:
+        denominator = max(self._epoch_metric_steps, 1)
+        return {
+            "mean_role_update_norm": {
+                role: float(value / denominator)
+                for role, value in self._epoch_role_update_norm_sum.items()
+            }
+        }
+
+    def state_dict(self) -> dict[str, object]:
+        states = {
+            name: None if state is None else {
+                key: value.detach().clone().cpu()
+                for key, value in state.items()
+            }
+            for name, state in self._states.items()
+        }
+        return {
+            "format_version": self.FORMAT_VERSION,
+            "num_tasks": self.num_tasks,
+            "registry": self.registry.metadata(),
+            "role_hyperparameters": {
+                role: {
+                    "learning_rate": hyper.learning_rate,
+                    "betas": hyper.betas,
+                    "eps": hyper.eps,
+                    "weight_decay": hyper.weight_decay,
+                    "use_first_moment": hyper.use_first_moment,
+                }
+                for role, hyper in self.role_hyperparameters.items()
+            },
+            "states": states,
+            "last_step_metrics": copy.deepcopy(self.last_step_metrics),
+        }
+
+    def load_state_dict(self, payload: Mapping[str, object]) -> None:
+        if payload.get("format_version") != self.FORMAT_VERSION:
+            raise ValueError(
+                f"unsupported optimizer format {payload.get('format_version')}")
+        if payload.get("num_tasks") != self.num_tasks:
+            raise ValueError("optimizer checkpoint task count does not match")
+        if payload.get("registry") != self.registry.metadata():
+            raise ValueError("optimizer checkpoint parameter roles do not match model")
+        current_hyper = self.state_dict()["role_hyperparameters"]
+        if payload.get("role_hyperparameters") != current_hyper:
+            raise ValueError("optimizer checkpoint hyperparameters do not match")
+        restored = payload.get("states")
+        if not isinstance(restored, Mapping):
+            raise ValueError("optimizer checkpoint has no states mapping")
+        self._states = {spec.name: None for spec in self.registry.specs}
+        for spec in self.registry.specs:
+            raw_state = restored.get(spec.name)
+            if raw_state is None:
+                continue
+            if not isinstance(raw_state, Mapping):
+                raise ValueError(f"invalid state mapping for {spec.name}")
+            state: dict[str, torch.Tensor] = {}
+            for key, value in raw_state.items():
+                if not isinstance(value, torch.Tensor):
+                    raise ValueError(f"non-tensor state {spec.name}/{key}")
+                if key == "step":
+                    dtype = torch.long
+                elif key == "initialized":
+                    dtype = torch.bool
+                else:
+                    dtype = spec.parameter.dtype
+                state[str(key)] = value.to(
+                    device=spec.parameter.device, dtype=dtype).clone()
+            self._states[spec.name] = state
+        self.last_step_metrics = copy.deepcopy(
+            payload.get("last_step_metrics", {}))
+
+    def task_state(
+        self,
+        parameter_name: str,
+        task_id: int,
+    ) -> dict[str, torch.Tensor] | None:
+        state = self._states[parameter_name]
+        if state is None or not bool(state["initialized"][task_id]):
+            return None
+        return {
+            key: value[task_id].detach().clone()
+            for key, value in state.items()
+            if key != "initialized"
+        }
+
+
+TaskRoleOptimizer = BatchedTaskRoleOptimizer
+
+
 def _active_experts_for_task(
     gates: Sequence[torch.Tensor],
     task_mask: torch.Tensor,
