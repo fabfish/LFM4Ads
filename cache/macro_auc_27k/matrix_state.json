@@ -112,27 +112,111 @@
       "returncode": 0,
       "wall_sec": 10526.0,
       "log": "logs/macro_auc_27k/s8full_moe_balanced_s456.log"
+    },
+    {
+      "stage": "s9sel",
+      "tag": "e15_dense_s42",
+      "seed": 42,
+      "arch": "dense",
+      "loss": "balanced",
+      "K": null,
+      "top_k": null,
+      "lr": 0.001,
+      "device": "cuda:0",
+      "returncode": 0,
+      "wall_sec": 4587.7,
+      "log": "/root/Documents/Lfm4ads/logs/macro_auc_27k/e15_dense_s42.log"
+    },
+    {
+      "stage": "s9sel",
+      "tag": "e15_dense_s123",
+      "seed": 123,
+      "arch": "dense",
+      "loss": "balanced",
+      "K": null,
+      "top_k": null,
+      "lr": 0.001,
+      "device": "cuda:1",
+      "returncode": 0,
+      "wall_sec": 4623.7,
+      "log": "/root/Documents/Lfm4ads/logs/macro_auc_27k/e15_dense_s123.log"
+    },
+    {
+      "stage": "s9sel",
+      "tag": "e15_moe_s123",
+      "seed": 123,
+      "arch": "moe",
+      "loss": "balanced",
+      "K": 5,
+      "top_k": 2,
+      "lr": 0.001,
+      "device": "cuda:1",
+      "returncode": 0,
+      "wall_sec": 6134.5,
+      "log": "/root/Documents/Lfm4ads/logs/macro_auc_27k/e15_moe_s123.log"
+    },
+    {
+      "stage": "s9sel",
+      "tag": "e15_moe_s42",
+      "seed": 42,
+      "arch": "moe",
+      "loss": "balanced",
+      "K": 5,
+      "top_k": 2,
+      "lr": 0.001,
+      "device": "cuda:0",
+      "returncode": 0,
+      "wall_sec": 6403.4,
+      "log": "/root/Documents/Lfm4ads/logs/macro_auc_27k/e15_moe_s42.log"
+    },
+    {
+      "stage": "s9sel",
+      "tag": "e15_dense_s789",
+      "seed": 789,
+      "arch": "dense",
+      "loss": "balanced",
+      "K": null,
+      "top_k": null,
+      "lr": 0.001,
+      "device": "cuda:1",
+      "returncode": 0,
+      "wall_sec": 4624.8,
+      "log": "/root/Documents/Lfm4ads/logs/macro_auc_27k/e15_dense_s789.log"
+    },
+    {
+      "stage": "s9sel",
+      "tag": "e15_dense_s456",
+      "seed": 456,
+      "arch": "dense",
+      "loss": "balanced",
+      "K": null,
+      "top_k": null,
+      "lr": 0.001,
+      "device": "cuda:0",
+      "returncode": 0,
+      "wall_sec": 4588.4,
+      "log": "/root/Documents/Lfm4ads/logs/macro_auc_27k/e15_dense_s456.log"
     }
   ],
   "failed": [],
   "skipped": [],
   "plan": {
     "cuda:0": [
-      "s8full_dense_balanced_s42",
-      "s8full_moe_balanced_s42",
-      "s8full_dense_balanced_s456",
-      "s8full_moe_balanced_s456"
+      "e15_dense_s42",
+      "e15_moe_s42",
+      "e15_dense_s456",
+      "e15_moe_s456"
     ],
     "cuda:1": [
-      "s8full_dense_balanced_s123",
-      "s8full_moe_balanced_s123",
-      "s8full_dense_balanced_s789",
-      "s8full_moe_balanced_s789"
+      "e15_dense_s123",
+      "e15_moe_s123",
+      "e15_dense_s789",
+      "e15_moe_s789"
     ]
   },
-  "budget_hours": 24.0,
-  "updated_at": "2026-08-17 08:22:45",
-  "n_completed": 8,
+  "budget_hours": 10.0,
+  "updated_at": "2026-08-17 17:24:48",
+  "n_completed": 14,
   "n_failed": 0,
   "finished_at": "2026-08-17 08:22:45"
 }

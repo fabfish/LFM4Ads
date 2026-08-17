@@ -1,0 +1,17 @@
+[matrix] 8 runs, budget 10.0h, devices=['cuda:0', 'cuda:1']
+  cuda:0: 4 runs (seeds [42, 456])
+  cuda:1: 4 runs (seeds [123, 789])
+[cuda:0] (1/4) RUN e15_dense_s42
+[cuda:1] (1/4) RUN e15_dense_s123
+[cuda:0] (1/4) OK e15_dense_s42 76.5min
+[cuda:0] (2/4) RUN e15_moe_s42
+[cuda:1] (1/4) OK e15_dense_s123 77.1min
+[cuda:1] (2/4) RUN e15_moe_s123
+[cuda:1] (2/4) OK e15_moe_s123 102.2min
+[cuda:1] (3/4) RUN e15_dense_s789
+[cuda:0] (2/4) OK e15_moe_s42 106.7min
+[cuda:0] (3/4) RUN e15_dense_s456
+[cuda:1] (3/4) OK e15_dense_s789 77.1min
+[cuda:1] (4/4) RUN e15_moe_s789
+[cuda:0] (3/4) OK e15_dense_s456 76.5min
+[cuda:0] (4/4) RUN e15_moe_s456
