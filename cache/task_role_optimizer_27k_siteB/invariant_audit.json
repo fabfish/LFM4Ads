@@ -106,7 +106,7 @@
   "implementation": {
     "site": "B",
     "sha256": {
-      "task_role_optimizer.py": "663b2326dbdd9950a769679a8cffc162d8c576dd2d85df38836d633212182b68",
+      "task_role_optimizer.py": "d33cbb26529cae06960be05703a191d5c26bd0ebe01639e177768c9dfc59f8f1",
       "task_role_optimizer_protocol.py": "9be56ec7c4ee2a780c0c86af340737f2d327662478a36c73c87a96e2c3d80a78",
       "scripts/verify/verify_task_role_optimizer.py": "ee93579607c36ead61e90cde561ae73c9de4ed546f49da564723a00a702a0426",
       "experiments/main_task_role_optimizer.py": "8dee97838fde5b9c6303172377753d90a1e466d904bc01f819c5712e7de92366",

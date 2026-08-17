@@ -539,35 +539,49 @@ def collect_task_gradients(
     batch: dict[str, torch.Tensor],
     registry: ParameterRoleRegistry,
 ) -> list[TaskGradient]:
-    """一次前向后提取各场景梯度，不修改参数。"""
-    model(batch)
-    if "logit" not in batch or "_gate" not in batch:
-        raise ValueError("model must write batch['logit'] and batch['_gate']")
-    labels = batch["is_click"].to(batch["logit"].dtype)
-    per_row = F.binary_cross_entropy_with_logits(
-        batch["logit"], labels, reduction="none")
+    """逐场景子批次提取梯度，全部完成前不修改参数。
+
+    当前模型没有批次归一化、随机失活或其他跨样本算子，因此把混合批次按
+    场景切开前向，与整批前向后对各场景损失求梯度在数学上等价。这样每张
+    自动微分图只反向一次，避免在完整图上为十五个场景重复反向传播。
+    """
     tabs = batch["tab"].long()
+    batch_size = tabs.shape[0]
     task_ids = [int(value) for value in torch.unique(tabs, sorted=True).tolist()]
     parameters = [spec.parameter for spec in registry.specs]
+    generated_fields = {"logit", "_gate", "_cr"}
+    model_inputs = {
+        name: value for name, value in batch.items()
+        if name not in generated_fields
+    }
     results: list[TaskGradient] = []
-    for index, task_id in enumerate(task_ids):
+    for task_id in task_ids:
         mask = tabs == task_id
-        loss = per_row[mask].mean()
+        task_batch = {
+            name: value[mask]
+            if value.ndim > 0 and value.shape[0] == batch_size
+            else value
+            for name, value in model_inputs.items()
+        }
+        model(task_batch)
+        if "logit" not in task_batch or "_gate" not in task_batch:
+            raise ValueError("model must write batch['logit'] and batch['_gate']")
+        labels = task_batch["is_click"].to(task_batch["logit"].dtype)
+        loss = F.binary_cross_entropy_with_logits(
+            task_batch["logit"], labels, reduction="mean")
         gradients = torch.autograd.grad(
-            loss,
-            parameters,
-            retain_graph=index + 1 < len(task_ids),
-            allow_unused=True,
-        )
+            loss, parameters, retain_graph=False, allow_unused=True)
+        task_mask = torch.ones_like(task_batch["tab"], dtype=torch.bool)
         results.append(TaskGradient(
             task_id=task_id,
             gradients={
                 spec.name: None if gradient is None else gradient.detach()
                 for spec, gradient in zip(registry.specs, gradients)
             },
-            active_experts=_active_experts_for_task(batch["_gate"], mask),
+            active_experts=_active_experts_for_task(
+                task_batch["_gate"], task_mask),
             active_rows=_active_rows_for_task(
-                registry, batch, task_id, mask),
+                registry, task_batch, task_id, task_mask),
             loss=float(loss.detach()),
         ))
     return results
