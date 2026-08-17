@@ -141,6 +141,22 @@ def build_tasks(stages=PRIMARY_STAGES, epochs=EPOCHS, patience=PATIENCE):
                                  epochs=epochs, patience=patience)
                            for seed in SEEDS
                            for arch in ("dense", "moe")],
+        # Stage 9 (E15): MODEL-SELECTION ENDPOINT sensitivity. Same final config
+        # as E10 (lightweight, balanced, K=5 hard top_k=2), but each run keeps
+        # one checkpoint per selection endpoint (macro / pooled valid) in a
+        # single trajectory and evaluates test for both -> answers "does the MoE
+        # gain survive selecting epochs by the OLD endpoint?" at zero extra
+        # training cost, perfectly paired. Also dumps per-epoch test curves so
+        # any other selection rule can be replayed post-hoc.
+        # Pre-registered: docs/20260817-1330-E15-选择端点敏感性预注册.md
+        "s9sel": lambda: [_task("s9sel", seed, arch, "balanced",
+                                K=MAIN_K, top_k=2 if arch == "moe" else None,
+                                extra=["--selection", "both",
+                                       "--eval-test-each-epoch"],
+                                tag=f"e15_{arch}_s{seed}",
+                                epochs=epochs, patience=patience)
+                          for seed in SEEDS
+                          for arch in ("dense", "moe")],
     }
     tasks = []
     for s in stages:

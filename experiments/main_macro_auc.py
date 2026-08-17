@@ -231,8 +231,14 @@ def train_arm(model, srcs, args, label):
     train_src, valid_src, test_src = srcs
     optimizer = torch.optim.AdamW(
         [p for p in model.parameters() if p.requires_grad], lr=args.lr)
-    best = {"macro": -1.0}
-    best_state, hist, since_improve = None, [], 0
+    # E15: keep one checkpoint per *selection endpoint* so a single training
+    # trajectory yields both selection rules, perfectly paired and at zero
+    # extra training cost. `selection` only controls early-stop bookkeeping.
+    sel_endpoints = (["macro", "pooled"] if args.selection == "both"
+                     else [args.selection])
+    bests = {e: {"score": -1.0, "epoch": None, "state": None}
+             for e in sel_endpoints}
+    hist, since_improve = [], 0
     for epoch in range(1, args.max_epochs + 1):
         t0 = time.time()
         model.train()
@@ -246,16 +252,28 @@ def train_arm(model, srcs, args, label):
                 break
         val = evaluate_all(model, valid_src)
         wall = time.time() - t0
-        hist.append({"epoch": epoch, "wall_clock_sec": wall,
-                     "valid_macro": val["macro"], "valid_pooled": val["pooled"],
-                     "valid_per_scenario": val["per_scenario"]})
+        rec = {"epoch": epoch, "wall_clock_sec": wall,
+               "valid_macro": val["macro"], "valid_pooled": val["pooled"],
+               "valid_per_scenario": val["per_scenario"]}
+        if args.eval_test_each_epoch:
+            tst = evaluate_all(model, test_src)
+            rec["test_macro"] = tst["macro"]
+            rec["test_pooled"] = tst["pooled"]
+        hist.append(rec)
         print(f"  [{label}] ep{epoch} valid macro={val['macro']:.6f} "
-              f"pooled={val['pooled']:.6f} wall={wall:.1f}s")
-        # model selection on the PRIMARY endpoint (macro), exact argmax
-        if val["macro"] > best["macro"]:
-            best = {"macro": val["macro"], "pooled": val["pooled"],
-                    "epoch": epoch}
-            best_state = deepcopy(model.state_dict())
+              f"pooled={val['pooled']:.6f}"
+              + (f" | test macro={rec['test_macro']:.6f} "
+                 f"pooled={rec['test_pooled']:.6f}"
+                 if args.eval_test_each_epoch else "")
+              + f" wall={wall:.1f}s")
+        # model selection: exact argmax of the valid AUC of each endpoint
+        improved = False
+        for e in sel_endpoints:
+            if val[e] > bests[e]["score"]:
+                bests[e] = {"score": val[e], "epoch": epoch,
+                            "state": deepcopy(model.state_dict())}
+                improved = True
+        if improved:
             since_improve = 0
         else:
             since_improve += 1
@@ -263,10 +281,22 @@ def train_arm(model, srcs, args, label):
                 print(f"  [{label}] early stop at epoch {epoch} "
                       f"(patience={args.patience})")
                 break
-    model.load_state_dict(best_state)
-    test = evaluate_all(model, test_src)
-    return {"test": test, "best_valid_macro": best["macro"],
-            "best_valid_pooled": best["pooled"], "best_epoch": best["epoch"],
+    # evaluate test once per selection endpoint
+    test_by = {}
+    for e in sel_endpoints:
+        model.load_state_dict(bests[e]["state"])
+        test_by[e] = {"test": evaluate_all(model, test_src),
+                      "best_valid_score": bests[e]["score"],
+                      "best_epoch": bests[e]["epoch"]}
+    primary = "macro" if "macro" in sel_endpoints else args.selection
+    model.load_state_dict(bests[primary]["state"])
+    return {"test": test_by[primary]["test"],
+            "best_valid_macro": bests[primary]["score"],
+            "best_valid_pooled": next(
+                h["valid_pooled"] for h in hist
+                if h["epoch"] == bests[primary]["epoch"]),
+            "best_epoch": bests[primary]["epoch"],
+            "test_by_selection": test_by,
             "epochs_run": len(hist), "history": hist,
             "mean_wall_sec": sum(h["wall_clock_sec"] for h in hist) / len(hist)}
 
@@ -290,6 +320,16 @@ def main():
                          "per E1 PASS)")
     ap.add_argument("--freeze-router", action="store_true",
                     help="pin gates at uniform (function-preservation sentinel)")
+    ap.add_argument("--selection", default="macro",
+                    choices=("macro", "pooled", "both"),
+                    help="E15: which valid endpoint drives model selection / "
+                         "early stop. 'both' keeps one checkpoint per endpoint "
+                         "in a single trajectory (early stop only when NEITHER "
+                         "endpoint improves) so both selection rules are "
+                         "reported from the same run, perfectly paired.")
+    ap.add_argument("--eval-test-each-epoch", action="store_true",
+                    help="E15: also record test macro/pooled every epoch so "
+                         "any post-hoc selection rule can be replayed")
     ap.add_argument("--max-batches", type=int, default=0, help="smoke only")
     ap.add_argument("--tag", default="")
     args = ap.parse_args()
@@ -352,7 +392,14 @@ def main():
         "macro_scenarios": list(MACRO_SCENARIOS),
         "aux_scenarios": list(AUX_SCENARIOS),
         "primary_endpoint": "macro AUC over macro_scenarios (test)",
-        "model_selection": "exact argmax of macro valid AUC",
+        "model_selection": (
+            "exact argmax of macro valid AUC" if args.selection == "macro"
+            else f"exact argmax of {args.selection} valid AUC"
+            if args.selection == "pooled"
+            else "one checkpoint per selection endpoint (macro & pooled), "
+                 "exact argmax each; early stop when neither improves"),
+        "selection": args.selection,
+        "eval_test_each_epoch": bool(args.eval_test_each_epoch),
         "preregistration":
             "docs/20260815-0018-场景内泛化MoE长程矩阵预注册.md",
     }
@@ -363,6 +410,10 @@ def main():
     print(f"\n[{tag}] TEST macro={t['macro']:.6f} pooled={t['pooled']:.6f} "
           f"(best valid macro {out['best_valid_macro']:.6f} "
           f"@ep{out['best_epoch']}, {out['epochs_run']} epochs run)")
+    for e, r in out.get("test_by_selection", {}).items():
+        print(f"  [selection={e}] ep{r['best_epoch']} "
+              f"→ TEST macro={r['test']['macro']:.6f} "
+              f"pooled={r['test']['pooled']:.6f}")
     print("  per-scenario: " + " ".join(
         f"s{s}={t['per_scenario'][str(s)]:.4f}"
         for s in MACRO_SCENARIOS if t["per_scenario"][str(s)] is not None))
