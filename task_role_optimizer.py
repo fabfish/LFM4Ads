@@ -79,7 +79,7 @@ class TaskGradient:
     gradients: dict[str, torch.Tensor | None]
     active_experts: dict[int, frozenset[int]]
     active_rows: dict[str, torch.Tensor]
-    loss: float | None = None
+    loss: torch.Tensor | float | None = None
 
 
 def default_role_hyperparameters(
@@ -260,6 +260,8 @@ class TaskRoleOptimizer:
             spec.name: {} for spec in registry.specs
         }
         self.last_step_metrics: dict[str, object] = {}
+        self._epoch_role_update_norm_sum: dict[str, torch.Tensor] = {}
+        self._epoch_metric_steps = 0
 
     def _new_state(self, spec: ParameterSpec, task_id: int) -> dict[str, torch.Tensor]:
         del task_id
@@ -299,7 +301,7 @@ class TaskRoleOptimizer:
         state["step"].add_(1)
         state["exp_avg_sq"].mul_(beta2).addcmul_(
             gradient, gradient, value=1.0 - beta2)
-        step = int(state["step"].item())
+        step = state["step"].to(gradient.dtype)
         second = state["exp_avg_sq"] / (1.0 - beta2 ** step)
         if hyper.use_first_moment:
             state["exp_avg"].mul_(beta1).add_(gradient, alpha=1.0 - beta1)
@@ -362,7 +364,9 @@ class TaskRoleOptimizer:
         if len(task_ids) != len(set(task_ids)):
             raise ValueError(f"duplicate task ids in one batch: {task_ids}")
         task_count = float(len(task_gradients))
-        role_update_sq = {role: 0.0 for role in PARAMETER_ROLES}
+        role_update_sq: dict[str, torch.Tensor | None] = {
+            role: None for role in PARAMETER_ROLES
+        }
         parameter_writes: dict[str, int] = {}
         active_rows_metric: dict[str, int] = {}
 
@@ -421,18 +425,40 @@ class TaskRoleOptimizer:
                 applied = old_value - new_value
                 spec.parameter.index_copy_(0, active_rows, new_value)
             parameter_writes[spec.name] = 1
-            role_update_sq[spec.role] += float(applied.float().pow(2).sum())
+            update_sq = applied.float().pow(2).sum()
+            previous = role_update_sq[spec.role]
+            role_update_sq[spec.role] = (
+                update_sq if previous is None else previous + update_sq)
 
+        for role, value in role_update_sq.items():
+            if value is None:
+                continue
+            norm = value.sqrt()
+            if role in self._epoch_role_update_norm_sum:
+                self._epoch_role_update_norm_sum[role].add_(norm)
+            else:
+                self._epoch_role_update_norm_sum[role] = norm.detach().clone()
+        self._epoch_metric_steps += 1
         self.last_step_metrics = {
             "task_ids": task_ids,
             "task_count": len(task_ids),
             "parameter_writes": parameter_writes,
             "active_rows": active_rows_metric,
-            "role_update_norm": {
-                role: value ** 0.5 for role, value in role_update_sq.items()
-            },
         }
         return copy.deepcopy(self.last_step_metrics)
+
+    def reset_epoch_metrics(self) -> None:
+        self._epoch_role_update_norm_sum = {}
+        self._epoch_metric_steps = 0
+
+    def epoch_metrics(self) -> dict[str, object]:
+        denominator = max(self._epoch_metric_steps, 1)
+        return {
+            "mean_role_update_norm": {
+                role: float(value / denominator)
+                for role, value in self._epoch_role_update_norm_sum.items()
+            }
+        }
 
     def state_dict(self) -> dict[str, object]:
         states: dict[str, dict[int, dict[str, torch.Tensor]]] = {}
@@ -595,7 +621,7 @@ def collect_task_gradients(
             active_experts=_active_experts_for_task(gates, mask),
             active_rows=_active_rows_for_task(
                 registry, batch, task_id, mask),
-            loss=float(losses[task_id]),
+            loss=losses[task_id].detach(),
         ))
     return results
 

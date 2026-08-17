@@ -170,32 +170,43 @@ def train_one_epoch(
     max_batches: int,
 ) -> dict[str, object]:
     model.train()
-    loss_sum = 0.0
+    loss_sum: torch.Tensor | None = None
     task_updates = 0
     batch_count = 0
-    role_update_sum = {role: 0.0 for role in PARAMETER_ROLES}
+    if hasattr(optimizer, "reset_epoch_metrics"):
+        optimizer.reset_epoch_metrics()
+    device = next(model.parameters()).device
+    if device.type == "cuda":
+        torch.cuda.synchronize(device)
     started = time.time()
     for batch_index, batch in enumerate(source, 1):
         gradients = collect_task_gradients(model, batch, registry)
         optimizer.step(gradients)
         batch_count += 1
         task_updates += len(gradients)
-        loss_sum += sum(item.loss or 0.0 for item in gradients) / len(gradients)
-        metrics = getattr(optimizer, "last_step_metrics", {})
-        for role, value in metrics.get("role_update_norm", {}).items():
-            role_update_sum[role] += float(value)
+        batch_loss = torch.stack([
+            value if isinstance(value, torch.Tensor)
+            else torch.tensor(float(value or 0.0), device=device)
+            for value in (item.loss for item in gradients)
+        ]).mean()
+        loss_sum = batch_loss if loss_sum is None else loss_sum + batch_loss
         if max_batches and batch_index >= max_batches:
             break
-    if not batch_count:
+    if not batch_count or loss_sum is None:
         raise RuntimeError("training source yielded no batches")
+    if device.type == "cuda":
+        torch.cuda.synchronize(device)
+    elapsed = time.time() - started
+    if hasattr(optimizer, "epoch_metrics"):
+        role_metrics = optimizer.epoch_metrics()["mean_role_update_norm"]
+    else:
+        role_metrics = {role: 0.0 for role in PARAMETER_ROLES}
     return {
-        "mean_balanced_loss": loss_sum / batch_count,
+        "mean_balanced_loss": float(loss_sum / batch_count),
         "mixed_batches": batch_count,
         "task_updates": task_updates,
-        "mean_role_update_norm": {
-            role: value / batch_count for role, value in role_update_sum.items()
-        },
-        "wall_clock_sec": time.time() - started,
+        "mean_role_update_norm": role_metrics,
+        "wall_clock_sec": elapsed,
     }
 
 
