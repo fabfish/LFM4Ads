@@ -28,3 +28,10 @@ logs/gpu_keeper.log
 
 # gpu_keeper runtime logs (常驻服务运行时日志)
 logs/gpu_keeper*.log
+
+# 活跃训练/矩阵运行日志（运行产物，不入 git；历史归档 logs/archives/ 保留）
+logs/macro_auc/
+logs/macro_auc_27k/
+logs/macro_auc_27k_siteB/
+logs/*_matrix*.log
+logs/macro_matrix*.log
