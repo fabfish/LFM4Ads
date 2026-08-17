@@ -42,6 +42,17 @@
 - 论文口径基于 100 次 trial 取平均；探索阶段可用 3-5 seed 快速验证。
 - 跨 scenario 对比仅看**相对排序**（不同 scenario 的数据分布不同，绝对 AUC 不可跨 scenario 比较）。
 
+### 2.1 两端协作隔离（2026-08-17 起，强制）
+
+本仓库由两个 site 并行贡献实验（site A = 2 卡机，site B = 3 卡机）。详见
+[两端协作分离设计与实验分工](./docs/20260817-1400-两端协作分离设计与实验分工.md)。硬约束：
+
+- **配对差绝不跨 site**：禁止拿 site B 的 moe 减 site A 的 dense；禁止跨 site 共用噪声地板；禁止跨 site 合并均值。分配粒度是**整个实验**（含其 dense 对照臂），每个 site 的每个实验必须 **site 内自足**。
+- **产物命名空间隔离**：site B 一律 `LFM_MACRO_OUT=cache/macro_auc_27k_siteB`（日志目录自动跟随），run tag 带 site 前缀；每个 run json 必须有 `provenance.site`（由 `LFM_SITE` 注入）。
+- **跑任何矩阵前必须 preflight 全绿**：`python scripts/verify/preflight_site.py --site <X>`（校验数据字节、切分样本量、场景集合、参数量、数值环境）。
+- **seed→device 映射按 site 选择**（`run_macro_auc_matrix.py` 的 `_SEED_DEVICE_BY_SITE`）；无论几张卡，**同一 seed 的全部臂必须同卡**。
+- **文件归属独占**：`model.py` / `experiments/**` / `scripts/matrix/run_macro_auc_matrix.py` / `results/INDEX.md` / `docs/NEXT.md` 由 site A 独占修改；site B 只写自己 namespace 下的产物与带 `-siteB` 后缀的新文档。site B 在 `site-b/*` 分支工作，由 A 合并。
+
 ## 3. 项目结构约定
 
 ```

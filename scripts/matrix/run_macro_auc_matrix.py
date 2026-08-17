@@ -39,9 +39,21 @@ STATE = os.path.join(OUT_DIR, "matrix_state.json")
 SEEDS = (42, 123, 456, 789)
 #: extra seeds for E8's pooled-loss robustness (pre-registered {101, 202})
 SEEDS_EXTRA = (101, 202)
-#: fixed so that all configs of one seed share one card (paired-difference rule)
-SEED_DEVICE = {42: "cuda:0", 456: "cuda:0", 101: "cuda:0",
-               123: "cuda:1", 789: "cuda:1", 202: "cuda:1"}
+#: Fixed so that ALL configs of one seed share one card (paired-difference rule,
+#: AGENTS.md §2). Two-site collaboration: site A has 2 GPUs, site B has 3, so
+#: the map is selected by LFM_SITE. A seed is never split across cards, and a
+#: PAIR is never split across sites (docs/20260817-1400 §2.1/§2.5).
+_SEED_DEVICE_BY_SITE = {
+    "A": {42: "cuda:0", 456: "cuda:0", 101: "cuda:0",
+          123: "cuda:1", 789: "cuda:1", 202: "cuda:1"},
+    # 3 does not divide 4, so 42 and 789 share cuda:0; each seed still keeps
+    # all of its arms on one card.
+    "B": {42: "cuda:0", 789: "cuda:0", 101: "cuda:0",
+          123: "cuda:1", 202: "cuda:1",
+          456: "cuda:2"},
+}
+SITE = os.environ.get("LFM_SITE", "A").upper()
+SEED_DEVICE = _SEED_DEVICE_BY_SITE.get(SITE, _SEED_DEVICE_BY_SITE["A"])
 MAIN_K = 5           # 330 = 2*3*5*11, so K must divide 330
 K_SWEEP = (2, 3, 6, 10, 11)
 LR_SWEEP = (2e-4, 3e-3)   # 1e-3 is covered by stage 1
@@ -157,6 +169,28 @@ def build_tasks(stages=PRIMARY_STAGES, epochs=EPOCHS, patience=PATIENCE):
                                 epochs=epochs, patience=patience)
                           for seed in SEEDS
                           for arch in ("dense", "moe")],
+        # ------------------------------------------------------------------
+        #  site B stages (3-GPU machine).每个 stage 都是 SITE 内自足的：
+        #  它自带 dense 对照臂，噪声地板由本 site 的 dense 臂算出。
+        #  跨 site 相减一律禁止 —— docs/20260817-1400-两端协作分离设计与实验分工.md
+        # ------------------------------------------------------------------
+        # B0: site B 的 dense 基线（4 seed，建立本 site 噪声地板 + 可比性校验）
+        #     + 1 个 moe top_k=2 run 用于 E12 专家利用率诊断（dump router 权重）
+        "b0repro": lambda: (
+            [_task("b0repro", seed, "dense", "balanced",
+                   tag=f"b0repro_dense_s{seed}",
+                   epochs=epochs, patience=patience)
+             for seed in SEEDS]
+            + [_task("b0repro", 42, "moe", "balanced", K=MAIN_K, top_k=2,
+                     tag="b0repro_moe_tk2_s42",
+                     epochs=epochs, patience=patience)]),
+        # B1 (was E14): top_k monotonicity. dense arm reused from b0repro;
+        # only top_k varies, parameter count identical across all arms.
+        "b1topk": lambda: [_task("b1topk", seed, "moe", "balanced",
+                                 K=MAIN_K, top_k=tk,
+                                 tag=f"b1_moe_tk{tk}_s{seed}",
+                                 epochs=epochs, patience=patience)
+                           for seed in SEEDS for tk in (2, 1)],
     }
     tasks = []
     for s in stages:

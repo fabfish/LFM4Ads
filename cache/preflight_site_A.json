@@ -1,0 +1,60 @@
+{
+  "site": "A",
+  "env": {
+    "LFM_DATASET": "/root/Documents/Lfm4ads/dataset_27k.feather",
+    "LFM_VOCAB_JSON": "/root/Documents/Lfm4ads/cache/fields_27k.json",
+    "LFM_SAMPLE_COUNTS_JSON": "/root/Documents/Lfm4ads/cache/sample_counts_27k.json",
+    "LFM_MACRO_OUT": "/root/Documents/Lfm4ads/cache/macro_auc_27k"
+  },
+  "dataset_size_bytes": 6005554962,
+  "dataset_sha256_head64mb": "ba2fafdc62f594a12e8fa8383e9ae19313d6bbf8e9aeb1564ddeda1fe4a888f9",
+  "vocab_sha256": "6b5543c469e01e4760a7285ef4fc86577e20c439e9c2347b89fa8a9057cfeac0",
+  "sample_counts": {
+    "train": 255474457,
+    "valid": 34034748,
+    "test": 32769180
+  },
+  "torch": "2.7.1",
+  "cuda": "12.8",
+  "gpus": [
+    "NVIDIA H20",
+    "NVIDIA H20"
+  ],
+  "tf32_matmul": false,
+  "cudnn_tf32": true,
+  "lightweight_total_params": 869525,
+  "moe_total_params": 869750,
+  "checks": [
+    {
+      "name": "C1 dataset size",
+      "ok": true,
+      "detail": "6005554962 vs ref 6005554962"
+    },
+    {
+      "name": "C2 vocab json readable",
+      "ok": true,
+      "detail": "user=27 video=9"
+    },
+    {
+      "name": "C3 sample counts",
+      "ok": true,
+      "detail": "{'train': 255474457, 'valid': 34034748, 'test': 32769180}"
+    },
+    {
+      "name": "C4 macro scenarios",
+      "ok": true,
+      "detail": "[0, 1, 2, 3, 4, 5, 6, 8]"
+    },
+    {
+      "name": "C5 numerics recorded",
+      "ok": true,
+      "detail": "torch=2.7.1 cuda=12.8 gpus=2 tf32=False"
+    },
+    {
+      "name": "C4b param counts",
+      "ok": true,
+      "detail": "dense=869525 moe=869750 (router=225)"
+    }
+  ],
+  "all_ok": true
+}

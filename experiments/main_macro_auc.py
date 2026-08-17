@@ -290,15 +290,27 @@ def train_arm(model, srcs, args, label):
                       "best_epoch": bests[e]["epoch"]}
     primary = "macro" if "macro" in sel_endpoints else args.selection
     model.load_state_dict(bests[primary]["state"])
-    return {"test": test_by[primary]["test"],
-            "best_valid_macro": bests[primary]["score"],
-            "best_valid_pooled": next(
-                h["valid_pooled"] for h in hist
-                if h["epoch"] == bests[primary]["epoch"]),
-            "best_epoch": bests[primary]["epoch"],
-            "test_by_selection": test_by,
-            "epochs_run": len(hist), "history": hist,
-            "mean_wall_sec": sum(h["wall_clock_sec"] for h in hist) / len(hist)}
+    out = {"test": test_by[primary]["test"],
+           "best_valid_macro": bests[primary]["score"],
+           "best_valid_pooled": next(
+               h["valid_pooled"] for h in hist
+               if h["epoch"] == bests[primary]["epoch"]),
+           "best_epoch": bests[primary]["epoch"],
+           "test_by_selection": test_by,
+           "epochs_run": len(hist), "history": hist,
+           "mean_wall_sec": sum(h["wall_clock_sec"] for h in hist) / len(hist)}
+    # E12: the ScenarioRouter gate is fully determined by Embedding(15,K).weight
+    # (it only looks at `tab`), so 3 layers x 15 scenarios x K floats reproduce
+    # every dispatch decision at zero extra inference cost. Dumped from the
+    # SELECTED weights so the diagnosis matches the reported model.
+    rw = []
+    for layer in getattr(model, "cross_layers", []):
+        w = getattr(getattr(layer, "router", None), "embed", None)
+        if w is not None and hasattr(w, "weight"):
+            rw.append(w.weight.detach().float().cpu().tolist())
+    if rw:
+        out["router_weights"] = rw
+    return out
 
 
 def main():
@@ -384,6 +396,9 @@ def main():
     out.update(info)
     out["provenance"] = {
         "script": "main_macro_auc.py", "device": args.device,
+        #: two-site collaboration: cross-site numbers must NEVER be paired.
+        #: docs/20260817-1400-两端协作分离设计与实验分工.md §2.1
+        "site": os.environ.get("LFM_SITE", "A"),
         "arch": args.arch, "loss": args.loss, "K": args.K, "seed": args.seed,
         "top_k": args.top_k, "lr": args.lr, "batch_size": args.batch_size,
         "max_epochs": args.max_epochs, "patience": args.patience,

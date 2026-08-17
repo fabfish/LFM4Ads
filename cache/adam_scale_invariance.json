@@ -1,0 +1,24 @@
+{
+  "constant_factors": {
+    "0.1": 1.8389869183010887e-07,
+    "0.5": 0.0,
+    "2.0": 0.0,
+    "10.0": 1.411813741469814e-07,
+    "100.0": 1.91187638165502e-07
+  },
+  "time_varying_factors": {
+    "1+0.9*sin(t/20)": 0.365875780582428,
+    "0.1 then 10 at t=100": 0.4299312233924866,
+    "linear 0.5->2.0": 0.21480873227119446
+  },
+  "with_weight_decay": {
+    "0.1": 1.5959372490215173e-07,
+    "10.0": 1.5321136004331493e-07
+  },
+  "verdict": {
+    "max_rel_diff_constant": 1.91187638165502e-07,
+    "max_rel_diff_time_varying": 0.4299312233924866,
+    "constant_factor_is_noop": true,
+    "conclusion": "AdamW is scale-invariant: a constant per-task gradient factor is a numerical no-op (rel diff ~1e-7, i.e. float32 noise). Only the time-varying part of AdaTask's factor can affect training. Since the AU is an EMA that settles, the historical implementation (grad.mul_(f) then AdamW.step) is expected to be近-inert in steady state. A genuine per-task learning rate must be applied POST-preconditioner (per-param-group lr, or scaling the update)."
+  }
+}
