@@ -36,10 +36,24 @@ class Task:
 def development_tasks(stage: str, expert_lr: float) -> list[Task]:
     if stage == "quick-validation":
         return [
-            Task("短平快_共享普通状态_s42", "cuda:0", "shared_adamw", 42,
+            Task("短测_共享普通状态_s42", "cuda:0", "shared_adamw", 42,
                  1e-3, 1.0, 1.0, True),
-            Task("短平快_完整角色隔离_s42", "cuda:0", "role_isolated", 42,
+            Task("短测_场景独立同规则_s42", "cuda:1", "task_state_uniform", 42,
+                 1e-3, 1.0, 1.0, True),
+            Task("短测_完整角色隔离_s42", "cuda:2", "role_isolated", 42,
                  1e-3, 0.05, 1.0, True),
+            Task("短测_专家学习率0.0002_s42", "cuda:0", "role_isolated", 42,
+                 2e-4, 0.05, 1.0, True),
+            Task("短测_专家学习率0.0005_s42", "cuda:1", "role_isolated", 42,
+                 5e-4, 0.05, 1.0, True),
+            Task("短测_路由器冻结_s42", "cuda:2", "role_isolated", 42,
+                 1e-3, 0.0, 1.0, True),
+            Task("短测_路由器比例0.02_s42", "cuda:0", "role_isolated", 42,
+                 1e-3, 0.02, 1.0, True),
+            Task("短测_路由器比例0.1_s42", "cuda:1", "role_isolated", 42,
+                 1e-3, 0.1, 1.0, True),
+            Task("短测_共享主干比例0.5_s42", "cuda:2", "role_isolated", 42,
+                 1e-3, 0.05, 0.5, True),
         ]
     if stage == "state-screen":
         return [
@@ -341,7 +355,7 @@ def main() -> None:
         print("  " + " ".join(command(task, args)))
     if args.dry_run:
         return
-    if args.stage in ("state-formal", "formal"):
+    if args.stage in ("quick-validation", "state-formal", "formal"):
         run_parallel_by_device(tasks, args)
     else:
         for task in tasks:
