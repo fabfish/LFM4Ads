@@ -59,19 +59,22 @@ def development_tasks(stage: str, expert_lr: float) -> list[Task]:
     raise ValueError(stage)
 
 
-def formal_tasks(config_path: Path) -> list[Task]:
-    with config_path.open(encoding="utf-8") as handle:
-        configs = json.load(handle)
-    if not isinstance(configs, list) or len(configs) != 2:
-        raise ValueError("正式确认配置必须恰好包含两个候选")
-    devices = {42: "cuda:0", 123: "cuda:1", 456: "cuda:2", 789: "cuda:0"}
+FORMAL_SEED_DEVICES = {
+    42: "cuda:0", 123: "cuda:1", 456: "cuda:2", 789: "cuda:0"
+}
+
+
+def tasks_for_configs(
+    configs: list[dict[str, object]],
+    label: str,
+) -> list[Task]:
     tasks = []
     for candidate_index, config in enumerate(configs, 1):
         for seed in (42, 123, 456, 789):
             tasks.append(Task(
-                tag=f"正式候选{candidate_index}_s{seed}",
-                device=devices[seed],
-                optimizer_mode=config["optimizer_mode"],
+                tag=f"{label}{candidate_index}_s{seed}",
+                device=FORMAL_SEED_DEVICES[seed],
+                optimizer_mode=str(config["optimizer_mode"]),
                 seed=seed,
                 expert_lr=float(config["expert_lr"]),
                 router_ratio=float(config["router_lr_ratio"]),
@@ -79,6 +82,37 @@ def formal_tasks(config_path: Path) -> list[Task]:
                 development=False,
             ))
     return tasks
+
+
+def state_formal_tasks() -> list[Task]:
+    return tasks_for_configs([
+        {
+            "optimizer_mode": "shared_adamw",
+            "expert_lr": 5e-4,
+            "router_lr_ratio": 1.0,
+            "shared_lr_ratio": 1.0,
+        },
+        {
+            "optimizer_mode": "task_state_uniform",
+            "expert_lr": 5e-4,
+            "router_lr_ratio": 1.0,
+            "shared_lr_ratio": 1.0,
+        },
+        {
+            "optimizer_mode": "role_isolated",
+            "expert_lr": 5e-4,
+            "router_lr_ratio": 0.05,
+            "shared_lr_ratio": 1.0,
+        },
+    ], "状态正式配置")
+
+
+def formal_tasks(config_path: Path) -> list[Task]:
+    with config_path.open(encoding="utf-8") as handle:
+        configs = json.load(handle)
+    if not isinstance(configs, list) or len(configs) != 2:
+        raise ValueError("正式确认配置必须恰好包含两个候选")
+    return tasks_for_configs(configs, "正式候选")
 
 
 def file_sha256(path: Path) -> str:
@@ -221,11 +255,52 @@ def run_task(task: Task, args: argparse.Namespace) -> None:
             f"训练失败：{tag}，退出码={completed.returncode}，日志={log_path}")
 
 
+def run_parallel_by_device(tasks: list[Task], args: argparse.Namespace) -> None:
+    queues: dict[str, list[Task]] = {}
+    for task in tasks:
+        queues.setdefault(task.device, []).append(task)
+    processes: list[tuple[str, subprocess.Popen]] = []
+    for device, queue in sorted(queues.items()):
+        serialized = json.dumps([
+            {
+                "tag": task.tag,
+                "device": task.device,
+                "optimizer_mode": task.optimizer_mode,
+                "seed": task.seed,
+                "expert_lr": task.expert_lr,
+                "router_ratio": task.router_ratio,
+                "shared_ratio": task.shared_ratio,
+                "development": task.development,
+            }
+            for task in queue
+        ], ensure_ascii=False)
+        worker = (
+            "import argparse,json,sys; "
+            "from scripts.matrix.run_task_role_optimizer_matrix import Task,run_task; "
+            "a=argparse.Namespace(**json.loads(sys.argv[1])); "
+            "q=[Task(**x) for x in json.loads(sys.argv[2])]; "
+            "[run_task(t,a) for t in q]")
+        worker_args = json.dumps(vars(args), ensure_ascii=False, default=str)
+        process = subprocess.Popen(
+            [sys.executable, "-c", worker, worker_args, serialized],
+            cwd=ROOT,
+        )
+        processes.append((device, process))
+        print(f"已启动 {device} 串行队列，共 {len(queue)} 次训练")
+    failures = []
+    for device, process in processes:
+        return_code = process.wait()
+        if return_code:
+            failures.append((device, return_code))
+    if failures:
+        raise RuntimeError(f"设备队列失败：{failures}")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("stage", choices=(
-        "state-screen", "expert-lr-screen", "router-lr-screen",
-        "shared-lr-screen", "formal"))
+        "state-screen", "state-formal", "expert-lr-screen",
+        "router-lr-screen", "shared-lr-screen", "formal"))
     parser.add_argument("--expert-lr", type=float, default=5e-4)
     parser.add_argument("--router-ratio", type=float, default=0.05)
     parser.add_argument("--formal-config", type=Path)
@@ -247,6 +322,8 @@ def main() -> None:
         if args.formal_config is None:
             parser.error("formal requires --formal-config")
         tasks = formal_tasks(args.formal_config)
+    elif args.stage == "state-formal":
+        tasks = state_formal_tasks()
     elif args.stage == "shared-lr-screen":
         tasks = [
             Task(f"共享主干比例_{ratio:g}_s202", "cuda:1", "role_isolated", 202,
@@ -261,8 +338,11 @@ def main() -> None:
         print("  " + " ".join(command(task, args)))
     if args.dry_run:
         return
-    for task in tasks:
-        run_task(task, args)
+    if args.stage in ("state-formal", "formal"):
+        run_parallel_by_device(tasks, args)
+    else:
+        for task in tasks:
+            run_task(task, args)
 
 
 if __name__ == "__main__":

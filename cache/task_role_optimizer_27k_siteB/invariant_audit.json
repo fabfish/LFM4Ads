@@ -110,7 +110,7 @@
       "task_role_optimizer_protocol.py": "9be56ec7c4ee2a780c0c86af340737f2d327662478a36c73c87a96e2c3d80a78",
       "scripts/verify/verify_task_role_optimizer.py": "ee93579607c36ead61e90cde561ae73c9de4ed546f49da564723a00a702a0426",
       "experiments/main_task_role_optimizer.py": "800bd30fc9d1d6a49649d92a6f4b72601b8db96d56fbb33e4c932066eab8ad75",
-      "scripts/matrix/run_task_role_optimizer_matrix.py": "ce26abda454f0262c4c2f4c8b6319958f33425ab363951cc6680d60df60b8e5e",
+      "scripts/matrix/run_task_role_optimizer_matrix.py": "46609b22b14b56c2d18e17a65d8441fbff80b4d7c562d9191fda1f688e1292af",
       "scripts/summarize/summarize_task_role_optimizer.py": "159e8c96733b067ce6fb76d472541453477f9346327916c433dadd5e492e1191"
     }
   }
