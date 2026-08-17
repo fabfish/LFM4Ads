@@ -17,6 +17,7 @@ ENTRY = ROOT / "experiments/main_task_role_optimizer.py"
 OUT = ROOT / "cache/task_role_optimizer_27k_siteB"
 LOG = ROOT / "logs/task_role_optimizer_27k_siteB"
 AUDIT = OUT / "invariant_audit.json"
+PRELAUNCH_AUDIT = OUT / "prelaunch_audit.json"
 
 
 @dataclass(frozen=True)
@@ -111,6 +112,23 @@ def assert_audit_authorizes_current_code() -> None:
     }
     if expected != current:
         raise SystemExit("优化器或验证代码已变化，旧不变量授权失效，请重新审计")
+
+
+def assert_long_run_stage_authorized() -> None:
+    if not PRELAUNCH_AUDIT.exists():
+        raise SystemExit(f"缺少预启动阶段授权：{PRELAUNCH_AUDIT}")
+    with PRELAUNCH_AUDIT.open(encoding="utf-8") as handle:
+        audit = json.load(handle)
+    stage = next(
+        (item for item in audit.get("stage_gates", [])
+         if item.get("stage") == "长程开发筛选"),
+        None,
+    )
+    if stage is None or stage.get("auth") not in ("planned", "running"):
+        status = None if stage is None else stage.get("status_zh")
+        basis = None if stage is None else stage.get("basis")
+        raise SystemExit(
+            f"长程开发筛选没有授权：状态={status}；依据={basis}")
 
 
 def task_fingerprint(task: Task, args: argparse.Namespace) -> str:
@@ -222,6 +240,8 @@ def main() -> None:
         parser.error("正式训练禁止截断训练集、验证集或测试集")
     if not args.dry_run:
         assert_audit_authorizes_current_code()
+        if not args.max_batches and not args.max_eval_batches:
+            assert_long_run_stage_authorized()
 
     if args.stage == "formal":
         if args.formal_config is None:
