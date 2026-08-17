@@ -34,6 +34,13 @@ class Task:
 
 
 def development_tasks(stage: str, expert_lr: float) -> list[Task]:
+    if stage == "quick-validation":
+        return [
+            Task("短平快_共享普通状态_s42", "cuda:0", "shared_adamw", 42,
+                 1e-3, 1.0, 1.0, True),
+            Task("短平快_完整角色隔离_s42", "cuda:0", "role_isolated", 42,
+                 1e-3, 0.05, 1.0, True),
+        ]
     if stage == "state-screen":
         return [
             Task("状态筛选_共享状态_s202", "cuda:1", "shared_adamw", 202,
@@ -288,8 +295,9 @@ def run_parallel_by_device(tasks: list[Task], args: argparse.Namespace) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("stage", choices=(
-        "state-screen", "state-formal", "expert-lr-screen",
-        "router-lr-screen", "shared-lr-screen", "formal"))
+        "quick-validation", "state-screen", "state-formal",
+        "expert-lr-screen", "router-lr-screen", "shared-lr-screen",
+        "formal"))
     parser.add_argument("--expert-lr", type=float, default=5e-4)
     parser.add_argument("--router-ratio", type=float, default=0.05)
     parser.add_argument("--formal-config", type=Path)
@@ -299,6 +307,12 @@ def main() -> None:
     parser.add_argument("--max-eval-batches", type=int, default=0)
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
+
+    if args.stage == "quick-validation":
+        args.max_epochs = 3
+        args.patience = 2
+        args.max_batches = 1000
+        args.max_eval_batches = 0
 
     if args.stage == "formal" and (args.max_batches or args.max_eval_batches):
         parser.error("正式训练禁止截断训练集、验证集或测试集")
