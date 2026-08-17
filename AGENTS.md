@@ -108,9 +108,11 @@ LFM4Ads 是 DCNv2 架构（360 维，5 层 Cross Network + 1 层 DNN head），�
 
 - 优先小范围精确编辑，避免大文件重写。
 - 改动后针对性检查，先 smoke（跑几步验证前向/反向不崩）再挂完整训练。
-- **主动 git commit 并 push（强制，用户 2026-08-17 重申）**：agent **每次**完成一个逻辑单元（代码改动 / 实验 run / 文档更新 / 任一单次交互产出）后，**必须主动** `git add` 相关文件 → `git commit` → `git push origin main`，**不等用户提醒、不等用户授权**。这是一个动作闭环，不是一个可选项。
+- **代码修改完成后立刻存入 git 并提交（强制，用户 2026-08-17 更新）**：任何代码或配置修改一旦完成针对性检查，必须立即 `git add` 相关文件并 `git commit`，不得与后续实验、文档或其他代码修改攒在一起。提交成功后立即推送当前工作分支；site B 推送 `site-b/*`，不得直接推送 `main`。网络暂时不可用时，本地提交仍须立即完成，并在网络恢复后第一时间补推。
+  - 文档更新、实验运行和结构化证据分别按独立逻辑单元提交，不与代码提交混杂。
+  - 每次推送前执行 `source /apdcephfs/private-xavieryu/proxy.sh` 加载联网代理；该脚本提供 HTTP/HTTPS 代理，若 GitHub SSH 仍不可达，应保留本地提交并报告连接方式问题，不得因此延迟提交。
   - 提交粒度：一个逻辑单元一次 commit，不要攒多个无关改动混在一起。
-  - push 前确认改动范围合理、`read_lints` 无新增错误。
+  - 提交前确认改动范围合理、`read_lints` 无新增错误。
   - 不要 commit 大体积产物（`*.pt` 权重、`dataset*.feather`、`cache` 中间产物）——它们按 `.gitignore` 排除；`docs/`、`results/INDEX.md`、代码、小 json（如 `fields_27k.json` / `sample_counts_27k.json` / 判定 json）属于仓库资产，**应纳入版本管理**。
   - 注意：仓库目录与数据目录在**同一套 CephFS 挂载**上（见 §6），`dataset_27k.feather` 虽在仓库目录内但被 `.gitignore` 排除，**不得** `git add -f` 它。
 - `.codebuddy/` 为项目数据目录，勿删。
