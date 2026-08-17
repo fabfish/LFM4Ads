@@ -1,0 +1,117 @@
+{
+  "status": "通过",
+  "long_run_authorized": true,
+  "checks": {
+    "01_shared_state_matches_native_adamw": {
+      "passed": true,
+      "detail": {
+        "max_abs_parameter_difference": 6.938893903907228e-18
+      }
+    },
+    "02_task_extraction_order_invariant": {
+      "passed": true,
+      "detail": {
+        "max_abs_parameter_difference": 0.0
+      }
+    },
+    "03_other_task_state_unchanged": {
+      "passed": true,
+      "detail": {
+        "task_one_state_count": 16
+      }
+    },
+    "04_unselected_expert_fully_static": {
+      "passed": true,
+      "detail": {
+        "unselected_parameter_tensors": 6
+      }
+    },
+    "05_shared_expert_has_separate_states_one_write": {
+      "passed": true,
+      "detail": {
+        "checked_parameter_tensors": 6
+      }
+    },
+    "06_router_only_current_row_changes": {
+      "passed": true,
+      "detail": {
+        "router_tables": 3
+      }
+    },
+    "07_head_only_current_row_changes": {
+      "passed": true,
+      "detail": {
+        "head_parameter_tensors": 2
+      }
+    },
+    "08_task_count_does_not_scale_update": {
+      "passed": true,
+      "detail": {
+        "max_abs_parameter_difference": 0.0
+      }
+    },
+    "09_weight_decay_once_and_only_when_active": {
+      "passed": true,
+      "detail": {
+        "active_decayed_once": true,
+        "inactive_static": true
+      }
+    },
+    "10_checkpoint_is_complete": {
+      "passed": true,
+      "detail": {
+        "checkpoint": "cache/task_role_optimizer_27k_siteB/invariant_audit.checkpoint.pt"
+      }
+    },
+    "11_resume_matches_uninterrupted_next_step": {
+      "passed": true,
+      "detail": {
+        "max_abs_parameter_difference": 0.0
+      }
+    },
+    "12_parameter_roles_exclusive_complete": {
+      "passed": true,
+      "detail": {
+        "role_parameter_counts": {
+          "shared_embedding": 110,
+          "shared_backbone": 220,
+          "sparse_expert": 330,
+          "router": 90,
+          "task_head": 165,
+          "always_on_shared_expert": 0
+        }
+      }
+    },
+    "13_data_counts_and_endpoint_frozen": {
+      "passed": true,
+      "detail": {
+        "sample_counts": {
+          "train": 255474457,
+          "valid": 34034748,
+          "test": 32769180
+        },
+        "macro_scenarios": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          8
+        ]
+      }
+    }
+  },
+  "implementation": {
+    "site": "B",
+    "sha256": {
+      "task_role_optimizer.py": "663b2326dbdd9950a769679a8cffc162d8c576dd2d85df38836d633212182b68",
+      "task_role_optimizer_protocol.py": "9be56ec7c4ee2a780c0c86af340737f2d327662478a36c73c87a96e2c3d80a78",
+      "scripts/verify/verify_task_role_optimizer.py": "ee93579607c36ead61e90cde561ae73c9de4ed546f49da564723a00a702a0426",
+      "experiments/main_task_role_optimizer.py": "8dee97838fde5b9c6303172377753d90a1e466d904bc01f819c5712e7de92366",
+      "scripts/matrix/run_task_role_optimizer_matrix.py": "f2370fe0c64d3893d9265b492882582727fb092642548b03b997f296e1f0d5de",
+      "scripts/summarize/summarize_task_role_optimizer.py": "159e8c96733b067ce6fb76d472541453477f9346327916c433dadd5e492e1191"
+    }
+  }
+}

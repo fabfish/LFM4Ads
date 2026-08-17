@@ -1,0 +1,139 @@
+{
+  "schema_version": 1,
+  "experiment": "按参数角色隔离子任务优化器",
+  "site": "B",
+  "frozen_at_local": "2026-08-17T18:21:00",
+  "base_commit": "41cee0a1bbd65ccd40df0d2d5a0aa4cc762a9cd0",
+  "branch": "site-b/task-role-optimizer",
+  "preregistration": "docs/20260817-1821-按参数角色隔离子任务优化器预注册-siteB.md",
+  "data_evidence": {
+    "dataset": "KuaiRand-27K",
+    "dataset_path": "dataset_27k.feather",
+    "dataset_target_bytes": 6005554962,
+    "sample_counts": {
+      "train": 255474457,
+      "valid": 34034748,
+      "test": 32769180
+    },
+    "sample_counts_git_blob": "f64478ea48bfe9f166049dffc1e43546a29eaba5",
+    "vocabulary_git_blob": "b9cc07a642bf06436d3afc7b211fc25c542f6a45",
+    "macro_scenarios": [0, 1, 2, 3, 4, 5, 6, 8],
+    "sample_conservation": "每个混合批次由 tab 的互斥等值掩码分割；全部实际场景掩码之和等于批次行数。三个 27K 单批次探针均完成且 task_updates 大于零。"
+  },
+  "pairing": {
+    "formal_seeds": [42, 123, 456, 789],
+    "development_seed": 202,
+    "seed_device_map": {
+      "42": "cuda:0",
+      "123": "cuda:1",
+      "456": "cuda:2",
+      "789": "cuda:0",
+      "202": "cuda:1"
+    },
+    "rule_zh": "同一随机种子的所有候选固定在同一显卡，模型初始化、数据顺序、每批样本数和模型选择方法相同；禁止跨机器配对。"
+  },
+  "optimizer_semantics": {
+    "mixed_batch_parameter_writes": 1,
+    "task_direction_weight": "批次内全部有效场景数的倒数",
+    "shared_parameters": "每场景独立一阶、二阶状态，预条件方向等权合成",
+    "sparse_experts": "状态键为场景×层×专家；只有当前场景实际保留的两个专家更新",
+    "router": "每层每场景行维护精确二阶状态，不保留一阶动量，权重衰减为零",
+    "task_head": "只更新当前场景行，完整一阶和二阶状态，权重衰减为零",
+    "always_on_shared_expert": "当前参数量为零；未来使用独立角色，不归入稀疏专家"
+  },
+  "router_semantics": {
+    "type": "确定性场景参数表路由",
+    "noise": "无随机噪声",
+    "experts": 5,
+    "retained_experts_per_layer": 2,
+    "existing_router_invariant_script": "scripts/verify/verify_router_invariants.py",
+    "existing_router_invariant_verdict_zh": "全部通过"
+  },
+  "training": {
+    "batch_size": 10000,
+    "max_epochs": 20,
+    "patience": 10,
+    "expert_learning_rate_candidates": [0.0002, 0.0005, 0.001],
+    "router_to_expert_learning_rate_ratios": [0.0, 0.02, 0.05, 0.1],
+    "shared_to_expert_learning_rate_ratios": [0.5, 1.0],
+    "betas": [0.9, 0.999],
+    "epsilon": 1e-8,
+    "shared_and_active_expert_weight_decay": 0.01,
+    "router_and_task_head_weight_decay": 0.0
+  },
+  "endpoint": {
+    "primary": "测试集八个冻结场景分别计算接收者操作特征曲线下面积后等权平均",
+    "model_selection": "验证集同一指标精确最高轮次",
+    "auxiliary": [
+      "全体测试样本合并计算的曲线下面积",
+      "逐场景曲线下面积",
+      "最差场景曲线下面积",
+      "路由覆盖、负载、改派和互信息"
+    ],
+    "development_test_policy": "开发随机种子不加载、不评估测试集"
+  },
+  "decision_rule": {
+    "noise_floor": "内部共享状态对照四个正式随机种子的测试主要指标样本标准差乘以二",
+    "passed_zh": "四个同随机种子配对差全部为正，且平均改善大于内部随机波动范围",
+    "failed_zh": "四个同随机种子配对差全部为负，且绝对平均值大于内部随机波动范围",
+    "inconclusive_zh": "其他情况均为证据不足",
+    "cross_site_arithmetic": "禁止"
+  },
+  "recovery_rate": {
+    "applicable": false,
+    "reason_zh": "本实验不比较抽样训练相对全量训练的恢复率；不得计算或引用该指标。"
+  },
+  "invariant_audit": {
+    "evidence": "cache/task_role_optimizer_27k_siteB/invariant_audit.json",
+    "checks_passed": 13,
+    "checks_total": 13,
+    "verdict_zh": "通过",
+    "long_run_authorized_by_invariants": true
+  },
+  "stage_gates": [
+    {
+      "stage": "参数角色和优化器实现",
+      "auth": "done",
+      "status_zh": "完成",
+      "basis": "六类参数角色互斥完备；十三项不变量通过；三种状态语义均完成一个 27K 混合批次探针。"
+    },
+    {
+      "stage": "长程开发筛选",
+      "auth": "blocked",
+      "status_zh": "被前置条件阻止",
+      "basis": "核心实现位于第二台机器分支，尚未由第一台机器按文件归属规则统一审阅并合并。"
+    },
+    {
+      "stage": "四随机种子正式确认",
+      "auth": "not-started",
+      "status_zh": "尚未开始",
+      "basis": "依赖长程开发筛选冻结两个候选，且核心实现必须先进入统一主线。"
+    },
+    {
+      "stage": "正式结论",
+      "auth": "not-started",
+      "status_zh": "尚未开始",
+      "basis": "尚无四随机种子配对差表和内部随机波动范围。"
+    }
+  ],
+  "conclusion_boundaries": [
+    {
+      "claim": "按参数角色隔离优化器已通过实现不变量",
+      "evidence": "cache/task_role_optimizer_27k_siteB/invariant_audit.json",
+      "verdict_zh": "成立",
+      "weakest_allowed_zh": "只证明短步实现语义，不证明预测效果改善。"
+    },
+    {
+      "claim": "三种状态语义均可在 KuaiRand-27K 正式数据路径运行",
+      "evidence": "cache/task_role_optimizer_27k_siteB/run_状态筛选_*.json",
+      "verdict_zh": "成立",
+      "weakest_allowed_zh": "只证明一个训练批次和一个验证批次可运行，禁止比较数值优劣。"
+    },
+    {
+      "claim": "完整参数角色隔离改善预测效果",
+      "evidence": null,
+      "verdict_zh": "证据缺口",
+      "weakest_allowed_zh": "正式四随机种子完成前不得作任何效果判断。"
+    }
+  ]
+}
