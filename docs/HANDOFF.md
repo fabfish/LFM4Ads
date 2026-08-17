@@ -199,7 +199,7 @@ python experiments/main_macro_auc.py <device> --arch moe --loss balanced --K 5 -
 
 ## 5. 必须遵守的规则（AGENTS.md 摘要）
 
-- 文档放 `docs/`，命名 `YYYYMMDD-HHMM-主题.md`；每逻辑单元完成 `git commit` + `push`。
+- 文档放 `docs/`，命名 `YYYYMMDD-HHMM-主题.md`；**每轮对话结束前 `git commit` + `push`，确保工作区干净**（每完成一个逻辑单元 commit 一次，见 `AGENTS.md §5`）。
 - 结果 CSV 放 `results/<实验>/`，证据 json 放 `cache/<实验>/`；新结果同步登记 `results/INDEX.md` 大清单。
 - 实验入口在 `experiments/`，工具脚本在 `scripts/{matrix,summarize,verify,diagnose}/`，
   核心库与 `*_protocol.py` 留根目录（`train.py` 模块级依赖 protocol，勿移）。
