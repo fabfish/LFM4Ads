@@ -19,13 +19,18 @@
 | 按场景 sample weighting | `done` | **PASS** | 样本加权恢复 full-batch 目标；`R_gain≈0.999`、同 seed `R_resid≈0.992` | 已解锁并完成 Stage B | [驱动](archive/drivers/20260811-2010-按场景训练代价消除与混合专家可竞争性验证.md)；[结论](archive/conclusions/20260811-2242-按场景训练代价消除结论.md)；[审计](archive/analysis/20260811-2300-按场景训练代价消除-HY3审计.md) |
 | Stage B same-FLOPs MoE | `done` | **FAIL**（竞争性主张） | frozen/soft 相对 same-FLOPs dense 的同 seed 差均为 `[-,-,+]`；MoE wall-clock 更慢 | sparse scaling / same-latency 叙事关闭 | [驱动](archive/drivers/20260811-2310-StageB-MoE-九次训练驱动.md)；[结论](archive/conclusions/20260812-0103-StageB-MoE-九次训练结论.md) |
 | 下游留出域参数高效迁移 | `done` | **FAIL**（G1 可行性门控） | 12/12 trial 完成；validation 上 moe-router 仅 t2 胜 dense-adapter-r2（+0.0003），t5/t6 均败；G1 未过 → 按协议停止、未扩 seeds 123/456 | 停止，不扫描 LR/K/r/target | [驱动](archive/drivers/20260812-2303-MoE下游留出域参数高效迁移驱动.md)；[结论](archive/conclusions/20260813-1219-MoE下游留出域迁移G1结论.md)；[G1 判定](../cache/downstream_transfer/g1_decision.json) |
-| Capacity-MoE 真实稀疏（full-rank + top-k dispatch） | `done` | **PASS**（哨兵） | 首个 full-rank 专家 + 真实 top-k 稀疏 dispatch；STE+warmup+lb 调优首次让 router 熵离开 log K，12/12 哨兵 PASS；test AUC Δ 微弱正向（+0.0002~+0.0025，top_k=2 优于 1），未达显著 | AUC 优势未证明，暂不扩 3-seed | [驱动](./20260813-1642-capacity-MoE-驱动.md)；[结论](./20260813-1812-capacity-MoE-smoke结论.md) |
-| Capacity-MoE 必要性验证（dense-continued 公平对照） | `done` | **INCONCLUSIVE**（方向为负） | 剥离"继续训练红利"后 Δ_necessity=[−0.0019,−0.0006] 2 seed 均为负；+0.0025 被证实为微调红利；router 特化 PASS 但稀疏化崩 AUC（特化与 AUC 反相关） | 不扩 3-seed；先诊断"稀疏化为何崩 AUC"再谈 scaling | [驱动](./20260814-1120-capacity-MoE-必要性验证驱动.md)；[结论](./20260814-1239-capacity-MoE-必要性结论与scaling迁移.md) |
-| AdaTask 三模式 × capacity MoE | `done` | **INCONCLUSIVE**（调制无益） | 三模式熵均离开 log K，但方向反直觉（suppress 最特化）；真实稀疏下未激活专家 AU 冻结；AUC 均低，encourage/suppress 相对 none 负向 | 单 seed 方向证据；修"专家饿死循环"后再议 | [结论](./20260814-1522-AdaTask-capacity-MoE-结论.md) |
+| Capacity-MoE 真实稀疏（full-rank + top-k dispatch） | `done` | **PASS**（哨兵） | 首个 full-rank 专家 + 真实 top-k 稀疏 dispatch；STE+warmup+lb 调优首次让 router 熵离开 log K，12/12 哨兵 PASS；test AUC Δ 微弱正向（+0.0002~+0.0025，top_k=2 优于 1），未达显著 | AUC 优势未证明，暂不扩 3-seed | [驱动](./archive/drivers/20260813-1642-capacity-MoE-驱动.md)；[结论](./archive/conclusions/20260813-1812-capacity-MoE-smoke结论.md) |
+| Capacity-MoE 必要性验证（dense-continued 公平对照） | `done` | **INCONCLUSIVE**（方向为负） | 剥离"继续训练红利"后 Δ_necessity=[−0.0019,−0.0006] 2 seed 均为负；+0.0025 被证实为微调红利；router 特化 PASS 但稀疏化崩 AUC（特化与 AUC 反相关） | 不扩 3-seed；先诊断"稀疏化为何崩 AUC"再谈 scaling | [驱动](./archive/drivers/20260814-1120-capacity-MoE-必要性验证驱动.md)；[结论](./archive/conclusions/20260814-1239-capacity-MoE-必要性结论与scaling迁移.md) |
+| AdaTask 三模式 × capacity MoE | `done` | **INCONCLUSIVE**（调制无益） | 三模式熵均离开 log K，但方向反直觉（suppress 最特化）；真实稀疏下未激活专家 AU 冻结；AUC 均低，encourage/suppress 相对 none 负向 | 单 seed 方向证据；修"专家饿死循环"后再议 | [结论](./archive/conclusions/20260814-1522-AdaTask-capacity-MoE-结论.md) |
 | 专家无收益根因定位 + 决定性容量实验 | `done` | **INCONCLUSIVE**（容量收益无效应）+ **FAIL**（稀疏净代价为负） | 修复 3 根因（84M embedding 解冻共因 / lb 8× 放大 bug / host-bound）后 Δ_necessity −0.0019→−0.0003；收益分解：4× 容量收益≈0（跨 seed 变号、噪声内），稀疏代价≈−0.001（4/4 同号）；瓶颈在 embedding(97.9% 参数)非 cross(0.46%) | cross 层 MoE 上限=打平 dense，不再调参；下一步做 dense-widened 4× 对照 | [结论](./20260814-2111-专家无收益根因定位与决定性容量实验.md) |
 | dense-widened 4× 对照（容量瓶颈独立证伪） | `done` | **FAIL**（容量收益无可测效应） | 给 cross 层 4× 真实容量（加宽+非线性、零路由零稀疏）Δ_capacity={+0.0005,−0.0003,+0.0001,−0.0005} 跨 seed 变号、噪声内；独立证实容量非瓶颈 | capacity-MoE 路线正式关闭（结构上无利可图） | [结论](./20260814-2111-专家无收益根因定位与决定性容量实验.md) §六.5 |
 | **E0/E0b embedding 伪瓶颈证伪（零成本诊断）** | `done` | **FAIL**（"瓶颈在 embedding"被证伪） | 三张 ID 表 = embedding 的 99.96%（83,984,250 参数）；推理期全部清零 Δ=**−0.000193**（噪声内）；`upload_type`(320 参数) 单独清零 Δ=−0.0053；`video_id` 平均 2.6 次曝光、test **74.19% OOV**；**17.53% 参数无梯度** | 撤销 embedding-widened 实验；方向改特征信息侧；E1 已启动 | [预注册+审计](./20260814-2212-embedding伪瓶颈证伪与特征信息侧第一步实验预注册.md)；[E0 证据](../cache/embedding_capacity/diagnosis.json)；[E0b 证据](../cache/embedding_capacity/field_ablation.json) |
 | **E1 ID embedding 死重重训练确认** | `done` | **PASS**（死重成立） | 6 run（2 seed × 3 臂）0 失败、哨兵 10/10 PASS；Δ_id = idzero−full = **{+0.000688, +0.000220}** 2/2 seed 在噪声地板内 → 84M ID 表**无净贡献**；参数 **−99.31%**（84,672,605→584,255）、wall **1.48×** | 解锁特征信息侧（E2/E3/E4）；`iddrop` 成为后续默认轻量基线 | [E1 结论](./20260814-2225-E1结论-ID-embedding死重确认.md)；[机器判定](../cache/embedding_capacity/e1_decision.json)；[预注册 §5](./20260814-2212-embedding伪瓶颈证伪与特征信息侧第一步实验预注册.md) |
+| **E5/E6 场景内泛化 MoE + 隔离上界（1K）** | `done` | **INCONCLUSIVE** | 58+16 run、0 失败、哨兵 PASS；Δ_moe(macro) 跨 seed 变号（均值 −0.0047，地板 **0.0113**）；E6 每场景完全独立模型（隔离绝对上界）平均 −0.0020、4/8 胜出=抛硬币。根因：小场景 test 正类仅 **70/71 个**，AUC 理论 SE 0.05 > 待测效应 3–10 倍 → **1K 统计上不可能测出** | 换 KuaiRand-27K（小场景正类 ×23，地板 ↓8.4×） | [E5/E6 结论](./20260815-1508-E5E6结论-场景内泛化MoE与隔离上界.md)；[预注册](./20260815-0018-场景内泛化MoE长程矩阵预注册.md) |
+| **E7 场景内泛化 MoE 软路由（27K）** | `done` | **PASS** | 18 run；Δ_moe = {+0.0019,+0.0022,+0.0012,+0.0023} **4/4 seed 正**，均值 +0.001881 > 地板 0.001354（**1.39×**）；参数守恒（+225 router）；frozen-router 哨兵 −0.0003/+0.0001 ≈0 证明收益来自路由 | **本项目首个 MoE work case**；解锁 E8/E10 | [E7 结论](./20260816-1237-E7结论-27K场景内MoE首个work-case.md) |
+| **E8 pooled loss 组合（27K）** | `done` | **INCONCLUSIVE** | 6 seed 中 5 正 1 微负（−0.0009 在地板 0.001022 内），均值 +0.001353（1.32×）；绝对 macro 排序 moe+pooled(0.7357) > dense+pooled > moe+bal > dense+bal | 实用推荐 pooled 训练；balanced 让两臂都掉 ~0.004 | [E8910 结论](./20260816-1950-E8910结论-硬路由topk2最终形态.md) |
+| **E10 硬路由 top_k=2（27K）** | `done` | **PASS（当前最优）** | Δ = {+0.0053,+0.0053,+0.0042,+0.0052} **4/4 正**，均值 **+0.005012** > 地板（**3.70×**）；hard−soft 配对差 +0.0031 **4/4 正**；参数量与软路由完全相同 | **最终形态**：macro 0.735388；wall 0.98×（激活稀疏，未省算力） | [E8910 结论](./20260816-1950-E8910结论-硬路由topk2最终形态.md) |
+| **E11 full-ID 公平性复核（27K）** | `done` | **PASS** | 8 run；加回 5.5 亿 ID 参数后 Δ = {+0.0065,+0.0032,+0.0032,+0.0044} **4/4 正**，均值 **+0.004329** > 地板 0.001335（**3.24×**）；dense AdamW（无 sparse、零语义差异） | **公平性质疑排除**；副产结论：加回 ID 表 macro 降 **0.0055**（4/4 负）→ ID 表**有害**（强于 1K 的"死重"） | [突破归因（含 E11）](./20260817-1208-突破归因-公平比较下的正面结果.md) |
 | TCMR 静态任务条件路由 | `done` | **INCONCLUSIVE** | 15/15 完成；DATR 对 FUR、DOR 的同 seed pooled-AUC 差均跨 seed 变号且未越过噪声地板 | AdaTask、持续学习、BWT、稀疏扩展仍 `blocked` | [驱动](archive/drivers/20260812-1139-Task-Conditioned-Mixture-Routing-驱动.md)；[结论](archive/conclusions/20260812-1703-TCMR-结论.md)；[机器判定](../cache/task_conditioned_mixture_routing/gate_decision.json) |
 | 共享残差 G1：函数保持 upcycling | `done` | **PASS** | 3 seed 的 logits/loss/AUC 与 dense 在预注册阈值内一致 | 仅与 G2 一起授权既定 G3 | [正式驱动](archive/drivers/20260812-1807-共享残差混合专家-函数保持与持续学习-驱动.md)；[G1/G2 结论](archive/conclusions/20260812-1832-共享残差混合专家-G1G2不变量结论.md)；[不变量](../cache/audit/shared_residual_continual/shared_residual_experiment_invariants.json) |
 | 共享残差 G2：LR/冻结语义 | `done` | **PASS** | pre-Adam 常数缩放 update ratio≈1；parameter-group 10× LR update ratio≈9.9982；冻结与更新隔离通过 | 仅授权既定 G3 | 同上 |
@@ -78,7 +83,7 @@
 - 哨兵：warmup+lb 矩阵 **12/12 PASS**（熵 0.28~1.28，均离开 log K）；test AUC Δ 全正但微弱
   （+0.0002~+0.0025，top_k=2 > top_k=1）。
 - 结论边界：PASS 只证明「router 特化机制成立」，**未证明 capacity MoE 显著跑赢 dense**；不得据此宣称
-  AUC 优势。详见[结论](./20260813-1812-capacity-MoE-smoke结论.md)。
+  AUC 优势。详见[结论](./archive/conclusions/20260813-1812-capacity-MoE-smoke结论.md)。
 
 ### 3.7 Capacity-MoE 必要性验证（dense-continued 公平对照）
 
@@ -90,7 +95,7 @@
   valid AUC 单调崩溃（0.76→0.67），且 **router 越特化（熵 0.74）AUC 越差**——特化与 AUC 反相关。
 - 判定：**INCONCLUSIVE（方向为负）**——必要性不成立；机制哨兵（router 特化 + dispatch）单独 PASS。
 - 结论边界：原 "+0.0025" 是微调红利，不是 MoE 结构红利；当前规模下稀疏化代价 > 容量收益。不得据此宣称
-  AUC 优势，也不得扩 3-seed。详见[结论](./20260814-1239-capacity-MoE-必要性结论与scaling迁移.md)。
+  AUC 优势，也不得扩 3-seed。详见[结论](./archive/conclusions/20260814-1239-capacity-MoE-必要性结论与scaling迁移.md)。
 
 ### 3.8 AdaTask 三模式 × capacity MoE（真实稀疏下的路由特化分析）
 
@@ -101,7 +106,7 @@
   旧全连接 MoE 无此现象；② 第一层专家坍缩（E2 dispatch 0.34~0.42），lb=0.001 未阻止；③ AUC 三模式均低
   （mean ~0.69），encourage/suppress 相对 none 均负向（−0.0035 / −0.0008），调制无益。
 - 结论边界：机制（稀疏特化 + AU 冻结）成立；"encourage 促进/suppress 抑制特化"的旧叙事在 capacity 稀疏下**降级**；
-  AdaTask 调制**未改善 AUC**。仅单 seed，方向证据。详见[结论](./20260814-1522-AdaTask-capacity-MoE-结论.md)。
+  AdaTask 调制**未改善 AUC**。仅单 seed，方向证据。详见[结论](./archive/conclusions/20260814-1522-AdaTask-capacity-MoE-结论.md)。
 
 ### 3.9 专家无收益：根因定位、三处修复与决定性容量实验
 
@@ -193,14 +198,37 @@
 
 ## 4. 当前执行边界
 
+### 4.1 当前活跃路线（唯一）：27K + macro 端点 + 硬路由 MoE
+
+**已成立（三层证据）**：
+1. **MoE 有效**：Δ=+0.0050（轻量，E10）/ **+0.0043（full-ID，E11）**，两种规模下 **4/4 seed 全正**；
+2. **收益来自路由**：参数守恒（+225 router）、优化器相同、frozen-router 哨兵 ≈0；
+3. **ID 表有害**：加回 5.5 亿 ID 参数 macro 降 **0.0055**（4/4 seed 负）→ 默认继续用轻量模型。
+
+**当前最优配置**：轻量（去三大 ID 表，dim=330，0.87M 参数）+ scenario-routed MoE(K=5, **硬路由 top_k=2**)
+= macro **0.735388**。
+
+**突破归因**（缺一不可）：换 27K 给够测量精度（地板 0.0113→0.00135）+ 换 macro 端点对准收益作用位置
+（pooled 下退回 INCONCLUSIVE）+ 硬路由放大效应 2.7 倍。详见
+[突破归因](./20260817-1208-突破归因-公平比较下的正面结果.md)。
+
+**下一步（`auth=planned`）**：E12 专家利用率诊断 → E14 top_k 单调性 → E13 router 粒度升级。
+见[开放实验计划](./20260817-1215-开放实验计划-下一个关键MoE改动.md)。
+
+### 4.2 已关闭路线
+
 **capacity-MoE（cross 层）路线已正式关闭**（`done / INCONCLUSIVE(容量收益无效应) + FAIL(稀疏净代价为负)`）：
 机制跑通但收益为负，dense-widened 4× 对照独立证伪"cross 层容量是瓶颈"。**不再调 K/lb/warmup/lr/top_k，
 不扩 3-seed。** 详见[结论](./20260814-2111-专家无收益根因定位与决定性容量实验.md) §六.5。
 
+> 注：该结论限于 **pooled 端点 + 1K + 容量维度**。E7/E10 在 **27K + macro 端点 + 隔离维度**上得到
+> PASS，两者不冲突——前者证伪"加容量"，后者证实"改分配"。
+
 **"瓶颈在 embedding（97.9% 参数）"已于 2026-08-14 22:12 证伪并撤回**（§3.11–3.12）：那 84M 参数是
 **死重**（E1 重训练确认 PASS，Δ_id 2/2 seed 在噪声地板内），不是瓶颈。**embedding-widened 加宽对照
 实验撤销**（前提不存在）；**禁止再用"参数占比"推断瓶颈位置**。
-**后续实验默认基线改为 `iddrop`（0.58M 参数、7.1s/epoch）**，可负担 3 seed × 多配置。
+**27K 上进一步证明 ID 表有害**（E11：加回后 macro 降 0.0055，4/4 seed 负）。
+**后续实验默认基线 = 轻量模型（去三大 ID 表）**。
 
 持续学习与稀疏扩展旧路线继续 `blocked`：
 
