@@ -19,6 +19,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from torch import nn
+from torch.func import functional_call, jacrev
 
 
 SHARED_EMBEDDING = "shared_embedding"
@@ -539,50 +540,62 @@ def collect_task_gradients(
     batch: dict[str, torch.Tensor],
     registry: ParameterRoleRegistry,
 ) -> list[TaskGradient]:
-    """逐场景子批次提取梯度，全部完成前不修改参数。
+    """一次前向并行提取全部场景梯度，完成前不修改参数。
 
-    当前模型没有批次归一化、随机失活或其他跨样本算子，因此把混合批次按
-    场景切开前向，与整批前向后对各场景损失求梯度在数学上等价。这样每张
-    自动微分图只反向一次，避免在完整图上为十五个场景重复反向传播。
+    场景损失组成固定长度向量，``jacrev`` 用向量化反向模式同时计算该向量
+    对全部参数的雅可比。返回值的第一个维度就是场景，因此无需为每个场景
+    重复遍历完整计算图，同时保持每场景独立梯度和批末单次参数写入语义。
     """
     tabs = batch["tab"].long()
-    batch_size = tabs.shape[0]
     task_ids = [int(value) for value in torch.unique(tabs, sorted=True).tolist()]
-    parameters = [spec.parameter for spec in registry.specs]
     generated_fields = {"logit", "_gate", "_cr"}
     model_inputs = {
         name: value for name, value in batch.items()
         if name not in generated_fields
     }
+    parameters = dict(model.named_parameters())
+    buffers = dict(model.named_buffers())
+    if not hasattr(model, "head") or not hasattr(model.head, "out_features"):
+        raise ValueError("model must expose the number of tasks as head.out_features")
+    num_tasks = int(model.head.out_features)
+
+    def task_loss_vector(current_parameters):
+        functional_batch = dict(model_inputs)
+        functional_call(
+            model, (current_parameters, buffers), (functional_batch,))
+        if "logit" not in functional_batch or "_gate" not in functional_batch:
+            raise ValueError("model must write batch['logit'] and batch['_gate']")
+        labels = functional_batch["is_click"].to(
+            functional_batch["logit"].dtype)
+        per_row = F.binary_cross_entropy_with_logits(
+            functional_batch["logit"], labels, reduction="none")
+        sums = torch.zeros(
+            num_tasks, device=per_row.device, dtype=per_row.dtype)
+        counts = torch.zeros_like(sums)
+        sums.scatter_add_(0, tabs, per_row)
+        counts.scatter_add_(0, tabs, torch.ones_like(per_row))
+        losses = sums / counts.clamp_min(1)
+        auxiliary = (
+            losses.detach(),
+            tuple(gate.detach() for gate in functional_batch["_gate"]),
+        )
+        return losses, auxiliary
+
+    jacobians, (losses, gates) = jacrev(
+        task_loss_vector, has_aux=True)(parameters)
     results: list[TaskGradient] = []
     for task_id in task_ids:
         mask = tabs == task_id
-        task_batch = {
-            name: value[mask]
-            if value.ndim > 0 and value.shape[0] == batch_size
-            else value
-            for name, value in model_inputs.items()
-        }
-        model(task_batch)
-        if "logit" not in task_batch or "_gate" not in task_batch:
-            raise ValueError("model must write batch['logit'] and batch['_gate']")
-        labels = task_batch["is_click"].to(task_batch["logit"].dtype)
-        loss = F.binary_cross_entropy_with_logits(
-            task_batch["logit"], labels, reduction="mean")
-        gradients = torch.autograd.grad(
-            loss, parameters, retain_graph=False, allow_unused=True)
-        task_mask = torch.ones_like(task_batch["tab"], dtype=torch.bool)
         results.append(TaskGradient(
             task_id=task_id,
             gradients={
-                spec.name: None if gradient is None else gradient.detach()
-                for spec, gradient in zip(registry.specs, gradients)
+                spec.name: jacobians[spec.name][task_id].detach()
+                for spec in registry.specs
             },
-            active_experts=_active_experts_for_task(
-                task_batch["_gate"], task_mask),
+            active_experts=_active_experts_for_task(gates, mask),
             active_rows=_active_rows_for_task(
-                registry, task_batch, task_id, task_mask),
-            loss=float(loss.detach()),
+                registry, batch, task_id, mask),
+            loss=float(losses[task_id]),
         ))
     return results
 
