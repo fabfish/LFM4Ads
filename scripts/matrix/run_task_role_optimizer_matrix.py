@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import multiprocessing
 import os
 import subprocess
 import sys
@@ -255,44 +256,31 @@ def run_task(task: Task, args: argparse.Namespace) -> None:
             f"训练失败：{tag}，退出码={completed.returncode}，日志={log_path}")
 
 
+def run_device_queue(queue: list[Task], args: argparse.Namespace) -> None:
+    for task in queue:
+        run_task(task, args)
+
+
 def run_parallel_by_device(tasks: list[Task], args: argparse.Namespace) -> None:
     queues: dict[str, list[Task]] = {}
     for task in tasks:
         queues.setdefault(task.device, []).append(task)
-    processes: list[tuple[str, subprocess.Popen]] = []
+    context = multiprocessing.get_context("fork")
+    processes: list[tuple[str, multiprocessing.Process]] = []
     for device, queue in sorted(queues.items()):
-        serialized = json.dumps([
-            {
-                "tag": task.tag,
-                "device": task.device,
-                "optimizer_mode": task.optimizer_mode,
-                "seed": task.seed,
-                "expert_lr": task.expert_lr,
-                "router_ratio": task.router_ratio,
-                "shared_ratio": task.shared_ratio,
-                "development": task.development,
-            }
-            for task in queue
-        ], ensure_ascii=False)
-        worker = (
-            "import argparse,json,sys; "
-            f"sys.path.insert(0,{str(ROOT)!r}); "
-            "from scripts.matrix.run_task_role_optimizer_matrix import Task,run_task; "
-            "a=argparse.Namespace(**json.loads(sys.argv[1])); "
-            "q=[Task(**x) for x in json.loads(sys.argv[2])]; "
-            "[run_task(t,a) for t in q]")
-        worker_args = json.dumps(vars(args), ensure_ascii=False, default=str)
-        process = subprocess.Popen(
-            [sys.executable, "-c", worker, worker_args, serialized],
-            cwd=ROOT,
+        process = context.Process(
+            target=run_device_queue,
+            args=(queue, args),
+            name=f"task-role-{device}",
         )
+        process.start()
         processes.append((device, process))
         print(f"已启动 {device} 串行队列，共 {len(queue)} 次训练")
     failures = []
     for device, process in processes:
-        return_code = process.wait()
-        if return_code:
-            failures.append((device, return_code))
+        process.join()
+        if process.exitcode:
+            failures.append((device, process.exitcode))
     if failures:
         raise RuntimeError(f"设备队列失败：{failures}")
 
