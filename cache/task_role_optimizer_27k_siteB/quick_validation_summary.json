@@ -1,0 +1,74 @@
+{
+  "status_zh": "九个全方向短测已完成",
+  "dataset": "KuaiRand-27K 轻量删表模型",
+  "seed": 42,
+  "training_budget": {
+    "batch_size": 10000,
+    "batches_per_epoch": 1000,
+    "max_epochs": 3,
+    "validation": "完整验证集八场景分别计算曲线下面积后等权平均",
+    "test_set_used": false
+  },
+  "reference": {
+    "configuration_zh": "所有参数共享普通 AdamW 状态，学习率 0.001",
+    "best_valid_macro": 0.6659329342787985,
+    "best_epoch": 3,
+    "expert_coverage": 5,
+    "evidence": "cache/task_role_optimizer_27k_siteB/run_短测_共享普通状态_s42_7fa9587ec990.json"
+  },
+  "ranked_observations": [
+    {
+      "rank": 1,
+      "configuration_zh": "完整角色隔离但冻结路由器",
+      "best_valid_macro": 0.6894830172869331,
+      "difference_from_reference": 0.0235500830081346,
+      "expert_coverage": 2,
+      "expert_loads": [0, 0, 45, 0, 45],
+      "interpretation_zh": "验证读数最高，但五个专家只使用两个，受专家坍缩混杂；只能作为长程诊断臂，不能直接选为最终方案。",
+      "evidence": "cache/task_role_optimizer_27k_siteB/run_短测_路由器冻结_s42_24d77bfc884f.json"
+    },
+    {
+      "rank": 2,
+      "configuration_zh": "完整参数角色隔离；专家学习率 0.001，路由器比例 0.05，共享主干比例 1.0",
+      "best_valid_macro": 0.6809441415179633,
+      "difference_from_reference": 0.0150112072391648,
+      "expert_coverage": 5,
+      "expert_loads": [19, 19, 21, 17, 14],
+      "interpretation_zh": "最佳非坍缩配置，五个专家全部使用且负载最大最小比为 1.5；选作长程主候选。",
+      "evidence": "cache/task_role_optimizer_27k_siteB/run_短测_完整角色隔离_s42_d42a89d71a3b.json"
+    },
+    {
+      "rank": 3,
+      "configuration_zh": "完整角色隔离，路由器学习率为专家的 0.1",
+      "best_valid_macro": 0.6777492566142248,
+      "difference_from_reference": 0.0118163223354263,
+      "expert_coverage": 5,
+      "interpretation_zh": "方向为正但低于预注册默认比例 0.05，不进入长程。"
+    },
+    {
+      "rank": 4,
+      "configuration_zh": "场景状态独立但参数角色采用相同规则",
+      "best_valid_macro": 0.6749027725148715,
+      "difference_from_reference": 0.008969838236073,
+      "expert_coverage": 5,
+      "interpretation_zh": "状态隔离本身出现正向观察，但低于完整角色隔离。"
+    }
+  ],
+  "axis_decisions": {
+    "expert_learning_rate": "0.001 在三个候选中最高；0.0005 与参考近似，0.0002 更低。",
+    "router_learning_rate": "0.05 是最佳非坍缩比例；冻结路由器读数最高但坍缩，只保留为诊断臂。",
+    "shared_backbone_learning_rate": "比例 1.0 高于 0.5。",
+    "state_semantics": "完整角色隔离高于统一场景状态，统一场景状态高于共享普通状态。"
+  },
+  "allowed_conclusion_zh": "单随机种子、短训练预算且配置分布在三张显卡，只能认为完整角色隔离值得长程复核；不能作正式通过或因果结论。",
+  "long_confirmation": {
+    "status_zh": "已授权",
+    "seed": 42,
+    "arms": [
+      "共享普通状态基线",
+      "完整参数角色隔离主候选",
+      "冻结路由器坍缩诊断"
+    ],
+    "execution": "三张同型号 H20 同时运行，每臂完整训练集、最多 20 轮、连续 10 轮无改善停止，验证集选轮次后只评估一次测试集。"
+  }
+}
