@@ -106,6 +106,17 @@ def tasks_for_configs(
     return tasks
 
 
+def long_confirmation_tasks() -> list[Task]:
+    return [
+        Task("长程_共享普通状态_s42", "cuda:0", "shared_adamw", 42,
+             1e-3, 1.0, 1.0, False),
+        Task("长程_完整角色隔离_s42", "cuda:1", "role_isolated", 42,
+             1e-3, 0.05, 1.0, False),
+        Task("长程_冻结路由器诊断_s42", "cuda:2", "role_isolated", 42,
+             1e-3, 0.0, 1.0, False),
+    ]
+
+
 def state_formal_tasks() -> list[Task]:
     return tasks_for_configs([
         {
@@ -170,21 +181,21 @@ def assert_audit_authorizes_current_code() -> None:
         raise SystemExit("优化器或验证代码已变化，旧不变量授权失效，请重新审计")
 
 
-def assert_long_run_stage_authorized() -> None:
+def assert_stage_authorized(stage_name: str) -> None:
     if not PRELAUNCH_AUDIT.exists():
         raise SystemExit(f"缺少预启动阶段授权：{PRELAUNCH_AUDIT}")
     with PRELAUNCH_AUDIT.open(encoding="utf-8") as handle:
         audit = json.load(handle)
     stage = next(
         (item for item in audit.get("stage_gates", [])
-         if item.get("stage") == "长程开发筛选"),
+         if item.get("stage") == stage_name),
         None,
     )
     if stage is None or stage.get("auth") not in ("planned", "running"):
         status = None if stage is None else stage.get("status_zh")
         basis = None if stage is None else stage.get("basis")
         raise SystemExit(
-            f"长程开发筛选没有授权：状态={status}；依据={basis}")
+            f"{stage_name}没有授权：状态={status}；依据={basis}")
 
 
 def task_fingerprint(task: Task, args: argparse.Namespace) -> str:
@@ -309,9 +320,9 @@ def run_parallel_by_device(tasks: list[Task], args: argparse.Namespace) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("stage", choices=(
-        "quick-validation", "state-screen", "state-formal",
-        "expert-lr-screen", "router-lr-screen", "shared-lr-screen",
-        "formal"))
+        "quick-validation", "long-confirmation", "state-screen",
+        "state-formal", "expert-lr-screen", "router-lr-screen",
+        "shared-lr-screen", "formal"))
     parser.add_argument("--expert-lr", type=float, default=5e-4)
     parser.add_argument("--router-ratio", type=float, default=0.05)
     parser.add_argument("--formal-config", type=Path)
@@ -327,18 +338,29 @@ def main() -> None:
         args.patience = 2
         args.max_batches = 1000
         args.max_eval_batches = 0
+    elif args.stage == "long-confirmation":
+        args.max_epochs = 20
+        args.patience = 10
+        args.max_batches = 0
+        args.max_eval_batches = 0
 
-    if args.stage == "formal" and (args.max_batches or args.max_eval_batches):
-        parser.error("正式训练禁止截断训练集、验证集或测试集")
+    if args.stage in ("long-confirmation", "formal") and (
+        args.max_batches or args.max_eval_batches
+    ):
+        parser.error("长程或正式训练禁止截断训练集、验证集或测试集")
     if not args.dry_run:
         assert_audit_authorizes_current_code()
-        if not args.max_batches and not args.max_eval_batches:
-            assert_long_run_stage_authorized()
+        if args.stage == "long-confirmation":
+            assert_stage_authorized("长程三臂确认")
+        elif not args.max_batches and not args.max_eval_batches:
+            assert_stage_authorized("多随机种子正式确认")
 
     if args.stage == "formal":
         if args.formal_config is None:
             parser.error("formal requires --formal-config")
         tasks = formal_tasks(args.formal_config)
+    elif args.stage == "long-confirmation":
+        tasks = long_confirmation_tasks()
     elif args.stage == "state-formal":
         tasks = state_formal_tasks()
     elif args.stage == "shared-lr-screen":
@@ -355,7 +377,9 @@ def main() -> None:
         print("  " + " ".join(command(task, args)))
     if args.dry_run:
         return
-    if args.stage in ("quick-validation", "state-formal", "formal"):
+    if args.stage in (
+        "quick-validation", "long-confirmation", "state-formal", "formal"
+    ):
         run_parallel_by_device(tasks, args)
     else:
         for task in tasks:
