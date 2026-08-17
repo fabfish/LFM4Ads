@@ -196,6 +196,34 @@
       "returncode": 0,
       "wall_sec": 4588.4,
       "log": "/root/Documents/Lfm4ads/logs/macro_auc_27k/e15_dense_s456.log"
+    },
+    {
+      "stage": "s9sel",
+      "tag": "e15_moe_s789",
+      "seed": 789,
+      "arch": "moe",
+      "loss": "balanced",
+      "K": 5,
+      "top_k": 2,
+      "lr": 0.001,
+      "device": "cuda:1",
+      "returncode": 0,
+      "wall_sec": 6302.9,
+      "log": "/root/Documents/Lfm4ads/logs/macro_auc_27k/e15_moe_s789.log"
+    },
+    {
+      "stage": "s9sel",
+      "tag": "e15_moe_s456",
+      "seed": 456,
+      "arch": "moe",
+      "loss": "balanced",
+      "K": 5,
+      "top_k": 2,
+      "lr": 0.001,
+      "device": "cuda:0",
+      "returncode": 0,
+      "wall_sec": 6350.0,
+      "log": "/root/Documents/Lfm4ads/logs/macro_auc_27k/e15_moe_s456.log"
     }
   ],
   "failed": [],
@@ -215,8 +243,8 @@
     ]
   },
   "budget_hours": 10.0,
-  "updated_at": "2026-08-17 17:24:48",
-  "n_completed": 14,
+  "updated_at": "2026-08-17 19:10:38",
+  "n_completed": 16,
   "n_failed": 0,
-  "finished_at": "2026-08-17 08:22:45"
+  "finished_at": "2026-08-17 19:10:38"
 }
