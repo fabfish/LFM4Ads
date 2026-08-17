@@ -1,3 +1,10 @@
+> **新接入的机器（site B）请先读交接文档**：
+> [`docs/20260817-1440-交接协作文档-siteB接手指南.md`](docs/20260817-1440-交接协作文档-siteB接手指南.md)
+> 它自带术语定义、环境准备（27K 数据需自建）、五条纪律、任务队列与回报模板。
+> 仓库总规则见 [`AGENTS.md`](AGENTS.md)（§1.1 文档规范 / §2.1 两端协作隔离）。
+>
+> 下面是原始 KuaiRand-1K 复现说明（历史内容，当前实验阶段已切到 27K）。
+
 Set up environment:
 ```bash
 conda create python=3.13 -n LFM4Ads
