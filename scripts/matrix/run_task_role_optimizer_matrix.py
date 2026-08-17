@@ -276,6 +276,7 @@ def run_parallel_by_device(tasks: list[Task], args: argparse.Namespace) -> None:
         ], ensure_ascii=False)
         worker = (
             "import argparse,json,sys; "
+            f"sys.path.insert(0,{str(ROOT)!r}); "
             "from scripts.matrix.run_task_role_optimizer_matrix import Task,run_task; "
             "a=argparse.Namespace(**json.loads(sys.argv[1])); "
             "q=[Task(**x) for x in json.loads(sys.argv[2])]; "
