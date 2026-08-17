@@ -55,7 +55,7 @@
 - **产物命名空间隔离**：site B 一律 `LFM_MACRO_OUT=cache/macro_auc_27k_siteB`（日志目录自动跟随），run tag 带 site 前缀；每个 run json 必须有 `provenance.site`（由 `LFM_SITE` 注入）。
 - **跑任何矩阵前必须 preflight 全绿**：`python scripts/verify/preflight_site.py --site <X>`（校验数据字节、切分样本量、场景集合、参数量、数值环境）。
 - **seed→device 映射按 site 选择**（`run_macro_auc_matrix.py` 的 `_SEED_DEVICE_BY_SITE`）；无论几张卡，**同一 seed 的全部臂必须同卡**。
-- **文件归属独占**：`model.py` / `experiments/**` / `scripts/matrix/run_macro_auc_matrix.py` / `results/INDEX.md` / `docs/NEXT.md` 由 site A 独占修改；site B 只写自己 namespace 下的产物与带 `-siteB` 后缀的新文档。site B 在 `site-b/*` 分支工作，由 A 合并。
+- **分支开发自由、合并时审阅（用户 2026-08-17 更新）**：site B 可在 `site-b/*` 分支自由新增或修改实验代码、预注册并启动自己的实验，无需等待 site A 预先审阅；只有把 site B 分支合并进 `main` 时，才由 site A 审阅实现语义、证据链和文件冲突。site B 不直接推送 `main`，仍须保持 site 内产物命名空间、配对口径和证据自足；`results/INDEX.md` 与 `docs/NEXT.md` 的主线登记在合并审阅时处理。
 
 ## 3. 项目结构约定
 
