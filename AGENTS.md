@@ -108,6 +108,28 @@ LFM4Ads 是 DCNv2 架构（360 维，5 层 Cross Network + 1 层 DNN head），�
 
 - 优先小范围精确编辑，避免大文件重写。
 - 改动后针对性检查，先 smoke（跑几步验证前向/反向不崩）再挂完整训练。
-- **自动 git commit 并 push**：每次完成一个逻辑单元（代码改动 / 实验 run / 文档更新）后，自动 `git add` 相关文件并提交（`git commit`），随后 `git push` 到 origin/main。无需每次等待用户授权。注意：push 前确认改动范围合理、lint 无错；不要 commit 大体积产物（如 `*.pt` 权重、cache 中间 json 例外按 .gitignore 处理）。
+- **主动 git commit 并 push（强制，用户 2026-08-17 重申）**：agent **每次**完成一个逻辑单元（代码改动 / 实验 run / 文档更新 / 任一单次交互产出）后，**必须主动** `git add` 相关文件 → `git commit` → `git push origin main`，**不等用户提醒、不等用户授权**。这是一个动作闭环，不是一个可选项。
+  - 提交粒度：一个逻辑单元一次 commit，不要攒多个无关改动混在一起。
+  - push 前确认改动范围合理、`read_lints` 无新增错误。
+  - 不要 commit 大体积产物（`*.pt` 权重、`dataset*.feather`、`cache` 中间产物）——它们按 `.gitignore` 排除；`docs/`、`results/INDEX.md`、代码、小 json（如 `fields_27k.json` / `sample_counts_27k.json` / 判定 json）属于仓库资产，**应纳入版本管理**。
+  - 注意：仓库目录与数据目录在**同一套 CephFS 挂载**上（见 §6），`dataset_27k.feather` 虽在仓库目录内但被 `.gitignore` 排除，**不得** `git add -f` 它。
 - `.codebuddy/` 为项目数据目录，勿删。
 - `docs/` 下的文档和页面属于仓库资产，应纳入版本管理。
+
+## 6. 运行环境与磁盘挂载（2026-08-17 起，两端共用）
+
+两端（site A / site B）**在同一套 CephFS 挂载**上工作，数据文件共享、无需各自重建。以下为 site A 实测的挂载拓扑：
+
+| 挂载点 | 文件系统 | 容量 | 已用 | 可用 | 用途 |
+|---|---|---|---|---|---|
+| `/root/Documents/Lfm4ads`（git 仓库） | `ceph-fuse`（CephFS） | 2.0T | 454G | 1.6T（23%） | 仓库 + `dataset_27k.feather` + `cache/`（80G 总占用） |
+| `/apdcephfs/private-xavieryu` | `ceph-fuse`（CephFS，**同上一个池**） | 2.0T | 454G | 1.6T（23%） | KuaiRand-27K 原始 CSV（`.../database/KuaiRand-27K/data/`） |
+| `/dockerdata` | `xfs`（本地盘） | 12T | 7.7T | 4.0T（66%） | 本地临时盘 |
+| `/apdcephfs_fsgm/share_303710656` | `dop-fuse` | 271T | 249T | 23T（92%） | 共享大池 |
+| `/jizhicfs` | `dop-fuse` | 325T | 270T | 56T（83%） | 共享大池 |
+
+**要点**：
+- 仓库目录与数据目录在**同一个 CephFS 池**（`df` 显示同为 2.0T / 454G / 23%），因此两端挂载同一路径即可**直接共享**：原始 CSV、已构建的 `dataset_27k.feather`（在仓库根目录，6.0GB）、`cache/` 产物。
+- 但这**不改变两端隔离纪律**（§2.1）：`LFM_MACRO_OUT` 仍须按 site 分目录，配对差仍禁止跨 site 相减；共享挂载只是让"数据自建"这一步变得可选。
+- git remote：`git@github.com:fabfish/LFM4Ads.git`（SSH）。`dataset_27k.feather`（6.0GB）与 `cache/`（68G）**不入 git**，靠共享挂载在两端间可见。
+- 空间余量：CephFS 剩 1.6T，足以容纳多轮实验产物；若接近满（可用 < 200G）须先清理 `cache/archives` 或旧日志再跑新矩阵。
