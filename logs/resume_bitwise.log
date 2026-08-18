@@ -1,0 +1,7 @@
+加载数据…
+数据就绪 (49s)
+[S] PASS — S ok; losses bitwise: True
+[T] PASS — ok; losses bitwise: True
+[A] PASS — ok; losses bitwise: True
+resume_bitwise=PASS → /root/Documents/Lfm4ads/cache/audit/adatask_win_s0_27k_siteA/resume_bitwise_audit.json
+VERIFY_EXIT=0

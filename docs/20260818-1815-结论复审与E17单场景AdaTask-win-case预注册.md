@@ -177,6 +177,7 @@ A 臂对每个 sparse-expert 参数块 p：
 - 关键审计读数：组梯度等价 max_rel_err=1.20e-6（容差 5e-6，fp32 归约噪声）；f=1 哨兵 max-abs=0.0；A 步后 m/v/steps 与 T 逐位一致；非专家参数逐位一致、12 个激活专家张量受因子影响；效率 0.037 s/batch → 单臂 20 epoch ≈ 5.4h < 12h 预算
 - 实现备注：S3/S4/S6 采用「同对象快照还原」法——跨模型对象的前向存在合法 fp32 逐位差异（内存对齐影响 kernel 选择），不能用于状态不变量检验
 - smoke：`--max-batches 5` 全链路通过（训练→valid/test 评估→JSON 落盘；A 臂因子统计 mean_f_target=0.711 / mean_f_rest=1.911，方向符合设计）
+- **断点续跑 bitwise 验证（2026-08-18 22:50，用户要求）**：`scripts/verify/verify_resume_bitwise.py`，S/T/A 三臂各对比「连续 3 mini-epoch」vs「2 epoch 存 ckpt → 新对象恢复 → 续跑第 3 epoch」，判定参数/优化器状态（S: AdamW exp_avg/exp_avg_sq/step；T/A: m/v/steps/au）/数据 generator/CPU RNG/逐步 loss 全部逐位一致。结果 **3/3 PASS**，证据 `cache/audit/adatask_win_s0_27k_siteA/resume_bitwise_audit.json`。入口 `--resume` 从每 epoch 落盘的 `ckpt_e17_*.pt` 恢复；此能力对机器迁移/抢占续跑生效，**今后所有实验入口必须内置每 epoch ckpt + 已验证的 resume 语义**。
 
 ### Stage 1：新 seed 的全数据三臂筛选
 
@@ -230,7 +231,7 @@ A 臂对每个 sparse-expert 参数块 p：
 | 入口 | `experiments/main_adatask_win_case.py`（新；S 臂复用 `SharedAdamWBatchOptimizer`；不修改历史 `main_adatask.py` 与 `main_task_role_optimizer.py`） |
 | 优化器依赖 | 复用 `task_role_optimizer.py` 的 `ParameterRoleRegistry`/`SharedAdamWBatchOptimizer`，不改动该文件 |
 | runner | `scripts/matrix/run_adatask_win_case.py` |
-| 审计 | `scripts/verify/verify_adatask_win_case.py` |
+| 审计 | `scripts/verify/verify_adatask_win_case.py`（九项哨兵）；`scripts/verify/verify_resume_bitwise.py`（断点续跑 bitwise，3/3 PASS） |
 | 汇总 | `scripts/summarize/summarize_adatask_win_case.py`（Stage 1 出结果后实现），阈值硬编码 |
 | raw JSON | `cache/adatask_win_s0_27k_siteA/run_e17_{S,T,A}_s{seed}.json` |
 | 判定 | `cache/adatask_win_s0_27k_siteA/e17_decision.json` |

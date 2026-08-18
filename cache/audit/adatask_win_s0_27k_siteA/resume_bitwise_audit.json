@@ -1,0 +1,57 @@
+{
+  "checks": {
+    "S": {
+      "status": "PASS",
+      "params_bitwise": true,
+      "resume_epoch_losses_bitwise": true,
+      "fail_reason": null,
+      "losses_epoch3_ref": [
+        0.569251537322998,
+        0.5426287204027176,
+        0.536183625459671
+      ],
+      "losses_epoch3_resume": [
+        0.569251537322998,
+        0.5426287204027176,
+        0.536183625459671
+      ]
+    },
+    "T": {
+      "status": "PASS",
+      "params_bitwise": true,
+      "resume_epoch_losses_bitwise": true,
+      "fail_reason": null,
+      "losses_epoch3_ref": [
+        0.534945160150528,
+        0.5223982036113739,
+        0.5276459753513336
+      ],
+      "losses_epoch3_resume": [
+        0.534945160150528,
+        0.5223982036113739,
+        0.5276459753513336
+      ]
+    },
+    "A": {
+      "status": "PASS",
+      "params_bitwise": true,
+      "resume_epoch_losses_bitwise": true,
+      "fail_reason": null,
+      "losses_epoch3_ref": [
+        0.5363152772188187,
+        0.5217321962118149,
+        0.524649053812027
+      ],
+      "losses_epoch3_resume": [
+        0.5363152772188187,
+        0.5217321962118149,
+        0.524649053812027
+      ]
+    }
+  },
+  "seed": 777,
+  "batches_per_epoch": 3,
+  "device": "cpu",
+  "resume_bitwise": "PASS",
+  "timestamp": "2026-08-18 21:22:01"
+}

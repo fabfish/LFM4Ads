@@ -111,7 +111,7 @@ def run(args) -> None:
             gen_state = gen_state.cpu()
         train_source._gen.set_state(gen_state)
         torch.set_rng_state(payload["rng"].cpu())
-        if device.startswith("cuda"):
+        if device.startswith("cuda") and "cuda_rng" in payload:
             torch.cuda.set_rng_state_all(
                 [s.cpu() for s in payload["cuda_rng"]])
         start_epoch = payload["epoch"] + 1
@@ -197,12 +197,13 @@ def run(args) -> None:
                     if args.arm == "S" else optimizer.state_dict()),
             "generator": train_source._gen.get_state(),
             "rng": torch.get_rng_state(),
-            "cuda_rng": torch.cuda.get_rng_state_all(),
             "best": best,
             "history": history,
             "skip_batches_total": skip_batches_total,
             "no_improve": no_improve,
         }
+        if device.startswith("cuda"):
+            ckpt["cuda_rng"] = torch.cuda.get_rng_state_all()
         torch.save(ckpt, ckpt_path)
         if no_improve >= args.patience:
             done = True
