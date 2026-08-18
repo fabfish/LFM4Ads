@@ -55,6 +55,26 @@
       "name": "C4b param counts",
       "ok": true,
       "detail": "dense=869525 moe=869750 (router=225)"
+    },
+    {
+      "name": "C6 dense baseline seed=42",
+      "ok": true,
+      "detail": "0.730582 vs ref 0.730582 (diff +0.000000, tol 0.0005)"
+    },
+    {
+      "name": "C6 dense baseline seed=123",
+      "ok": true,
+      "detail": "0.729614 vs ref 0.729614 (diff +0.000000, tol 0.0005)"
+    },
+    {
+      "name": "C6 dense baseline seed=456",
+      "ok": true,
+      "detail": "0.730107 vs ref 0.730107 (diff +0.000000, tol 0.0005)"
+    },
+    {
+      "name": "C6 dense baseline seed=789",
+      "ok": true,
+      "detail": "0.731200 vs ref 0.731200 (diff +0.000000, tol 0.0005)"
     }
   ],
   "all_ok": true
