@@ -1,1 +1,11 @@
 E17 S 臂 seed=202 device=cuda:1 target=s0 out=cache/adatask_win_s0_27k_siteA
+[S s202] epoch 0 valid_macro=0.723901 loss=0.463389 skip=0 (505.5s, best=0.723901@0)
+[S s202] epoch 1 valid_macro=0.731706 loss=0.457485 skip=0 (507.1s, best=0.731706@1)
+[S s202] epoch 2 valid_macro=0.735025 loss=0.455914 skip=0 (512.2s, best=0.735025@2)
+[S s202] epoch 3 valid_macro=0.737982 loss=0.454916 skip=0 (525.0s, best=0.737982@3)
+[S s202] epoch 4 valid_macro=0.738315 loss=0.454207 skip=0 (577.1s, best=0.738315@4)
+[S s202] epoch 5 valid_macro=0.739877 loss=0.453712 skip=0 (547.8s, best=0.739877@5)
+[S s202] epoch 6 valid_macro=0.738513 loss=0.453326 skip=0 (496.1s, best=0.739877@5)
+[S s202] epoch 7 valid_macro=0.738760 loss=0.453020 skip=0 (510.5s, best=0.739877@5)
+[S s202] epoch 8 valid_macro=0.740192 loss=0.452786 skip=0 (521.6s, best=0.740192@8)
+[S s202] epoch 9 valid_macro=0.739501 loss=0.452586 skip=0 (556.6s, best=0.740192@8)

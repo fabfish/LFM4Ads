@@ -29,6 +29,7 @@ macro AUC = **0.735388**。
 
 详见[突破归因](./20260817-1208-突破归因-公平比较下的正面结果.md)。
 **当前最高优先级（2026-08-18 18:15）**：E17 在预注册 s0 上先做 task-state baseline，再做真 task-axis、post-preconditioner AdaTask 增量；见[复审与预注册](./20260818-1815-结论复审与E17单场景AdaTask-win-case预注册.md)。原 E12/E13/E14 与 F2 后置。
+**site B 三卡（2026-08-18 22:10）**：承接路由维度实验 b0repro → E12 诊断 → b1topk（E14-B，site 内自足）；见[site B 复工预注册](./20260818-2210-siteB复工-b0repro-b1topk-E12预注册.md)。与 site A 的 E17 并行、互不干扰。
 
 ---
 
