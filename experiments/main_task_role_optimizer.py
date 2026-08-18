@@ -380,6 +380,7 @@ def run(args: argparse.Namespace) -> dict[str, object]:
             "patience": args.patience,
             "max_batches": args.max_batches,
             "max_eval_batches": args.max_eval_batches,
+            "explore": bool(args.explore),
             "sample_counts": counts,
             "macro_scenarios": list(MACRO_SCENARIOS),
             "primary_endpoint": "测试集八场景分别计算曲线下面积后等权平均",
@@ -387,7 +388,7 @@ def run(args: argparse.Namespace) -> dict[str, object]:
             "test_set_used": not args.development,
             "parameter_write_semantics": "每个混合批次每个参数最多写入一次",
             "preregistration": (
-                "docs/20260817-1821-按参数角色隔离子任务优化器预注册-siteB.md"),
+                "docs/20260818-1115-F1-优化器状态共享度baseline预注册.md"),
         },
     }
     if test_source is not None:
@@ -422,14 +423,21 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-eval-batches", type=int, default=0)
     parser.add_argument("--development", action="store_true")
     parser.add_argument("--resume", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument(
+        "--explore", action="store_true",
+        help="探索阶段：允许 --max-batches 截断训练集（仍用完整 test 评估）。"
+             "截断口径会写入 provenance.train_max_batches，结论文档必须标注")
     parser.add_argument("--tag", required=True)
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
-    if not args.development and (args.max_batches or args.max_eval_batches):
-        raise SystemExit("正式训练禁止截断训练集、验证集或测试集")
+    if args.max_batches and not (args.development or args.explore):
+        raise SystemExit(
+            "正式训练禁止截断训练集；探索阶段请加 --explore（截断口径会登记）")
+    if args.max_eval_batches and not args.development:
+        raise SystemExit("正式训练禁止截断验证集或测试集")
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     destination = OUT_DIR / f"run_{args.tag}.json"
     if destination.exists():

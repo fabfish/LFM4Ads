@@ -32,8 +32,13 @@ SEED_DEVICE = {42: "cuda:0", 123: "cuda:1"}
 SEEDS = (42, 123)
 
 ENTRY = str(ROOT / "experiments" / "main_task_role_optimizer.py")
-MAX_EPOCHS = 20
-PATIENCE = 10
+#: 探索阶段口径（子采样 + 少 epoch，方向性 baseline，非正式判定）。
+#: jacrev 全数据单 epoch 约 1.5-2h（15 场景 = 15 次 vjp），20 epoch 不可行；
+#: 探索规模 = max-batches 1000（约 3.9% train，与 site B 短测口径一致）
+#: + 5 epoch + patience 3。截断口径写入 provenance.explore / max_batches。
+MAX_EPOCHS = 5
+PATIENCE = 3
+MAX_BATCHES = 1000
 
 
 def tag(arm: str, seed: int) -> str:
@@ -47,6 +52,8 @@ def cmd(arm: str, seed: int, device: str) -> list[str]:
         "--seed", str(seed),
         "--max-epochs", str(MAX_EPOCHS),
         "--patience", str(PATIENCE),
+        "--max-batches", str(MAX_BATCHES),
+        "--explore",
         "--tag", tag(arm, seed),
     ]
 
