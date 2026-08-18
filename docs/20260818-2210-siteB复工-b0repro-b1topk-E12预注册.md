@@ -1,7 +1,16 @@
 # Site B 复工预注册：b0repro + b1topk + E12 诊断（E14-B）
 
 - 创建时间：2026-08-18 22:10
-- 状态：**`auth=planned`**（判定规则冻结；site B 三卡恢复，即日可启动）
+- 状态：**`launched=running`**（2026-08-18 22:25 site B 实机启动；判定规则仍以本文 §2 冻结版为准）
+- 启动记录（运维事实，不改变任何判定规则）：
+  - preflight 六项全绿（`cache/preflight_site_B.json`：C1 size/C2 vocab/C3 counts/C4 scenarios/C5 numerics/C4b params）。
+    首次启动因 site B 环境缺 `torcheval` 而 C4/C5 FAIL（启动器按设计中止、未派发任何 run），
+    补装 `torcheval==0.0.7`（torch 2.7.1 / cuda 12.8 / 3×H20）后二次启动通过。
+  - `--budget-hours` 由启动器默认 8 提为 **12**：cuda:0 串行 7 个 run（seed 42/789 全臂同卡），
+    8h 守卫可能截断 b1topk 尾部 run、破坏 4-seed 配对完整性；12h 为纯墙钟守卫，
+    不改变任何科学参数（epochs/patience/lr/bs 仍为 E10 协议 20/10/1e-3/10000）。
+  - 启动命令：`setsid nohup bash scripts/matrix/run_siteB.sh b0repro,b1topk --budget-hours 12`，
+    驱动日志 `logs/macro_auc_27k_siteB/matrix_b0b1.log`。
 - 上游预注册：[开放实验计划 E12/E13/E14](./20260817-1215-开放实验计划-下一个关键MoE改动.md)、
   [两端协作分离设计与实验分工](./20260817-1400-两端协作分离设计与实验分工.md)
 - 与 site A 正在跑的 E17（[预注册](./20260818-1815-结论复审与E17单场景AdaTask-win-case预注册.md)）
