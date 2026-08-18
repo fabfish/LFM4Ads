@@ -1,0 +1,4 @@
+E17 A 臂 seed=101 device=cuda:1 target=s0 out=cache/audit/adatask_win_s0_27k_siteA
+[A s101] epoch 0 valid_macro=0.514637 loss=0.631341 skip=0 (20.7s, best=0.514637@0)
+[A s101] 完成 → cache/audit/adatask_win_s0_27k_siteA/run_e17_A_s101.json best_valid_macro=0.514637@0 test_s0=0.4996339014614296
+SMOKE_EXIT=0

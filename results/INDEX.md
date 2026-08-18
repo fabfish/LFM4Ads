@@ -17,9 +17,9 @@
 - **E9（撤销）**：K 扫描 20 run 按用户授权缩减不执行（top_k 维度比 K 粒度重要）。
 - **突破归因**：换 27K（地板 ↓8.4×）+ 换 macro 端点（对准收益位置）+ 硬路由（放大 2.7×），**三者缺一不可**；删 ID 表只是工程使能条件。见 [`突破归因`](../docs/20260817-1208-突破归因-公平比较下的正面结果.md)。
 - **E15（PASS ×2）**：换一套 epoch 选择规则（macro→pooled），MoE 收益**方向不变**（4/4 同号正），但地板倍数 3.70→**1.05**——方向稳健、统计强度不稳健；复现哨兵 8/8 逐位一致。见 [`E15 结论`](../docs/20260817-1500-E15结论-选择端点敏感性.md)。
-- **下一步（planned）**：E12 专家利用率诊断 → E14 top_k 单调性 → E13 router 粒度升级（12h，关键 MoE 改动）。已移交 **site B（3 卡）**，任务表见 [`两端协作分工`](../docs/20260817-1400-两端协作分离设计与实验分工.md)。
-- **site B 分支（进行中）**：`site-b/task-role-optimizer` 实现了**按参数角色隔离子任务优化器**（真 per-task 自适应学习率，非历史 AdaTask 的梯度缩放伪实现），短测 9 方向单 seed 方向性正向（完整角色隔离 +0.0150，5/5 专家覆盖），三臂长程（seed 42）进行中。**审阅已通过核心正确性**，三处边界待登记，正式 4 seed 判定待长程结果。见 [`审阅结论`](../docs/20260818-0006-siteB-task-role-optimizer-审阅结论.md)。
-- **F1 优化器状态共享度 baseline（探索，2 seed × 3.9%，结论已降级）**：探索口径下 DualOptim+ **系统性负向** −0.0167；SkewAdam ≈0、DualOptim 方向不定。**但 site B 全数据（seed 42）测得"完整角色隔离 −0.0091 负向"，撤销了子采样口径的乐观结论**——状态隔离路线无收益、不再加码。见 [`F1 结论`](../docs/20260818-1305-F1结论-优化器状态共享度baseline.md) 与 [`生命周期总结 §一`](../docs/20260818-1512-上下文生命周期总结-F1降级与MoE降遗忘方向.md)。**踩坑**：jacrev 梯度收集使全数据单 epoch ~2h 不可行，是子采样口径的源头。下一方向转向 **MoE 降遗忘（F2 EWC）**，已预注册。
+- **下一步（最高优先，planned）**：E17 先在预注册场景 s0 建立纯 task-state baseline win，再测一个真 task-axis、post-preconditioner AdaTask 增量 case；Stage 0 审计未通过前禁止长跑。见 [`E17 复审与预注册`](../docs/20260818-1815-结论复审与E17单场景AdaTask-win-case预注册.md)。E12/E13/E14 与 F2 暂后置。
+- **site B 分支（长程已完成，单 seed）**：`site-b/task-role-optimizer` 的完整角色隔离 bundle 在全数据 seed42 上为 `0.723993-0.733109=-0.009116`；raw JSON 在提交 `842b8aa`。该 bundle 同时改变状态、角色 LR、router 动量和 weight decay，故只能登记 **INCONCLUSIVE（负向单-seed）**，不能归因或关闭全部状态隔离路线。
+- **F1 优化器状态共享度 baseline（探索，严格判定 INCONCLUSIVE）**：DualOptim 两 seed 异号；DualOptim+ 是强负向预警但仍属 3.9%×5 epoch；`role_isolated` 两 seed 异号。s0 上纯状态隔离已有 `+0.020936/+0.041955` 的候选信号，E17 用新 seeds 前瞻复核。历史 AdaTask 是 pre-Adam、跨专家调制，真 task-axis AdaTask 尚未测试。
 - 证据：`cache/macro_auc_27k/`；结论 [`E8910`](../docs/20260816-1950-E8910结论-硬路由topk2最终形态.md)、[`E7`](../docs/20260816-1237-E7结论-27K场景内MoE首个work-case.md)
 
 **三条已关闭的路线**（一句话）：

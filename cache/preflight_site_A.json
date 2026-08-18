@@ -1,10 +1,10 @@
 {
   "site": "A",
   "env": {
-    "LFM_DATASET": "/root/Documents/Lfm4ads/dataset_27k.feather",
-    "LFM_VOCAB_JSON": "/root/Documents/Lfm4ads/cache/fields_27k.json",
-    "LFM_SAMPLE_COUNTS_JSON": "/root/Documents/Lfm4ads/cache/sample_counts_27k.json",
-    "LFM_MACRO_OUT": "/root/Documents/Lfm4ads/cache/macro_auc_27k"
+    "LFM_DATASET": "dataset_27k.feather",
+    "LFM_VOCAB_JSON": "cache/fields_27k.json",
+    "LFM_SAMPLE_COUNTS_JSON": "cache/sample_counts_27k.json",
+    "LFM_MACRO_OUT": ""
   },
   "dataset_size_bytes": 6005554962,
   "dataset_sha256_head64mb": "ba2fafdc62f594a12e8fa8383e9ae19313d6bbf8e9aeb1564ddeda1fe4a888f9",

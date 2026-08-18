@@ -1,0 +1,12 @@
+[s1_sample_counts] PASS — {'counts': {'train': 255474457, 'valid': 34034748, 'test': 32769180}, 'expected': {'train': 255474457, 'valid': 34034748, 'test': 32769180}}
+[s7_params_and_init] PASS — {'total_params': 869750, 'expected_params': 869750, 'same_init': True, 'same_first_batch': True}
+[s8_routing_semantics] PASS — {'top_k': 2, 'n_expert_param_tensors': 30, 'n_layers': 3, 'init_expert_coverage': 2, 'init_expert_loads': [0, 0, 45, 0, 45]}
+[s2_group_grad_equivalence] PASS — {'max_rel_err': 1.201276428281635e-06, 'tol': 5e-06, 'group_counts': [1955, 8045], 'group_losses': [0.7351637482643127, 0.6955293416976929]}
+[s2b_collector_determinism] PASS — {'bitwise_equal': True}
+[s3_f1_update_equivalence] PASS — {'param_max_abs': 0.0, 'state_max_abs': 0.0, 'states_bitwise': True, 'collector_repeatable': True, 'tol': 1e-07}
+[s4_post_preconditioner_states_untouched] PASS — {'states_bitwise_equal': True, 'au_updated': True}
+[s6_role_isolation] PASS — {'non_expert_bitwise_equal': True, 'n_expert_param_tensors_changed': 12}
+[s5_task_axis_factors] PASS — {'f_au4_vs1': [0.7905694246292114, 1.5811388492584229], 'f_au1_vs4': [1.5811388492584229, 0.7905694246292114]}
+[s9_efficiency_budget] PASS — {'sec_per_train_batch': 0.037, 'batches_per_epoch': 25548, 'valid_eval_seconds': 25.5, 'est_epoch_seconds': 966.0, 'est_20epoch_hours': 5.37, 'budget_hours': 12.0}
+all_pass=True → /root/Documents/Lfm4ads/cache/audit/adatask_win_s0_27k_siteA/prelaunch_audit.json
+AUDIT_EXIT=0

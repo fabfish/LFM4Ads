@@ -1,0 +1,120 @@
+{
+  "checks": {
+    "s1_sample_counts": {
+      "status": "PASS",
+      "detail": {
+        "counts": {
+          "train": 255474457,
+          "valid": 34034748,
+          "test": 32769180
+        },
+        "expected": {
+          "train": 255474457,
+          "valid": 34034748,
+          "test": 32769180
+        }
+      }
+    },
+    "s7_params_and_init": {
+      "status": "PASS",
+      "detail": {
+        "total_params": 869750,
+        "expected_params": 869750,
+        "same_init": true,
+        "same_first_batch": true
+      }
+    },
+    "s8_routing_semantics": {
+      "status": "PASS",
+      "detail": {
+        "top_k": 2,
+        "n_expert_param_tensors": 30,
+        "n_layers": 3,
+        "init_expert_coverage": 2,
+        "init_expert_loads": [
+          0,
+          0,
+          45,
+          0,
+          45
+        ]
+      }
+    },
+    "s2_group_grad_equivalence": {
+      "status": "PASS",
+      "detail": {
+        "max_rel_err": 1.201276428281635e-06,
+        "tol": 5e-06,
+        "group_counts": [
+          1955,
+          8045
+        ],
+        "group_losses": [
+          0.7351637482643127,
+          0.6955293416976929
+        ]
+      }
+    },
+    "s2b_collector_determinism": {
+      "status": "PASS",
+      "detail": {
+        "bitwise_equal": true
+      }
+    },
+    "s3_f1_update_equivalence": {
+      "status": "PASS",
+      "detail": {
+        "param_max_abs": 0.0,
+        "state_max_abs": 0.0,
+        "states_bitwise": true,
+        "collector_repeatable": true,
+        "tol": 1e-07
+      }
+    },
+    "s4_post_preconditioner_states_untouched": {
+      "status": "PASS",
+      "detail": {
+        "states_bitwise_equal": true,
+        "au_updated": true
+      }
+    },
+    "s6_role_isolation": {
+      "status": "PASS",
+      "detail": {
+        "non_expert_bitwise_equal": true,
+        "n_expert_param_tensors_changed": 12
+      }
+    },
+    "s5_task_axis_factors": {
+      "status": "PASS",
+      "detail": {
+        "f_au4_vs1": [
+          0.7905694246292114,
+          1.5811388492584229
+        ],
+        "f_au1_vs4": [
+          1.5811388492584229,
+          0.7905694246292114
+        ]
+      }
+    },
+    "s9_efficiency_budget": {
+      "status": "PASS",
+      "detail": {
+        "sec_per_train_batch": 0.037,
+        "batches_per_epoch": 25548,
+        "valid_eval_seconds": 25.5,
+        "est_epoch_seconds": 966.0,
+        "est_20epoch_hours": 5.37,
+        "budget_hours": 12.0
+      }
+    }
+  },
+  "device": "cuda:0",
+  "seed": 101,
+  "expert_specs": 30,
+  "all_pass": true,
+  "gate": "pass",
+  "git_rev": "9c41648532c15de41b6849cf8e32da02c5c05f48",
+  "timestamp": "2026-08-18 20:18:24"
+}
