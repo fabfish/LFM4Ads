@@ -33,5 +33,8 @@ logs/gpu_keeper*.log
 logs/macro_auc/
 logs/macro_auc_27k/
 logs/macro_auc_27k_siteB/
+logs/task_role_optimizer_27k_siteA/
+logs/task_role_optimizer_27k_siteB/
+logs/optimizer_baseline*.log
 logs/*_matrix*.log
 logs/macro_matrix*.log
