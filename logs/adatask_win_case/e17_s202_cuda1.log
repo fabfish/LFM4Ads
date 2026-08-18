@@ -42,3 +42,8 @@ E17 T 臂 seed=202 device=cuda:1 target=s0 out=cache/adatask_win_s0_27k_siteA
 [T s202] epoch 19 valid_macro=0.738575 loss=0.452278 skip=0 (1006.9s, best=0.739362@11)
 [T s202] 完成 → cache/adatask_win_s0_27k_siteA/run_e17_T_s202.json best_valid_macro=0.739362@11 test_s0=0.7099594805157902
 E17 A 臂 seed=202 device=cuda:1 target=s0 out=cache/adatask_win_s0_27k_siteA
+[A s202] epoch 0 valid_macro=0.727262 loss=0.464585 skip=0 (1095.1s, best=0.727262@0)
+[A s202] epoch 1 valid_macro=0.738605 loss=0.458701 skip=0 (1123.0s, best=0.738605@1)
+[A s202] epoch 2 valid_macro=0.739835 loss=0.456681 skip=0 (1129.1s, best=0.739835@2)
+[A s202] epoch 3 valid_macro=0.740611 loss=0.455660 skip=0 (1125.9s, best=0.740611@3)
+[A s202] epoch 4 valid_macro=0.741352 loss=0.454978 skip=0 (1160.4s, best=0.741352@4)
