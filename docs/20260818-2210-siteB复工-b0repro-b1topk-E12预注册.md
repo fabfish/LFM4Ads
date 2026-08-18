@@ -1,7 +1,13 @@
 # Site B 复工预注册：b0repro + b1topk + E12 诊断（E14-B）
 
 - 创建时间：2026-08-18 22:10
-- 状态：**`launched=running`**（2026-08-18 22:25 site B 实机启动；判定规则仍以本文 §2 冻结版为准）
+- 状态：**`done`**（2026-08-19 07:37 全部 13 run 完成，13 ok/0 failed/0 skipped；判定见结论文档）
+- 完成记录（运维事实，不改变任何判定规则）：
+  - 13 run 全部完成；E12 判定 `collapsed`（load_ratio 3.3–11，负载失衡）；E14-B 判定
+    `top_k=2 最优协作度`（Δ1=+0.00408 < Δ2=+0.00501，均 4/4 正、> floor_B=0.001354）。
+  - 完整结论见 [site B 复工结论](./20260819-0745-siteB复工结论-b0repro-E14B-E12.md)；
+    判定 json `cache/macro_auc_27k_siteB/e14b_e12_decision.json`。
+  - P4（E12b）需 site A 先实现 `b2lb` stage（涉 site A 独占文件），已移交，site B 待命。
 - 启动记录（运维事实，不改变任何判定规则）：
   - preflight 六项全绿（`cache/preflight_site_B.json`：C1 size/C2 vocab/C3 counts/C4 scenarios/C5 numerics/C4b params）。
     首次启动因 site B 环境缺 `torcheval` 而 C4/C5 FAIL（启动器按设计中止、未派发任何 run），

@@ -1,0 +1,32 @@
+{
+  "experiment": "siteB b0repro + b1topk (E14-B) + E12 diagnosis",
+  "site": "B",
+  "generated_at": "2026-08-19T07:38",
+  "endpoint": "macro AUC (8-scenario equal-weight)",
+  "dataset": "KuaiRand-27K",
+  "model_selection": "argmax macro valid (both arms, same criterion)",
+  "dense_baseline": {
+    "42": 0.730582,
+    "123": 0.729614,
+    "456": 0.730107,
+    "789": 0.7312
+  },
+  "floor_B": 0.001354,
+  "floor_B_note": "2 * sample_SD(dense b0repro 4 seed); site B self-computed, NOT site A floor",
+  "E14B": {
+    "verdict": "top_k=2 is optimal collaboration degree",
+    "delta1_mean": 0.004081,
+    "delta2_mean": 0.005012,
+    "delta1_4of4_positive": true,
+    "delta2_4of4_positive": true,
+    "delta1_lt_delta2_4of4": true,
+    "delta2_floor_multiple": 3.7,
+    "delta1_floor_multiple": 3.01,
+    "sanity_vs_siteA_E10": "delta2 mean +0.00501 vs E10 +0.0050, same sign+magnitude (trend check only)"
+  },
+  "E12": {
+    "verdict": "collapsed",
+    "detail": "coverage=5/5 (full) but load_ratio 3.3-11 (severe load imbalance, some experts near-idle in some layers)",
+    "action": "E12b load-balance loss (needs site A to implement b2lb stage; b2lb absent from matrix script)"
+  }
+}
