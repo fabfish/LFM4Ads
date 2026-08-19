@@ -49,6 +49,32 @@ nohup python scripts/gpu_work_keeper.py \
 
 `--stages` 可填矩阵 runner 里任意已预注册 stage（`s1` / `s2sent` / `s6sparse` / `s7pool` / `s8full` / `s9sel` / `b0repro` / `b1topk` 等）。
 
+## 2.1 守卡模式（输出到隔离目录，不污染真实结论）
+
+守卡诉求：跑一个**真实训练任务**占卡（形式真实、显存大），但产物写到一个**守卡专用目录**，
+随时可丢弃，**不污染** `cache/macro_auc_27k/` 的真实结论、也不写 `results/INDEX.md`。
+
+用 `--output-dir` 指定守卡目录：任务产物 `run_*.json` 与日志都写到该目录（`logs/` 派生），
+并给子进程注入 `LFM_MACRO_OUT=<output-dir>`，让真实训练任务也写到这里。
+
+```bash
+# 守卡：跑 s2sent（frozen-router 哨兵，2 run，27K 全表常驻 GPU ≈61GB/卡），输出到 cache/keepalive
+LFM_DATASET=$PWD/dataset_27k.feather LFM_VOCAB_JSON=$PWD/cache/fields_27k.json \
+LFM_SAMPLE_COUNTS_JSON=$PWD/cache/sample_counts_27k.json LFM_SITE=A \
+nohup python scripts/gpu_work_keeper.py --output-dir cache/keepalive \
+    --devices cuda:0,cuda:1 --stages s2sent \
+    > logs/gpu_work_keeper.log 2>&1 &
+
+# 重新守卡时清掉守卡目录即可（结果随时可丢弃）
+rm -rf cache/keepalive logs/keepalive
+```
+
+要点：
+- 守卡任务跑的是**真实预注册任务**（`experiments/main_macro_auc.py` 真实训练，不是假负载），符合政策。
+- 显存占用大：27K 数据全表常驻 GPU（约 61GB/卡），正是「显存占用大的那种」。
+- 输出隔离：`cache/keepalive/` + `logs/keepalive/` 与真实结论目录互不干扰；`main_macro_auc.py` 只写
+  `run_*.json`，不写 `results/INDEX.md`（那一步只有 `summarize` 脚本才做，守卡不跑 summarize）。
+
 ## 3 现状核对（2026-08-19）
 
 - `cache/macro_auc_27k/` 与 `cache/macro_auc/` 的所有预注册主线 stage `run_*.json` 已齐全，`matrix_state.json` 里

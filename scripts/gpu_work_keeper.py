@@ -30,6 +30,17 @@
     # dry-run：只打印任务分配，不派活
     python scripts/gpu_work_keeper.py --devices cuda:0,cuda:1 --stages s1,s2sent --dry-run
 
+守卡模式（跑真实任务占卡，但输出到隔离目录，不污染真实结论 / results/INDEX）：
+    # 用 27K（显存 61GB/卡）+ 输出到 cache/keepalive/，跑一个已验证的干净任务
+    LFM_DATASET=$PWD/dataset_27k.feather LFM_VOCAB_JSON=$PWD/cache/fields_27k.json \
+    LFM_SAMPLE_COUNTS_JSON=$PWD/cache/sample_counts_27k.json LFM_SITE=A \
+    python scripts/gpu_work_keeper.py --output-dir cache/keepalive \
+        --devices cuda:0,cuda:1 --stages s2sent
+
+    --output-dir 会把任务产物 run_*.json 与日志写到该目录（logs/ 派生），
+    且给子进程注入 LFM_MACRO_OUT=<output-dir>，让真实训练任务也写到这里。
+    要重新守卡时 rm -rf cache/keepalive logs/keepalive 即可（结果随时可丢弃）。
+
 环境变量（与矩阵 runner 相同，缺一会静默用错数据集或直接 S1 FAILED）：
     LFM_DATASET / LFM_VOCAB_JSON / LFM_SAMPLE_COUNTS_JSON / LFM_MACRO_OUT / LFM_SITE
 """
@@ -50,6 +61,7 @@ import run_macro_auc_matrix as rmm  # noqa: E402
 OUT_DIR = rmm.OUT_DIR          # 由 LFM_MACRO_OUT 决定，与矩阵 runner 完全一致
 LOG_DIR = rmm.LOG_DIR          # logs/<实验>，与矩阵 runner 一致
 PRIMARY_STAGES = ",".join(rmm.PRIMARY_STAGES)
+_OVERRIDE_OUT_DIR = None       # --output-dir 守卡覆盖：None = 用 LFM_MACRO_OUT
 
 
 def _gpu_index(device):
@@ -102,10 +114,14 @@ def worker(gpu_id, device, my_tasks, poll_s):
         os.makedirs(LOG_DIR, exist_ok=True)
         t0 = time.time()
         print(f"[{device}] ({idx}/{n}) RUN {tag}", flush=True)
+        # 守卡覆盖：把 LFM_MACRO_OUT 注入子进程，真实训练任务输出到隔离目录
+        env = os.environ.copy()
+        if _OVERRIDE_OUT_DIR:
+            env["LFM_MACRO_OUT"] = _OVERRIDE_OUT_DIR
         try:
             with open(log_file, "w") as lf:
                 rc = subprocess.call(task["cmd"], cwd=_ROOT,
-                                     stdout=lf, stderr=subprocess.STDOUT)
+                                     stdout=lf, stderr=subprocess.STDOUT, env=env)
         except Exception as e:  # noqa: BLE001
             rc, err = -99, repr(e)
         else:
@@ -120,16 +136,25 @@ def worker(gpu_id, device, my_tasks, poll_s):
 
 
 def main():
+    global OUT_DIR, LOG_DIR, _OVERRIDE_OUT_DIR
     ap = argparse.ArgumentParser(description="真实任务占卡守护（跑预注册真实实验，不跑假负载）")
     ap.add_argument("--stages", default=PRIMARY_STAGES,
                     help="预注册 stage，逗号分隔（复用矩阵 runner 的任务表）")
     ap.add_argument("--devices", default="cuda:0,cuda:1",
                     help="要占的卡，逗号分隔")
+    ap.add_argument("--output-dir", default=None,
+                    help="守卡输出目录（隔离）。指定后产物与日志写到这里，"
+                         "并注入子进程 LFM_MACRO_OUT；不污染真实结果")
     ap.add_argument("--epochs", type=int, default=20)
     ap.add_argument("--patience", type=int, default=10)
     ap.add_argument("--poll-s", type=int, default=30, help="空闲轮询间隔（秒）")
     ap.add_argument("--dry-run", action="store_true", help="只打印任务分配，不派活")
     args = ap.parse_args()
+
+    if args.output_dir:
+        _OVERRIDE_OUT_DIR = os.path.abspath(args.output_dir)
+        OUT_DIR = _OVERRIDE_OUT_DIR
+        LOG_DIR = _OVERRIDE_OUT_DIR.replace("cache", "logs", 1)
 
     stages = tuple(s for s in args.stages.split(",") if s)
     devices = [d.strip() for d in args.devices.split(",") if d.strip()]
