@@ -32,6 +32,7 @@
 | **E10 硬路由 top_k=2（27K）** | `done` | **PASS（当前最优）** | Δ = {+0.0053,+0.0053,+0.0042,+0.0052} **4/4 正**，均值 **+0.005012** > 地板（**3.70×**）；hard−soft 配对差 +0.0031 **4/4 正**；参数量与软路由完全相同 | **最终形态**：macro 0.735388；wall 0.98×（激活稀疏，未省算力） | [E8910 结论](./20260816-1950-E8910结论-硬路由topk2最终形态.md) |
 | **E11 full-ID 公平性复核（27K）** | `done` | **PASS** | 8 run；加回 5.5 亿 ID 参数后 Δ = {+0.0065,+0.0032,+0.0032,+0.0044} **4/4 正**，均值 **+0.004329** > 地板 0.001335（**3.24×**）；dense AdamW（无 sparse、零语义差异） | **公平性质疑排除**；副产结论：加回 ID 表 macro 降 **0.0055**（4/4 负）→ ID 表**有害**（强于 1K 的"死重"） | [突破归因（含 E11）](./20260817-1208-突破归因-公平比较下的正面结果.md) |
 | **E17 s0 baseline + AdaTask win-case** | `done` | **INCONCLUSIVE** | Δ_T(s0) 异号（−0.0025/+0.0002）、Δ_T(macro) 2/2 负；Δ_A(s0) 2/2 正但均值 +0.0005 未越地板 0.0008、Δ_A(macro) +0.0044 越地板 | 机制：AdaTask 增益在 rest 非 s0；不扩 Stage 2 | [复审与预注册](./20260818-1815-结论复审与E17单场景AdaTask-win-case预注册.md)；[结论](./20260819-1155-E17结论-状态隔离无益AdaTask增益在rest.md) |
+| **E14-B + E12（site B 复工）** | `done` | **PASS(复现) + top_k=2 最优 + collapsed** | b0repro dense 4 seed 逐位复现 site A（差值全 0）；Δ(tk2)=+0.005012 > Δ(tk1)=+0.004081（均 4/4 正、越地板）→ top_k=2 为最优协作度；E12 专家覆盖 5/5 但负载比 3.3–11 → 负载失衡（collapsed 分支） | 下一步 E12b load-balance（需 site A 实现 b2lb stage） | [复工预注册](./20260818-2210-siteB复工-b0repro-b1topk-E12预注册.md)；[结论](./20260819-0745-siteB复工结论-b0repro-E14B-E12.md) |
 | TCMR 静态任务条件路由 | `done` | **INCONCLUSIVE** | 15/15 完成；DATR 对 FUR、DOR 的同 seed pooled-AUC 差均跨 seed 变号且未越过噪声地板 | 旧 TCMR 后续继续 blocked；不阻塞独立预注册的 E17 | [驱动](archive/drivers/20260812-1139-Task-Conditioned-Mixture-Routing-驱动.md)；[结论](archive/conclusions/20260812-1703-TCMR-结论.md)；[机器判定](../cache/task_conditioned_mixture_routing/gate_decision.json) |
 | 共享残差 G1：函数保持 upcycling | `done` | **PASS** | 3 seed 的 logits/loss/AUC 与 dense 在预注册阈值内一致 | 仅与 G2 一起授权既定 G3 | [正式驱动](archive/drivers/20260812-1807-共享残差混合专家-函数保持与持续学习-驱动.md)；[G1/G2 结论](archive/conclusions/20260812-1832-共享残差混合专家-G1G2不变量结论.md)；[不变量](../cache/audit/shared_residual_continual/shared_residual_experiment_invariants.json) |
 | 共享残差 G2：LR/冻结语义 | `done` | **PASS** | pre-Adam 常数缩放 update ratio≈1；parameter-group 10× LR update ratio≈9.9982；冻结与更新隔离通过 | 仅授权既定 G3 | 同上 |
@@ -213,8 +214,7 @@
 （pooled 下退回 INCONCLUSIVE）+ 硬路由放大效应 2.7 倍。详见
 [突破归因](./20260817-1208-突破归因-公平比较下的正面结果.md)。
 
-**下一步（`auth=planned`）**：E12 专家利用率诊断 → E14 top_k 单调性 → E13 router 粒度升级。
-见[开放实验计划](./20260817-1215-开放实验计划-下一个关键MoE改动.md)。
+**下一步（`auth=planned`）**：E12 与 E14-B 已在 site B 完成（见路线表）。下一步 **E12b load-balance**（专家负载比 3.3–11，需 site A 实现 `b2lb` stage）；之后视负载均衡结果决定 E13 router 粒度升级。见[开放实验计划](./20260817-1215-开放实验计划-下一个关键MoE改动.md)。
 
 ### 4.2 已关闭路线
 

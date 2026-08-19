@@ -28,8 +28,8 @@ macro AUC = **0.735388**。
 4. 删 ID 表只是**工程使能条件**（模型 ÷634、快 6 倍，让 80+ run 矩阵跑得起），**不是收益来源**（E11 已证）。
 
 详见[突破归因](./20260817-1208-突破归因-公平比较下的正面结果.md)。
-**当前最高优先级（2026-08-18 18:15）**：E17 在预注册 s0 上先做 task-state baseline，再做真 task-axis、post-preconditioner AdaTask 增量；见[复审与预注册](./20260818-1815-结论复审与E17单场景AdaTask-win-case预注册.md)。原 E12/E13/E14 与 F2 后置。
-**site B 三卡（2026-08-18 22:10）**：承接路由维度实验 b0repro → E12 诊断 → b1topk（E14-B，site 内自足）；见[site B 复工预注册](./20260818-2210-siteB复工-b0repro-b1topk-E12预注册.md)。与 site A 的 E17 并行、互不干扰。
+**E17（2026-08-19 完成，INCONCLUSIVE）**：s0 单场景下 task-state baseline 无益、AdaTask 增益在 rest 非 s0，不扩 Stage 2；见[结论](./20260819-1155-E17结论-状态隔离无益AdaTask增益在rest.md)。
+**site B 复工（2026-08-19 完成）**：E14-B top_k 单调性（top_k=2 最优，Δ=+0.0050）+ E12 专家利用率（负载比 3.3–11 → 负载失衡）；见[结论](./20260819-0745-siteB复工结论-b0repro-E14B-E12.md)。**当前下一步 = E12b load-balance**（需 site A 实现 `b2lb` stage）。
 
 ---
 
@@ -165,12 +165,12 @@ python experiments/main_macro_auc.py <device> --arch moe --loss balanced --K 5 -
 
 | # | 实验 | 缺口 | 成本 | 状态 |
 |---|---|---|---|---|
-| **E12** | **专家利用率诊断** | 不知道专家是否真分化（可能坍缩到 2/5） | **50 min** | `planned`（**必做，决定 E13**） |
-| **E14** | **top_k 单调性**（top_k=1） | 5→2 收益 ×2.7，→1 更好还是回落？ | 4h | `planned`（独立，可先跑） |
-| **E13** | **router 粒度升级**（scenario→data/hybrid） | `ScenarioRouter` 只有 **15 种 gate 模式**，样本级路由未测 | 12h | `planned`（**关键 MoE 改动**） |
-| E12b | load-balance loss | 条件解锁：E12 判定坍缩时 | 8h | `blocked` |
+| **E12** | **专家利用率诊断** | 专家是否真分化 | 50 min | `done`（site B）：覆盖 5/5 但**负载比 3.3–11 失衡** |
+| **E14** | **top_k 单调性**（top_k=1） | 5→2 收益 ×2.7，→1 更好还是回落？ | 4h | `done`（E14-B，site B）：Δ(tk2)+0.0050 > Δ(tk1)+0.0041 → **top_k=2 最优** |
+| **E12b** | load-balance loss | E12 判定负载失衡，专家忙闲不均 | 8h | `planned`（**当前下一步**，需 site A 实现 `b2lb` stage） |
+| **E13** | **router 粒度升级**（scenario→data/hybrid） | `ScenarioRouter` 只有 **15 种 gate 模式**，样本级路由未测 | 12h | `planned`（视 E12b 结果） |
 
-**决策树**：E12 → 坍缩则先 E12b；已分化则直接 E13。E14 与两者无依赖，可插空跑。
+**决策树（已按 E12 判定推进）**：E12 判负载失衡 → **下一步 E12b load-balance**；E12b 后视结果决定 E13。
 
 **已完成的历史步骤**（不必重跑）：
 

@@ -38,3 +38,7 @@ logs/task_role_optimizer_27k_siteB/
 logs/optimizer_baseline*.log
 logs/*_matrix*.log
 logs/macro_matrix*.log
+
+# gpu_work_keeper 守卡任务临时产物（真实任务输出到隔离目录，与正式结果重复，不入 git）
+cache/macro_auc_27k_siteB_keepalive/
+logs/macro_auc_27k_siteB_keepalive/
