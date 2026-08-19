@@ -1,0 +1,49 @@
+{
+  "experiment": "E17 single-scenario (s0) AdaTask win-case — Stage 1 gate",
+  "site": "A",
+  "generated_at": "2026-08-19T11:51",
+  "stage": "Stage 1 (go/no-go screening)",
+  "verdict": "no-go (INCONCLUSIVE)",
+  "seeds": [
+    101,
+    202
+  ],
+  "arms_completed": [
+    "S",
+    "T",
+    "A"
+  ],
+  "endpoint": "s0 test AUC (primary); macro test AUC (guard)",
+  "model_selection": "argmax valid macro, all three arms symmetric",
+  "key_metrics": {
+    "delta_T_s0": {
+      "101": -0.00245,
+      "202": 0.00017
+    },
+    "delta_T_s0_mean": -0.00114,
+    "delta_A_s0": {
+      "101": 0.000453,
+      "202": 0.000604
+    },
+    "delta_A_s0_mean": 0.000528,
+    "A_minus_T_macro": {
+      "101": 0.006305,
+      "202": 0.002546
+    }
+  },
+  "floor_reference_2seed": {
+    "floor_T_s0": 0.002873,
+    "floor_A_s0": 0.000832,
+    "note": "only 2 seeds (n-1 SD); reference only, formal floor needs 4 seeds"
+  },
+  "go_conditions": {
+    "1_delta_T_gt_0": false,
+    "2_delta_A_gt_0": true,
+    "3_A_minus_T_macro_ge_minus0.002": true,
+    "4_no_clip_no_low_cov_no_prov_fail": true
+  },
+  "verdict_reason": "go condition 1 fails: seed101 Δ_T(s0)=-0.002450<0, sign-flips (202 +0.00017). Baseline win (T vs S) NOT established. F1 short-run +0.021/+0.042 (3.9%×5ep) = subsample optimistic extrapolation, revoked on full-data new seeds.",
+  "ada_task_note": "Δ_A(s0) positive 2/2 but tiny (mean +0.00053 < reference floor_A 0.00083); insufficient for AdaTask incremental win.",
+  "next": "Stage 2 (seeds 303/404) NOT started. no-go per §5.",
+  "rules_frozen": "docs/20260818-1815 §5 Stage 1"
+}

@@ -1,10 +1,10 @@
 # 后续安排与授权边界
 
-> **当前决策（2026-08-18 18:15 更新）：先完成 E17 单场景 win-case——s0 的 task-state baseline + 真 AdaTask 增量；E12/E13/E14 与 F2 暂后置。**
+> **当前决策（2026-08-19 11:55 更新）：E17 已出结论——task-state baseline 无益、AdaTask 增益在 rest 而非 s0，均不扩 Stage 2；路由维度 E12/E13/E14 转由 site B 承接（进行中）。**
 >
-> - 复审发现 F1 只能判 `INCONCLUSIVE`：site B 的 −0.009116 是单 seed、多变量完整 bundle，不能关闭纯状态隔离；历史 AdaTask 又是 pre-Adam、跨专家归一化，真 task-axis AdaTask 实为 `NOT_EVALUATED`。
-> - E17 已用既有证据预先冻结 s0：E10 MoE−dense `+0.007529`（4/4 正）；F1 短训 task-state−shared 为 `+0.020936/+0.041955`，只作候选依据。新验证改用 seeds 101/202/303/404。
-> - 设计与门控见 [E17 复审与预注册](./20260818-1815-结论复审与E17单场景AdaTask-win-case预注册.md)；Stage 0 数值审计通过前不得长跑。
+> - E17 Stage 1（2 seed 全数据）判定 INCONCLUSIVE：Δ_T(s0) 异号、Δ_T(macro) 2/2 负；Δ_A(s0) 2/2 正但未越地板，Δ_A(macro) +0.0044 越地板。机制：suppress s0/amplify rest 的方向设计使收益被 rest 吸收。
+> - 见 [E17 结论](./20260819-1155-E17结论-状态隔离无益AdaTask增益在rest.md)。
+> - 若继续 AdaTask 线，下一步是翻转因子方向（encourage s0）做对照，验证「方向即收益分配」假设（结论 §4.3）。
 >
 > - **已成立**：27K + macro 端点 + 硬路由 top_k=2，Δ=**+0.005012**（轻量，4/4 seed 正，地板 3.70×）；
 >   full-ID 复核 Δ=**+0.004329**（4/4 正，地板 3.24×）→ **公平性质疑排除**。

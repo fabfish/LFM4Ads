@@ -17,7 +17,7 @@
 - **E9（撤销）**：K 扫描 20 run 按用户授权缩减不执行（top_k 维度比 K 粒度重要）。
 - **突破归因**：换 27K（地板 ↓8.4×）+ 换 macro 端点（对准收益位置）+ 硬路由（放大 2.7×），**三者缺一不可**；删 ID 表只是工程使能条件。见 [`突破归因`](../docs/20260817-1208-突破归因-公平比较下的正面结果.md)。
 - **E15（PASS ×2）**：换一套 epoch 选择规则（macro→pooled），MoE 收益**方向不变**（4/4 同号正），但地板倍数 3.70→**1.05**——方向稳健、统计强度不稳健；复现哨兵 8/8 逐位一致。见 [`E15 结论`](../docs/20260817-1500-E15结论-选择端点敏感性.md)。
-- **下一步（最高优先，planned）**：E17 先在预注册场景 s0 建立纯 task-state baseline win，再测一个真 task-axis、post-preconditioner AdaTask 增量 case；Stage 0 审计未通过前禁止长跑。见 [`E17 复审与预注册`](../docs/20260818-1815-结论复审与E17单场景AdaTask-win-case预注册.md)。E12/E13/E14 与 F2 暂后置。
+- **E17 结论（done，Stage 1 gate INCONCLUSIVE）**：s0 单场景下 baseline win 未达成——Δ_T(s0) 两 seed 异号（−0.0025/+0.0002），macro 2/2 负（−0.0041）；AdaTask 相对 T 的 s0 增量 2/2 正但未越地板（+0.0005<0.0008），macro 越地板（+0.0044）。**机制**：AdaTask 增益被 rest 场景吸收而非 s0。不扩 Stage 2。见 [`E17 结论`](../docs/20260819-1155-E17结论-状态隔离无益AdaTask增益在rest.md)。路由维度 E12/E13/E14 由 site B 承接。
 - **site B 分支（长程已完成，单 seed）**：`site-b/task-role-optimizer` 的完整角色隔离 bundle 在全数据 seed42 上为 `0.723993-0.733109=-0.009116`；raw JSON 在提交 `842b8aa`。该 bundle 同时改变状态、角色 LR、router 动量和 weight decay，故只能登记 **INCONCLUSIVE（负向单-seed）**，不能归因或关闭全部状态隔离路线。
 - **F1 优化器状态共享度 baseline（探索，严格判定 INCONCLUSIVE）**：DualOptim 两 seed 异号；DualOptim+ 是强负向预警但仍属 3.9%×5 epoch；`role_isolated` 两 seed 异号。s0 上纯状态隔离已有 `+0.020936/+0.041955` 的候选信号，E17 用新 seeds 前瞻复核。历史 AdaTask 是 pre-Adam、跨专家调制，真 task-axis AdaTask 尚未测试。
 - 证据：`cache/macro_auc_27k/`；结论 [`E8910`](../docs/20260816-1950-E8910结论-硬路由topk2最终形态.md)、[`E7`](../docs/20260816-1237-E7结论-27K场景内MoE首个work-case.md)

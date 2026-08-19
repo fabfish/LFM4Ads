@@ -181,7 +181,11 @@ A 臂对每个 sparse-expert 参数块 p：
 
 ### Stage 1：新 seed 的全数据三臂筛选
 
-- 状态：**`running`（2026-08-18 22:00 起；seed 101→cuda:0，seed 202→cuda:1，各自 S→T→A 顺序）**
+- 状态：**`done / gate=no-go`（2026-08-19 11:50 起六臂 S/T/A × 101/202 全部完成；判定 INCONCLUSIVE，不追加 303/404）**
+- 判定结果（详见 [E17 Stage 1 gate 判定](./20260819-1150-E17-Stage1-gate判定-单场景AdaTask无baseline-win.md)）：
+  - Δ_T(s0) 变号：101 = −0.002450，202 = +0.000170（go 条件 1 不满足）→ baseline win 不成立；
+  - Δ_A(s0) 2/2 正但均值 +0.000528 < 参考地板 0.000832 → AdaTask 增量未达地板；
+  - 撤销 F1 短训 +0.021/+0.042 的子采样乐观外推。
 - **并行授权（用户 2026-08-18）**：seed 101（cuda:0）与 seed 202（cuda:1）同时启动，各自 S→T→A 同卡顺序执行；若 101 的 gate 判负向终止条件，则终止 202。两 seed 均属预注册 seed 集，不引入选择偏差。
 - 观察哨：A 臂各 epoch 的 clip_rate 若 ≥0.3，按冻结规则该 run 标 clip_dominated（smoke 首批 0.34 为 AU 冷启动暂态，以全 epoch 均值为准）
 - 只作 go/no-go，不作正式 PASS
@@ -194,7 +198,7 @@ A 臂对每个 sparse-expert 参数块 p：
 
 ### Stage 2：追加 303/404，四 seed 正式判定
 
-- 状态：`blocked by Stage 1`
+- 状态：`not started（Stage 1 no-go，本实验收尾）`
 - 不改任何超参数；seeds 101/202 已在 Stage 1 并行完成（用户授权），原样纳入
 - 正式结果必须四 seed 一起汇总，单 seed 不单独宣传为 win
 

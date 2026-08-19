@@ -1,1 +1,15 @@
 [runner] 待运行: {101: 'cuda:0', 202: 'cuda:1'}
+[runner] seed 101 退出码 0 (49620s)
+[runner] seed 202 退出码 0 (54090s)
+{
+  "101": {
+    "S": "done",
+    "T": "done",
+    "A": "done"
+  },
+  "202": {
+    "S": "done",
+    "T": "done",
+    "A": "done"
+  }
+}
